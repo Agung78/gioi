@@ -139,7 +139,7 @@ const partyOptions = computed(() => {
 
 <template>
   <div class="mx-auto max-w-5xl px-4 pb-32 pt-8 md:px-8 lg:pb-16">
-    <RouterLink to="/" class="text-sm font-medium text-accent underline underline-offset-4">Back to GIOI</RouterLink>
+    <RouterLink to="/" class="inline-flex min-h-11 items-center text-sm font-medium text-accent underline underline-offset-4">Back to GIOI</RouterLink>
     <h1 class="mt-3 text-3xl font-extrabold md:text-4xl">Book a table</h1>
 
     <div class="mt-8 grid gap-8 lg:grid-cols-[1fr_320px]">
@@ -267,12 +267,12 @@ const partyOptions = computed(() => {
 
         <section class="space-y-3">
           <p class="text-sm leading-relaxed text-muted">{{ data.settings.cancellationPolicy }}</p>
-          <label class="flex items-start gap-3 text-sm">
-            <input v-model="acceptedPolicy" type="checkbox" class="mt-1 h-4 w-4 accent-[rgb(var(--accent))]" />
+          <label class="flex min-h-11 items-start gap-3 py-2 text-sm">
+            <input v-model="acceptedPolicy" type="checkbox" class="mt-0.5 h-5 w-5 accent-[rgb(var(--accent))]" />
             <span>I understand the cancellation policy.</span>
           </label>
-          <label class="flex items-start gap-3 text-sm">
-            <input v-model="marketingConsent" type="checkbox" class="mt-1 h-4 w-4 accent-[rgb(var(--accent))]" />
+          <label class="flex min-h-11 items-start gap-3 py-2 text-sm">
+            <input v-model="marketingConsent" type="checkbox" class="mt-0.5 h-5 w-5 accent-[rgb(var(--accent))]" />
             <span>Send me occasional news and events. (Optional)</span>
           </label>
           <div v-if="error" class="alert-danger" role="alert">{{ error }}</div>
@@ -293,7 +293,7 @@ const partyOptions = computed(() => {
       </aside>
     </div>
 
-    <div class="fixed inset-x-0 bottom-0 z-20 border-t border-line bg-surface/95 p-4 backdrop-blur-md lg:hidden">
+    <div class="fixed inset-x-0 bottom-0 z-20 border-t border-line bg-surface/95 p-4 pb-[max(1rem,env(safe-area-inset-bottom))] backdrop-blur-md lg:hidden">
       <p class="mb-2 text-center text-sm font-medium">{{ summary }}</p>
       <button class="btn-primary min-h-14 w-full text-base" form="book-form" :disabled="!canSubmit || submitting"
         type="submit">

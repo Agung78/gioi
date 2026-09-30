@@ -140,7 +140,7 @@ const totalCapacity = computed(() => draft.value.seatingAreas.filter((a) => a.bo
     <section class="card mb-6">
       <h2 class="font-display text-xl font-semibold text-gioi-moss">Opening hours & rules</h2>
       <div class="mt-4 grid gap-3 sm:grid-cols-2">
-        <div v-for="day in DAYS_OF_WEEK" :key="day" class="grid grid-cols-[80px_1fr_1fr] items-center gap-2 text-sm">
+        <div v-for="day in DAYS_OF_WEEK" :key="day" class="grid grid-cols-[64px_minmax(0,1fr)_minmax(0,1fr)] items-center gap-2 text-sm">
           <span class="font-medium text-gioi-moss">{{ dayLabel[day] }}</span>
           <input
             type="time"
@@ -191,7 +191,7 @@ const totalCapacity = computed(() => draft.value.seatingAreas.filter((a) => a.bo
         <div class="mt-2 flex flex-wrap items-center gap-2">
           <span v-for="d in draft.closedDates" :key="d" class="chip bg-gioi-sand text-gioi-moss">
             {{ d }}
-            <button type="button" class="ml-1 text-gioi-moss/70 hover:text-gioi-ink" @click="removeClosedDate(d)">×</button>
+            <button type="button" class="-my-2 -mr-2 grid h-11 w-11 place-items-center text-gioi-moss/70 hover:text-gioi-ink" :aria-label="`Remove ${d}`" @click="removeClosedDate(d)">×</button>
           </span>
           <button class="btn-ghost" type="button" @click="addClosedDate">+ Add</button>
         </div>

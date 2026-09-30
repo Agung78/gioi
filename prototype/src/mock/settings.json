@@ -1,45 +1,24 @@
 {
   "restaurant": {
-    "name": "GIOI Bali",
-    "tagline": "Balinese garden kitchen, slow-fire cooking, sunset views.",
-    "intro": "A small, ingredient-led restaurant tucked into a working garden in Canggu. Open daily for lunch and dinner, with a few indoor tables, a sunset terrace, and a chef's counter overlooking the wood-fired hearth.",
-    "address": "Jl. Subak Canggu No. 88, Canggu, Bali 80361",
-    "phone": "+62 361 555 0142",
-    "whatsapp": "+62 812 5555 0142",
-    "email": "hello@gioi.bali",
-    "mapsUrl": "https://maps.google.com/?q=GIOI+Bali+Canggu",
-    "hoursSummary": "Daily 12:00–22:00 · Friday and Saturday until 23:00",
-    "heroEmoji": "🌿"
+    "name": "GIOI Ocean Gourmet",
+    "tagline": "Coastal dining, modern Asian flavours, Kuta sunsets.",
+    "intro": "A beachfront restaurant at Discovery Mall Bali, serving seafood, sharing plates and modern Asian flavours with Kuta Beach in view.",
+    "address": "Ground Floor Beach Front, Discovery Mall Bali, Jl. Kartika Plaza, Kuta, Badung, Bali 80361, Indonesia",
+    "phone": "+62 811 3960 6101",
+    "whatsapp": "+62 811 3960 6101",
+    "email": "",
+    "mapsUrl": "https://maps.google.com/?q=GIOI+Ocean+Gourmet+Kuta",
+    "hoursSummary": "Daily 10:00 to 22:00 WITA",
+    "heroEmoji": ""
   },
   "openingHours": {
-    "mon": {
-      "open": "12:00",
-      "close": "22:00"
-    },
-    "tue": {
-      "open": "12:00",
-      "close": "22:00"
-    },
-    "wed": {
-      "open": "12:00",
-      "close": "22:00"
-    },
-    "thu": {
-      "open": "12:00",
-      "close": "22:00"
-    },
-    "fri": {
-      "open": "12:00",
-      "close": "23:00"
-    },
-    "sat": {
-      "open": "12:00",
-      "close": "23:00"
-    },
-    "sun": {
-      "open": "12:00",
-      "close": "22:00"
-    }
+    "mon": { "open": "10:00", "close": "22:00" },
+    "tue": { "open": "10:00", "close": "22:00" },
+    "wed": { "open": "10:00", "close": "22:00" },
+    "thu": { "open": "10:00", "close": "22:00" },
+    "fri": { "open": "10:00", "close": "22:00" },
+    "sat": { "open": "10:00", "close": "22:00" },
+    "sun": { "open": "10:00", "close": "22:00" }
   },
   "closedDates": [
     "2026-12-25",

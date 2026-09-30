@@ -30,7 +30,7 @@ function statusHistory(reservationId: string) {
 
 <template>
   <div class="mx-auto max-w-4xl px-4 py-8">
-    <p class="text-sm"><RouterLink to="/host" class="text-gioi-moss underline">← Back to host</RouterLink></p>
+    <p class="text-sm"><RouterLink to="/host" class="inline-flex min-h-11 items-center text-gioi-moss underline">← Back to host</RouterLink></p>
     <div v-if="!guest" class="card mt-4">
       <p class="text-gioi-moss/80">Guest not found.</p>
     </div>

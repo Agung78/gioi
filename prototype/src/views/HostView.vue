@@ -66,7 +66,7 @@ function isRepeat(r: Reservation): boolean {
         </h1>
         <p class="text-sm text-gioi-moss/70">{{ todays.length }} bookings · {{ activeCount }} active</p>
       </div>
-      <div class="flex items-center gap-2">
+      <div class="flex flex-wrap items-center gap-2">
         <button class="btn-ghost min-h-12" type="button" @click="date = addDays(date, -1)">Previous</button>
         <button class="btn-ghost min-h-12" type="button" @click="date = todayISO()">Today</button>
         <button class="btn-ghost min-h-12" type="button" @click="date = addDays(date, 1)">Next</button>
