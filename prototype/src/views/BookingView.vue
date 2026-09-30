@@ -98,9 +98,7 @@ async function submit() {
   submitting.value = true
   try {
     const allergies = [...dietary.value, ...allergiesText.value.split(',').map((s) => s.trim()).filter(Boolean)]
-    const guestNotesText = [guestNotes.value.trim(), accessibility.value.trim() && `Accessibility: ${accessibility.value.trim()}`]
-      .filter(Boolean)
-      .join('\n')
+    const guestNotesText = guestNotes.value.trim()
     const reservation = reservations.create(
       {
         guest: {
@@ -144,7 +142,7 @@ const partyOptions = computed(() => {
     <h1 class="mt-3 text-3xl font-extrabold md:text-4xl">Book a table</h1>
 
     <div class="mt-8 grid gap-8 lg:grid-cols-[1fr_320px]">
-      <form id="book-form" class="space-y-10" @submit.prevent="submit">
+      <form id="book-form" class="min-w-0 space-y-10"@submit.prevent="submit">
         <section id="when" class="space-y-5">
           <h2 class="text-xl font-bold">1. When</h2>
           <div>

@@ -14,6 +14,8 @@ export default {
         accent: t('accent'),
         'accent-ink': t('accent-ink'),
         sand: t('brand-sand'),
+        sun: t('brand-sun'),
+        navy: t('brand-navy'),
         danger: t('danger'),
         // legacy names, remapped onto tokens so untouched views follow the theme
         gioi: {
