@@ -162,7 +162,7 @@ const partyOptions = computed(() => {
             </div>
             <label class="mt-2 inline-flex items-center gap-2 text-sm text-muted">
               More dates
-              <DatePicker :model-value="date" :min="today" :closed="data.settings.closedDates" class="py-1.5 text-sm"
+              <DatePicker :model-value="date" :min="today" :closed="data.settings.closedDates" class="min-h-11 py-1.5 text-sm"
                 @update:model-value="date = $event; time = null" />
             </label>
           </div>
@@ -224,7 +224,7 @@ const partyOptions = computed(() => {
         </section>
 
         <section class="space-y-4">
-          <button type="button" class="flex w-full items-center justify-between text-left" :aria-expanded="showDetails"
+          <button type="button" class="flex min-h-11 w-full items-center justify-between text-left" :aria-expanded="showDetails"
             @click="showDetails = !showDetails">
             <h2 class="text-xl font-bold">3. Details <span class="text-base font-normal text-muted">(optional)</span>
             </h2>

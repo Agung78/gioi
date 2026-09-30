@@ -68,8 +68,8 @@ function reasonLabel(reason: SlotAvailability['reason']): string {
           @click="pick(slot.time)"
         >
           <span class="font-semibold">{{ slot.time }}</span>
-          <span v-if="!slot.open && slot.reason" class="text-[11px] font-normal">{{ reasonLabel(slot.reason) }}</span>
-          <span v-else-if="slot.open && slot.remaining != null" class="text-[11px] font-normal opacity-80">{{ slot.remaining }} left</span>
+          <span v-if="!slot.open && slot.reason" class="text-xs font-normal">{{ reasonLabel(slot.reason) }}</span>
+          <span v-else-if="slot.open && slot.remaining != null" class="text-xs font-normal opacity-80">{{ slot.remaining }} left</span>
         </button>
       </div>
     </div>

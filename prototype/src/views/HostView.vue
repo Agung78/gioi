@@ -124,7 +124,7 @@ function isRepeat(r: Reservation): boolean {
                 <div>
                   <div class="flex items-center gap-2">
                     <button
-                      class="font-display text-lg font-bold hover:underline"
+                      class="-my-2 min-h-11 py-2 text-left font-display text-lg font-bold hover:underline"
                       type="button"
                       @click="openGuest(r)"
                     >

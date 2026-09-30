@@ -121,7 +121,7 @@ const cueLabel: Record<string, string> = {
       <section class="card lg:col-span-3">
         <h3 class="font-display text-lg font-semibold text-gioi-moss">Next 30 days — covers per day</h3>
         <Sparkline :values="sparklineDates" :height="120" />
-        <div class="mt-3 grid grid-cols-7 gap-1 text-[10px] text-gioi-moss/60 sm:grid-cols-14">
+        <div class="mt-3 grid grid-cols-7 gap-1 text-xs text-gioi-moss/80 sm:grid-cols-14">
           <span v-for="d in dashboard.upcoming30.daysBreakdown" :key="d.date">
             {{ new Date(d.date + 'T00:00:00').getDate() }}
           </span>
