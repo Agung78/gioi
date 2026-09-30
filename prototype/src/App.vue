@@ -37,7 +37,7 @@ const navLinks = computed(() => {
 
 <template>
   <div class="min-h-screen flex flex-col">
-    <header v-if="!isPublic" class="sticky top-0 z-30 border-b border-line bg-surface/90 backdrop-blur-md">
+    <header v-if="!isPublic" class="[view-transition-name:app-header] sticky top-0 z-30 border-b border-line bg-surface/90 backdrop-blur-md">
       <div class="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
         <RouterLink to="/" class="flex items-center gap-2">
           <img src="/logo.jpg" alt="GIOI Ocean Gourmet" class="h-10 w-10 rounded-full object-cover" />

@@ -6,6 +6,7 @@ import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { useDataStore } from '../stores/data'
 import { addDays, todayISO } from '../domain/dates'
+import DatePicker from '../components/DatePicker.vue'
 import { useTheme } from '../composables/useTheme'
 
 gsap.registerPlugin(ScrollTrigger)
@@ -37,9 +38,9 @@ const words = (s: string) => s.split(' ')
 const sunset = '18:20'
 
 const moments = [
-  { time: '12:00', title: 'Lunch by the water', copy: 'Bean bags on the sand, cold coconuts, shade under the umbrellas.', slot: 'hero-day-beanbags 1200x1500', img: 'https://lh3.googleusercontent.com/gps-cs-s/ANWiy9Qgp6TwuZrof2N59kLWF8rzT3N_7A67L0GKrpnpeX5tm3yflSx4g6rUcLZnabFMreQN6Ahx8WVDEvGpwjp7DY-xDt0dvpMX2_-LgWl1L-qxMqJjx37y18h3EudcA8vNXj3K5s0=s1360-w1360-h1020-rw' },
-  { time: sunset, title: 'The golden hour', copy: 'The reason people come. Book early, the front row goes first.', slot: 'hero-beachfront-golden-hour 1200x1500', feature: true, img: 'https://lh3.googleusercontent.com/gps-cs-s/ANWiy9SP1Lan4aYg9eJNX2SKIRKZCT295K_0WORQTHXLcbG73gsa4ZyU2eTwUFrPYY9ZTrJCwyPmKW1j4v5NKXsrE6oQhT3K6ao5WEnN3FT9OuU_u6wyWXduG7E742l-apFYzPg9DgXiFCuTunBe=s1360-w1360-h1020-rw' },
-  { time: '20:00', title: 'Fairy lights and dinner', copy: 'Asian fusion from the sea, a lounge that stays warm after dark.', slot: 'night-lounge-fairy-lights 1200x1500', img: 'https://lh3.googleusercontent.com/gps-cs-s/ANWiy9QIRBVNQJvYTkfAuBsuRL2PSNfS5SyJuY1XO-e7RzAASN4CiDKh-r3_yjPSgwL6vq0SfSiyx5UGeo_yCZRhMbnppEZhazGIHsC5QTySrDwKQYC__9mbz4lnRpI_dRBqTOH8vfXIPa4yUHis=s1360-w1360-h1020-rw' },
+  { time: '12:00', title: 'Lunch by the water', copy: 'Bean bags on the sand, cold coconuts, shade under the umbrellas.', slot: 'hero-day-beanbags 1200x1500', img: 'https://www.gioigroup.com/images/brands/3/GIOI-OG_Gallery-image-outlet-02.webp' },
+  { time: sunset, title: 'The golden hour', copy: 'The reason people come. Book early, the front row goes first.', slot: 'hero-beachfront-golden-hour 1200x1500', feature: true, img: 'https://www.gioigroup.com/images/brands/3/GIOI-OG_Gallery-image-outlet-07.webp' },
+  { time: '20:00', title: 'Fairy lights and dinner', copy: 'Asian fusion from the sea, a lounge that stays warm after dark.', slot: 'night-lounge-fairy-lights 1200x1500', img: 'https://www.gioigroup.com/images/brands/3/GIOI-OG_Gallery-image-outlet-05.webp' },
 ]
 
 const root = ref<HTMLElement>()
@@ -77,11 +78,14 @@ onBeforeUnmount(() => ctx?.revert())
 <template>
   <div ref="root" class="overflow-x-clip">
     <!-- HERO: dusk-navy (dark) / brand blue (light); floating toggle stays reachable at any scroll -->
-    <button type="button" class="fixed bottom-5 right-5 z-50 grid h-12 w-12 place-items-center rounded-full bg-raised text-ink shadow-soft ring-1 ring-line transition hover:scale-105 focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent"
-      :aria-label="isDark ? 'Switch to light mode' : 'Switch to dark mode'" :title="isDark ? 'Switch to light mode' : 'Switch to dark mode'" @click="toggleTheme">
+    <button type="button"
+      class="fixed bottom-5 right-5 z-50 grid h-12 w-12 place-items-center rounded-full bg-raised text-ink shadow-soft ring-1 ring-line transition hover:scale-105 focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent"
+      :aria-label="isDark ? 'Switch to light mode' : 'Switch to dark mode'"
+      :title="isDark ? 'Switch to light mode' : 'Switch to dark mode'" @click="toggleTheme">
       <component :is="isDark ? PhSun : PhMoon" :size="22" aria-hidden="true" />
     </button>
-    <section data-hero class="relative isolate flex min-h-[100svh] flex-col bg-[#1F4A6B] text-[#F3EEE4] transition-colors duration-500 dark:bg-navy">
+    <section data-hero
+      class="relative isolate flex min-h-[100svh] flex-col bg-[#1F4A6B] text-[#F3EEE4] transition-colors duration-500 dark:bg-navy">
       <header class="relative z-20">
         <div class="mx-auto flex h-20 max-w-7xl items-center justify-between px-4 md:px-8">
           <RouterLink to="/" class="leading-none" aria-label="GIOI Ocean Gourmet, home">
@@ -93,10 +97,10 @@ onBeforeUnmount(() => ctx?.revert())
               day</a>
             <a href="#visit"
               class="hidden rounded-full px-4 py-2 text-sm font-medium text-white/80 transition hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-sand sm:inline-flex">Visit</a>
-            <button type="button" class="grid h-11 w-11 place-items-center rounded-full text-white/80 transition hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-sand"
+            <!-- <button type="button" class="grid h-11 w-11 place-items-center rounded-full text-white/80 transition hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-sand"
               :aria-label="isDark ? 'Switch to light mode' : 'Switch to dark mode'" @click="toggleTheme">
               <component :is="isDark ? PhSun : PhMoon" :size="22" aria-hidden="true" />
-            </button>
+            </button> -->
             <RouterLink to="/book" class="btn bg-sand text-navy hover:bg-white">Book a table</RouterLink>
           </nav>
         </div>
@@ -123,18 +127,18 @@ onBeforeUnmount(() => ctx?.revert())
             @submit.prevent="quickBook">
             <div class="min-w-[9.5rem] flex-1">
               <label class="mb-1 block px-1 text-xs font-medium text-white/70" for="q-date">Date</label>
-              <input id="q-date" v-model="qDate" type="date" :min="today" :max="addDays(today, 90)"
-                class="field border-white/15 bg-navy/60 text-white [color-scheme:dark] focus:border-sand focus:ring-sand/30" />
+              <DatePicker id="q-date" v-model="qDate" :min="today" :max="addDays(today, 90)" :closed="data.settings.closedDates"
+                class="h-12 border-white/15 bg-navy/60 text-white [color-scheme:dark] focus:border-sand focus:ring-sand/30" />
             </div>
-            <div class="w-24">
+            <div class="w-28">
               <label class="mb-1 block px-1 text-xs font-medium text-white/70" for="q-party">Guests</label>
               <select id="q-party" v-model.number="qParty"
-                class="field border-white/15 bg-navy/60 text-white [color-scheme:dark] focus:border-sand focus:ring-sand/30">
+                class="field h-12 appearance-none bg-[url('data:image/svg+xml;utf8,<svg_xmlns=%22http://www.w3.org/2000/svg%22_viewBox=%220_0_20_20%22_fill=%22none%22_stroke=%22white%22_stroke-width=%222%22><path_d=%22m5_8_5_5_5-5%22/></svg>')] bg-[length:1rem] bg-[position:right_0.875rem_center] bg-no-repeat pr-10 border-white/15 bg-navy/60 text-white [color-scheme:dark] focus:border-sand focus:ring-sand/30">
                 <option v-for="n in max - min + 1" :key="n" :value="min + n - 1">{{ min + n - 1 }}</option>
               </select>
             </div>
             <button
-              class="btn min-h-[46px] flex-1 bg-sun px-6 text-base text-navy hover:bg-sand focus-visible:ring-sand focus-visible:ring-offset-navy sm:flex-none"
+              class="btn h-12 flex-1 bg-sun px-6 text-base text-navy hover:bg-sand focus-visible:ring-sand focus-visible:ring-offset-navy sm:flex-none"
               type="submit">Find a table</button>
           </form>
         </div>
@@ -142,7 +146,7 @@ onBeforeUnmount(() => ctx?.revert())
         <div data-hero-media class="relative order-1 overflow-hidden rounded-[28px] md:order-2">
           <div class="aspect-[4/3] bg-navy md:aspect-[4/5]">
             <img
-              src="https://lh3.googleusercontent.com/gps-cs-s/ANWiy9QSIVVaeDWmorJsr5AWwCTM4Hkawb-fHAj2f_lHHj3Lae-n0DuUDF4_oPGH9xJ1GchQTUm80v8ext597ucKsrGk9AHDDT-CvQkxh9B6UV8X32MYtj1LND0uIAdbDs6KZAi-pCQ=s1360-w1360-h1020-rw"
+              src="https://www.gioigroup.com/images/brands/3/GIOI-OG_Gallery-image-outlet-06.webp"
               alt="Beachfront lounge at golden hour" class="h-full w-full object-cover" fetchpriority="high" />
           </div>
         </div>
@@ -161,7 +165,7 @@ onBeforeUnmount(() => ctx?.revert())
           class="text-[clamp(2.25rem,5vw,4rem)] font-extrabold leading-[1]">
           <span aria-hidden="true"><span v-for="(w, i) in words('Come for lunch. Stay for the sun.')" :key="i"
               class="inline-block overflow-hidden align-bottom"><span data-word class="inline-block pr-[0.2em]">{{ w
-                }}</span></span></span>
+              }}</span></span></span>
         </h2>
       </div>
 
@@ -171,10 +175,11 @@ onBeforeUnmount(() => ctx?.revert())
             <div
               class="grid aspect-[4/5] place-items-center bg-line/50 text-xs text-muted transition duration-700 group-hover:scale-[1.03]">
               <img v-if="m.img" :src="m.img" :alt="m.title" loading="lazy" class="h-full w-full object-cover" />
-              <template v-else>{{ m.slot }}</template></div>
+              <template v-else>{{ m.slot }}</template>
+            </div>
             <span
               class="absolute left-4 top-4 rounded-full bg-navy/85 px-3 py-1 font-display text-sm font-bold text-sand backdrop-blur">{{
-              m.time }}</span>
+                m.time }}</span>
           </div>
           <div class="mt-5 flex items-baseline gap-4">
             <span class="font-display text-sm font-bold text-muted">0{{ i + 1 }}</span>
@@ -196,7 +201,7 @@ onBeforeUnmount(() => ctx?.revert())
             class="mt-4 text-[clamp(2rem,4.5vw,3.5rem)] font-extrabold leading-[1.02]">
             <span aria-hidden="true"><span v-for="(w, i) in words('On the beach at Discovery Mall.')" :key="i"
                 class="inline-block overflow-hidden align-bottom"><span data-word class="inline-block pr-[0.2em]">{{ w
-                  }}</span></span></span>
+                }}</span></span></span>
           </h2>
           <p data-rise class="mt-8 flex gap-3 text-lg leading-relaxed">
             <PhMapPin :size="24" class="mt-1 shrink-0 text-accent" aria-hidden="true" />
