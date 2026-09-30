@@ -1,15 +1,17 @@
 <script setup lang="ts">
 import { onBeforeUnmount, onMounted, ref } from 'vue'
 import { RouterLink, useRouter } from 'vue-router'
-import { PhMapPin, PhClock, PhWhatsappLogo, PhPhone, PhSunHorizon, PhArrowUpRight } from '@phosphor-icons/vue'
+import { PhMapPin, PhClock, PhWhatsappLogo, PhPhone, PhSunHorizon, PhArrowUpRight, PhMoon, PhSun } from '@phosphor-icons/vue'
 import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { useDataStore } from '../stores/data'
 import { addDays, todayISO } from '../domain/dates'
+import { useTheme } from '../composables/useTheme'
 
 gsap.registerPlugin(ScrollTrigger)
 
 const data = useDataStore()
+const { isDark, toggleTheme } = useTheme()
 const router = useRouter()
 const info = data.settings.restaurant
 const hours = data.settings.openingHours
@@ -74,8 +76,12 @@ onBeforeUnmount(() => ctx?.revert())
 
 <template>
   <div ref="root" class="overflow-x-clip">
-    <!-- HERO: always dusk-navy, independent of theme -->
-    <section data-hero class="relative isolate flex min-h-[100svh] flex-col bg-navy text-[#F3EEE4]">
+    <!-- HERO: dusk-navy (dark) / brand blue (light); floating toggle stays reachable at any scroll -->
+    <button type="button" class="fixed bottom-5 right-5 z-50 grid h-12 w-12 place-items-center rounded-full bg-raised text-ink shadow-soft ring-1 ring-line transition hover:scale-105 focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent"
+      :aria-label="isDark ? 'Switch to light mode' : 'Switch to dark mode'" :title="isDark ? 'Switch to light mode' : 'Switch to dark mode'" @click="toggleTheme">
+      <component :is="isDark ? PhSun : PhMoon" :size="22" aria-hidden="true" />
+    </button>
+    <section data-hero class="relative isolate flex min-h-[100svh] flex-col bg-[#1F4A6B] text-[#F3EEE4] transition-colors duration-500 dark:bg-navy">
       <header class="relative z-20">
         <div class="mx-auto flex h-20 max-w-7xl items-center justify-between px-4 md:px-8">
           <RouterLink to="/" class="leading-none" aria-label="GIOI Ocean Gourmet, home">
@@ -87,6 +93,10 @@ onBeforeUnmount(() => ctx?.revert())
               day</a>
             <a href="#visit"
               class="hidden rounded-full px-4 py-2 text-sm font-medium text-white/80 transition hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-sand sm:inline-flex">Visit</a>
+            <button type="button" class="grid h-11 w-11 place-items-center rounded-full text-white/80 transition hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-sand"
+              :aria-label="isDark ? 'Switch to light mode' : 'Switch to dark mode'" @click="toggleTheme">
+              <component :is="isDark ? PhSun : PhMoon" :size="22" aria-hidden="true" />
+            </button>
             <RouterLink to="/book" class="btn bg-sand text-navy hover:bg-white">Book a table</RouterLink>
           </nav>
         </div>

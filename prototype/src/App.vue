@@ -1,10 +1,11 @@
 <script setup lang="ts">
-import { computed, onMounted, ref, watchEffect } from 'vue'
+import { computed, onMounted } from 'vue'
 import { PhMoon, PhSun } from '@phosphor-icons/vue'
 import { RouterLink, RouterView, useRoute } from 'vue-router'
 import { useAuthStore } from './stores/auth'
 import { useDataStore } from './stores/data'
 import { useResetDemo } from './composables/useResetDemo'
+import { applyTheme, useTheme } from './composables/useTheme'
 
 const route = useRoute()
 const auth = useAuthStore()
@@ -16,14 +17,8 @@ onMounted(() => {
   auth.hydrate()
 })
 
-// host and admin default to dark (dim dining room); guests follow the OS. Toggle persists per browser.
-const theme = ref<string | null>((() => { try { return localStorage.getItem('gioi-theme') } catch { return null } })())
-const isDark = computed(() => (theme.value ?? (route.meta?.public ? (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : 'dark')) === 'dark')
-watchEffect(() => { document.documentElement.dataset.theme = isDark.value ? 'dark' : 'light' })
-function toggleTheme() {
-  theme.value = isDark.value ? 'light' : 'dark'
-  try { localStorage.setItem('gioi-theme', theme.value) } catch { /* private mode */ }
-}
+const { isDark, toggleTheme } = useTheme()
+applyTheme(isDark)
 
 const isPublic = computed(() => route.meta?.public === true)
 const navLinks = computed(() => {
