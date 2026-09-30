@@ -30,7 +30,7 @@ function loginAs(role: Role) {
 <template>
   <div class="mx-auto max-w-2xl px-4 py-16">
     <div class="card text-center">
-      <div class="mx-auto grid h-14 w-14 place-items-center rounded-full bg-gioi-moss text-white">
+      <div class="mx-auto grid h-14 w-14 place-items-center rounded-full bg-accent text-accent-ink">
         <span class="font-display text-2xl font-bold">G</span>
       </div>
       <h1 class="mt-4 font-display text-3xl font-semibold text-gioi-moss">Sign in to GIOI</h1>

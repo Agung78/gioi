@@ -5,6 +5,7 @@ import { useDataStore } from '../stores/data'
 import { useReservationsStore } from '../stores/reservations'
 import { getDayAvailability, generateIntervals, hoursFor, isOpenOn, checkAvailability } from '../domain/availability'
 import { addDays, todayISO } from '../domain/dates'
+import { PhCaretDown } from '@phosphor-icons/vue'
 import AvailabilityGrid from '../components/AvailabilityGrid.vue'
 
 const data = useDataStore()
@@ -29,6 +30,18 @@ const allergiesText = ref('')
 const marketingConsent = ref(false)
 const acceptedPolicy = ref(false)
 const submitting = ref(false)
+const dietary = ref<string[]>([])
+const showDetails = ref(false)
+const DIET = ['Vegetarian', 'Vegan', 'Halal', 'Gluten-free', 'Nut allergy', 'Shellfish allergy']
+const OCCASIONS = ['Birthday', 'Anniversary', 'Business dinner', 'Date night', 'Celebration']
+const bookableAreas = computed(() => data.settings.seatingAreas.filter((a) => a.bookable))
+function toggleDiet(d: string) {
+  dietary.value = dietary.value.includes(d) ? dietary.value.filter((x) => x !== d) : [...dietary.value, d]
+}
+const summary = computed(() => {
+  const d = new Date(date.value + 'T00:00:00').toLocaleDateString(undefined, { weekday: 'short', day: 'numeric', month: 'short' })
+  return `${d} · ${time.value ?? 'pick a time'} · ${partySize.value} ${partySize.value === 1 ? 'guest' : 'guests'}`
+})
 const error = ref<string | null>(null)
 
 const days = computed(() => {
@@ -77,15 +90,14 @@ async function submit() {
   if (!time.value) return
   const r = checkResult.value
   if (!r?.ok) {
-    error.value = 'This slot is no longer available. Please pick another time.'
+    error.value = 'That time just filled up. Pick another slot above.'
+    time.value = null
+    document.getElementById('when')?.scrollIntoView({ behavior: 'smooth' })
     return
   }
   submitting.value = true
   try {
-    const allergies = allergiesText.value
-      .split(',')
-      .map((s) => s.trim())
-      .filter(Boolean)
+    const allergies = [...dietary.value, ...allergiesText.value.split(',').map((s) => s.trim()).filter(Boolean)]
     const guestNotesText = [guestNotes.value.trim(), accessibility.value.trim() && `Accessibility: ${accessibility.value.trim()}`]
       .filter(Boolean)
       .join('\n')
@@ -127,121 +139,146 @@ const partyOptions = computed(() => {
 </script>
 
 <template>
-  <div class="mx-auto max-w-3xl px-4 py-10">
-    <p class="mb-2 text-sm"><RouterLink to="/" class="text-gioi-moss underline">← Back to overview</RouterLink></p>
-    <h1 class="font-display text-3xl font-semibold text-gioi-moss">Reserve a table</h1>
-    <p class="mt-2 text-gioi-ink/70">Pick a date, time, and party size. We'll lock your seat and remember your preferences for next time.</p>
+  <div class="mx-auto max-w-5xl px-4 pb-32 pt-8 md:px-8 lg:pb-16">
+    <RouterLink to="/" class="text-sm font-medium text-accent underline underline-offset-4">Back to GIOI</RouterLink>
+    <h1 class="mt-3 text-3xl font-extrabold md:text-4xl">Book a table</h1>
 
-    <form class="card mt-6 space-y-6" @submit.prevent="submit">
-      <section class="space-y-4">
-        <h2 class="font-display text-xl font-semibold text-gioi-moss">1. When</h2>
-        <div>
-          <label class="label">Date</label>
-          <div class="grid grid-cols-3 gap-2 sm:grid-cols-5">
-            <button
-              v-for="d in days"
-              :key="d.iso"
-              type="button"
-              class="rounded-md border px-3 py-2 text-left text-sm transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-gioi-moss/40"
-              :class="[
-                date === d.iso
-                  ? 'border-gioi-moss bg-gioi-moss text-white'
-                  : d.isClosed
-                      ? 'border-gioi-sand/40 bg-gioi-sand/30 text-gioi-moss/40 line-through'
-                      : 'border-gioi-sand bg-white hover:border-gioi-moss/60',
-              ]"
-              :disabled="d.isClosed"
-              @click="date = d.iso; time = null"
-            >
-              <span class="block text-xs uppercase tracking-wide">{{ new Date(d.iso).toLocaleDateString(undefined, { weekday: 'short' }) }}</span>
-              <span class="block font-semibold">{{ new Date(d.iso).getDate() }}</span>
-              <span class="block text-[10px]">{{ new Date(d.iso).toLocaleDateString(undefined, { month: 'short' }) }}</span>
-            </button>
+    <div class="mt-8 grid gap-8 lg:grid-cols-[1fr_320px]">
+      <form id="book-form" class="space-y-10" @submit.prevent="submit">
+        <section id="when" class="space-y-5">
+          <h2 class="text-xl font-bold">1. When</h2>
+          <div>
+            <span class="label">Date</span>
+            <div class="-mx-4 flex snap-x gap-2 overflow-x-auto px-4 pb-2 md:mx-0 md:px-0">
+              <button
+                v-for="d in days"
+                :key="d.iso"
+                type="button"
+                class="pill min-h-16 shrink-0 snap-start flex-col px-4"
+                :class="[date === d.iso ? 'pill-on' : '', d.isClosed ? 'cursor-not-allowed opacity-40' : 'hover:border-accent']"
+                :aria-disabled="d.isClosed"
+                :disabled="d.isClosed"
+                :aria-pressed="date === d.iso"
+                @click="date = d.iso; time = null"
+              >
+                <span class="text-xs">{{ new Date(d.iso + 'T00:00:00').toLocaleDateString(undefined, { weekday: 'short' }) }}</span>
+                <span class="text-lg font-bold leading-tight">{{ new Date(d.iso + 'T00:00:00').getDate() }}</span>
+              </button>
+            </div>
+            <label class="mt-2 inline-flex items-center gap-2 text-sm text-muted">
+              More dates
+              <input type="date" :min="today" :value="date" class="field w-auto py-1.5 text-sm" @change="date = ($event.target as HTMLInputElement).value; time = null" />
+            </label>
           </div>
-        </div>
-        <div>
-          <label class="label">Party size</label>
-          <select v-model.number="partySize" class="field w-32">
-            <option v-for="n in partyOptions" :key="n" :value="n">{{ n }} {{ n === 1 ? 'guest' : 'guests' }}</option>
-          </select>
-        </div>
-        <div>
-          <label class="label">Available times</label>
-          <AvailabilityGrid v-model="time" :slots="slotGrid" :party-size="partySize" />
-        </div>
-      </section>
+          <div>
+            <span class="label" id="guests-label">Guests</span>
+            <div class="inline-flex items-center gap-4" role="group" aria-labelledby="guests-label">
+              <button type="button" class="pill h-12 w-12 px-0 text-xl" aria-label="Fewer guests" :disabled="partySize <= partyOptions[0]" @click="partySize--">-</button>
+              <span class="w-8 text-center text-xl font-bold" aria-live="polite">{{ partySize }}</span>
+              <button type="button" class="pill h-12 w-12 px-0 text-xl" aria-label="More guests" :disabled="partySize >= partyOptions[partyOptions.length - 1]" @click="partySize++">+</button>
+            </div>
+            <p v-if="partySize >= partyOptions[partyOptions.length - 1]" class="mt-2 text-sm text-muted">
+              Groups over {{ partySize }}? <a class="font-medium text-accent underline underline-offset-4" :href="`https://wa.me/${data.settings.restaurant.whatsapp.replace(/\D/g, '')}`">Message us on WhatsApp</a>.
+            </p>
+          </div>
+          <div v-if="bookableAreas.length > 1">
+            <span class="label">Seating</span>
+            <div class="flex flex-wrap gap-2">
+              <button type="button" class="pill" :class="seatingAreaId === null ? 'pill-on' : ''" :aria-pressed="seatingAreaId === null" @click="seatingAreaId = null">Anywhere</button>
+              <button v-for="a in bookableAreas" :key="a.id" type="button" class="pill" :class="seatingAreaId === a.id ? 'pill-on' : ''" :aria-pressed="seatingAreaId === a.id" @click="seatingAreaId = a.id">{{ a.name }}</button>
+            </div>
+          </div>
+          <div>
+            <span class="label">Time</span>
+            <AvailabilityGrid v-model="time" :slots="slotGrid" :party-size="partySize" />
+          </div>
+        </section>
 
-      <section class="space-y-4">
-        <h2 class="font-display text-xl font-semibold text-gioi-moss">2. Who</h2>
-        <div class="grid gap-4 sm:grid-cols-2">
-          <div>
-            <label class="label" for="fullName">Full name *</label>
-            <input id="fullName" v-model="fullName" required class="field" placeholder="Wayan Sari" />
+        <section class="space-y-4">
+          <h2 class="text-xl font-bold">2. Who</h2>
+          <div class="grid gap-4 sm:grid-cols-2">
+            <div>
+              <label class="label" for="fullName">Full name</label>
+              <input id="fullName" v-model="fullName" required autocomplete="name" class="field" placeholder="Wayan Sari" />
+            </div>
+            <div>
+              <label class="label" for="phone">WhatsApp / phone</label>
+              <input id="phone" v-model="phone" required type="tel" autocomplete="tel" class="field" placeholder="+62 812 3456 7890" />
+            </div>
+            <div>
+              <label class="label" for="email">Email (optional)</label>
+              <input id="email" v-model="email" type="email" autocomplete="email" class="field" placeholder="you@example.com" />
+            </div>
+            <div>
+              <label class="label" for="country">Country / city (optional)</label>
+              <input id="country" v-model="country" autocomplete="country-name" class="field" placeholder="Perth, Australia" />
+            </div>
           </div>
-          <div>
-            <label class="label" for="phone">WhatsApp / phone *</label>
-            <input id="phone" v-model="phone" required class="field" placeholder="+62 812 3456 7890" />
-          </div>
-          <div>
-            <label class="label" for="email">Email</label>
-            <input id="email" v-model="email" type="email" class="field" placeholder="you@example.com" />
-          </div>
-          <div>
-            <label class="label" for="country">Country / city</label>
-            <input id="country" v-model="country" class="field" placeholder="Bali" />
-          </div>
-        </div>
-      </section>
+        </section>
 
-      <section class="space-y-4">
-        <h2 class="font-display text-xl font-semibold text-gioi-moss">3. The occasion</h2>
-        <div class="grid gap-4 sm:grid-cols-2">
-          <div>
-            <label class="label" for="occasion">Occasion</label>
-            <select id="occasion" v-model="occasion" class="field">
-              <option value="">No special occasion</option>
-              <option>Birthday</option>
-              <option>Anniversary</option>
-              <option>Date night</option>
-              <option>Business dinner</option>
-              <option>Friends catching up</option>
-              <option>Celebration</option>
-            </select>
+        <section class="space-y-4">
+          <button type="button" class="flex w-full items-center justify-between text-left" :aria-expanded="showDetails" @click="showDetails = !showDetails">
+            <h2 class="text-xl font-bold">3. Details <span class="text-base font-normal text-muted">(optional)</span></h2>
+            <PhCaretDown :size="20" class="transition-transform" :class="showDetails ? 'rotate-180' : ''" aria-hidden="true" />
+          </button>
+          <div v-show="showDetails" class="space-y-5">
+            <div>
+              <span class="label">Occasion</span>
+              <div class="flex flex-wrap gap-2">
+                <button v-for="o in OCCASIONS" :key="o" type="button" class="pill" :class="occasion === o ? 'pill-on' : ''" :aria-pressed="occasion === o" @click="occasion = occasion === o ? '' : o">{{ o }}</button>
+              </div>
+            </div>
+            <div>
+              <span class="label">Dietary and allergies</span>
+              <div class="flex flex-wrap gap-2">
+                <button v-for="d in DIET" :key="d" type="button" class="pill" :class="[dietary.includes(d) ? 'pill-on' : '', d === 'Shellfish allergy' && !dietary.includes(d) ? 'border-danger/60 text-danger' : '']" :aria-pressed="dietary.includes(d)" @click="toggleDiet(d)">{{ d }}</button>
+              </div>
+              <input id="allergies" v-model="allergiesText" aria-label="Other dietary needs" class="field mt-3" placeholder="Anything else, comma-separated" />
+              <p class="mt-1.5 text-sm text-muted">Seen by our kitchen team only.</p>
+            </div>
+            <div>
+              <label class="label" for="accessibility">Accessibility needs</label>
+              <input id="accessibility" v-model="accessibility" class="field" placeholder="Wheelchair access, ground floor only" />
+            </div>
+            <div>
+              <label class="label" for="guestNotes">Special requests</label>
+              <textarea id="guestNotes" v-model="guestNotes" rows="3" maxlength="300" class="field" placeholder="Beachfront table if possible" />
+              <p class="mt-1 text-right text-xs text-muted">{{ guestNotes.length }}/300</p>
+            </div>
           </div>
-          <div>
-            <label class="label" for="accessibility">Accessibility needs</label>
-            <input id="accessibility" v-model="accessibility" class="field" placeholder="Wheelchair access, ground floor only…" />
-          </div>
-          <div class="sm:col-span-2">
-            <label class="label" for="allergies">Allergies or dietary restrictions</label>
-            <input id="allergies" v-model="allergiesText" class="field" placeholder="Peanut allergy, vegetarian…" />
-            <p class="mt-1 text-xs text-gioi-moss/60">Comma-separated. Visible to our team only — never shared publicly.</p>
-          </div>
-          <div class="sm:col-span-2">
-            <label class="label" for="guestNotes">Special requests</label>
-            <textarea id="guestNotes" v-model="guestNotes" rows="2" class="field" placeholder="Window seat if possible…" />
-          </div>
-        </div>
-      </section>
+        </section>
 
-      <section class="space-y-3">
-        <h2 class="font-display text-xl font-semibold text-gioi-moss">4. Confirm</h2>
-        <p class="rounded-md border border-gioi-sand bg-gioi-cream p-3 text-sm text-gioi-ink/80">
-          {{ data.settings.cancellationPolicy }}
-        </p>
-        <label class="flex items-start gap-3 text-sm">
-          <input v-model="acceptedPolicy" type="checkbox" class="mt-1" />
-          <span>I understand the cancellation policy.</span>
-        </label>
-        <label class="flex items-start gap-3 text-sm">
-          <input v-model="marketingConsent" type="checkbox" class="mt-1" />
-          <span>Send me occasional updates about seasonal menus and events. (Optional, separate from my reservation.)</span>
-        </label>
-        <div v-if="error" class="alert-danger">{{ error }}</div>
-        <button class="btn-primary w-full justify-center text-base" :disabled="!canSubmit || submitting" type="submit">
-          {{ submitting ? 'Confirming…' : 'Confirm reservation' }}
-        </button>
-      </section>
-    </form>
+        <section class="space-y-3">
+          <p class="text-sm leading-relaxed text-muted">{{ data.settings.cancellationPolicy }}</p>
+          <label class="flex items-start gap-3 text-sm">
+            <input v-model="acceptedPolicy" type="checkbox" class="mt-1 h-4 w-4 accent-[rgb(var(--accent))]" />
+            <span>I understand the cancellation policy.</span>
+          </label>
+          <label class="flex items-start gap-3 text-sm">
+            <input v-model="marketingConsent" type="checkbox" class="mt-1 h-4 w-4 accent-[rgb(var(--accent))]" />
+            <span>Send me occasional news and events. (Optional)</span>
+          </label>
+          <div v-if="error" class="alert-danger" role="alert">{{ error }}</div>
+          <button class="btn-primary hidden min-h-14 w-full text-base lg:inline-flex" :disabled="!canSubmit || submitting" type="submit">
+            {{ submitting ? 'Confirming...' : 'Confirm booking' }}
+          </button>
+        </section>
+      </form>
+
+      <aside class="hidden lg:block">
+        <div class="card sticky top-24">
+          <p class="label text-muted">Your booking</p>
+          <p class="text-lg font-bold">{{ summary }}</p>
+          <p v-if="seatingAreaId" class="mt-1 text-sm text-muted">{{ bookableAreas.find((a) => a.id === seatingAreaId)?.name }}</p>
+        </div>
+      </aside>
+    </div>
+
+    <div class="fixed inset-x-0 bottom-0 z-20 border-t border-line bg-surface/95 p-4 backdrop-blur-md lg:hidden">
+      <p class="mb-2 text-center text-sm font-medium">{{ summary }}</p>
+      <button class="btn-primary min-h-14 w-full text-base" form="book-form" :disabled="!canSubmit || submitting" type="submit">
+        {{ submitting ? 'Confirming...' : 'Confirm booking' }}
+      </button>
+    </div>
   </div>
 </template>

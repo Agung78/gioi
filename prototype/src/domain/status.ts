@@ -55,14 +55,23 @@ export function statusLabel(status: ReservationStatus): string {
   }
 }
 
+/** One-accent scale: outline -> tint -> solid, danger for cancel/no-show. Pair with statusIcon + label. */
 export function statusChipClass(status: ReservationStatus): string {
   switch (status) {
-    case 'pending': return 'bg-amber-100 text-amber-800 ring-1 ring-amber-200'
-    case 'confirmed': return 'bg-sky-100 text-sky-800 ring-1 ring-sky-200'
-    case 'arrived': return 'bg-indigo-100 text-indigo-800 ring-1 ring-indigo-200'
-    case 'seated': return 'bg-violet-100 text-violet-800 ring-1 ring-violet-200'
-    case 'completed': return 'bg-emerald-100 text-emerald-800 ring-1 ring-emerald-200'
-    case 'cancelled': return 'bg-zinc-100 text-zinc-700 ring-1 ring-zinc-200'
-    case 'no_show': return 'bg-red-100 text-red-800 ring-1 ring-red-200'
+    case 'pending': return 'text-muted ring-1 ring-inset ring-muted/50'
+    case 'confirmed': return 'text-accent ring-1 ring-inset ring-accent'
+    case 'arrived': return 'bg-accent/20 text-accent'
+    case 'seated': return 'bg-accent text-accent-ink'
+    case 'completed': return 'bg-line text-ink'
+    case 'cancelled': return 'text-danger ring-1 ring-inset ring-danger'
+    case 'no_show': return 'bg-danger/15 text-danger'
   }
+}
+
+/** Phosphor component names (resolved in StatusChip). */
+export function statusIcon(status: ReservationStatus): string {
+  return {
+    pending: 'PhHourglass', confirmed: 'PhCheckCircle', arrived: 'PhDoorOpen', seated: 'PhArmchair',
+    completed: 'PhCheck', cancelled: 'PhXCircle', no_show: 'PhUserMinus',
+  }[status]
 }

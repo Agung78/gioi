@@ -106,7 +106,7 @@ async function submit() {
 </script>
 
 <template>
-  <div v-if="open" class="fixed inset-0 z-40 grid place-items-center bg-black/40 p-4" @click.self="emit('close')">
+  <div v-if="open" class="fixed inset-0 z-40 grid place-items-center bg-ink/50 p-4" @click.self="emit('close')">
     <div class="card w-full max-w-lg">
       <div class="flex items-center justify-between">
         <h2 class="font-display text-xl font-semibold text-gioi-moss">Add walk-in</h2>

@@ -1,7 +1,9 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { useRoute, RouterLink } from 'vue-router'
+import { PhCheckCircle, PhCopy, PhCalendarPlus, PhMapPin, PhWhatsappLogo } from '@phosphor-icons/vue'
 import { useDataStore } from '../stores/data'
+import StatusChip from '../components/StatusChip.vue'
 
 const route = useRoute()
 const data = useDataStore()
@@ -11,51 +13,68 @@ const reservation = computed(() => data.reservations.find((r) => r.bookingCode =
 const area = computed(() => reservation.value
   ? data.settings.seatingAreas.find((a) => a.id === reservation.value?.seatingAreaId)
   : null)
+const info = data.settings.restaurant
+const copied = ref(false)
+
+const dateLabel = computed(() => reservation.value
+  ? new Date(reservation.value.date + 'T00:00:00').toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' })
+  : '')
+
+async function copy() {
+  try {
+    await navigator.clipboard.writeText(code.value)
+    copied.value = true
+    setTimeout(() => (copied.value = false), 1500)
+  } catch { /* clipboard unavailable, code stays visible */ }
+}
+
+// ponytail: assumes 90 min stay and floating local time; add duration setting if needed
+const icsHref = computed(() => {
+  const r = reservation.value
+  if (!r) return ''
+  const start = `${r.date.replace(/-/g, '')}T${r.time.replace(':', '')}00`
+  const [h, m] = r.time.split(':').map(Number)
+  const end = `${r.date.replace(/-/g, '')}T${String(Math.floor((h * 60 + m + 90) / 60) % 24).padStart(2, '0')}${String((m + 30) % 60).padStart(2, '0')}00`
+  const ics = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'BEGIN:VEVENT', `UID:${r.bookingCode}@gioi`, `DTSTART:${start}`, `DTEND:${end}`,
+    `SUMMARY:${info.name}`, `LOCATION:${info.address}`, 'END:VEVENT', 'END:VCALENDAR'].join('\r\n')
+  return `data:text/calendar;charset=utf-8,${encodeURIComponent(ics)}`
+})
 </script>
 
 <template>
-  <div class="mx-auto max-w-2xl px-4 py-12">
+  <div class="mx-auto max-w-2xl px-4 py-12 md:py-16">
     <div v-if="!reservation" class="card text-center">
-      <p class="text-gioi-moss/80">We couldn't find that booking code.</p>
-      <RouterLink to="/" class="btn-primary mt-4 inline-flex">Back to home</RouterLink>
+      <p class="text-muted">We couldn't find that booking code.</p>
+      <RouterLink to="/" class="btn-primary mt-4">Back to home</RouterLink>
     </div>
-    <div v-else class="card text-center">
-      <div class="mx-auto grid h-16 w-16 place-items-center rounded-full bg-gioi-moss text-white">
-        <svg viewBox="0 0 24 24" fill="none" class="h-8 w-8" stroke="currentColor" stroke-width="2.5">
-          <path d="M5 13l4 4L19 7" stroke-linecap="round" stroke-linejoin="round" />
-        </svg>
+    <div v-else class="rise">
+      <div class="flex items-center gap-3">
+        <PhCheckCircle :size="40" weight="fill" class="text-accent" aria-hidden="true" />
+        <h1 class="text-3xl font-extrabold md:text-4xl">See you soon.</h1>
       </div>
-      <h1 class="mt-4 font-display text-3xl font-semibold text-gioi-moss">Reservation confirmed</h1>
-      <p class="mt-2 text-gioi-ink/70">We've held your table. A confirmation has been queued for {{ reservation.guestId }}.</p>
+      <p class="mt-3 text-muted">We've held your table. Show this code when you arrive.</p>
 
-      <div class="mx-auto mt-6 grid max-w-md gap-3 rounded-md border border-gioi-sand bg-gioi-cream p-5 text-left">
-        <div class="flex items-baseline justify-between">
-          <span class="label !mb-0">Booking code</span>
-          <span class="font-display text-lg font-bold text-gioi-moss">{{ reservation.bookingCode }}</span>
+      <div class="card mt-8 space-y-6">
+        <div class="flex items-center justify-between gap-3">
+          <p class="font-display text-4xl font-extrabold tracking-wide">{{ reservation.bookingCode }}</p>
+          <button type="button" class="btn-secondary" @click="copy"><PhCopy :size="20" aria-hidden="true" /> {{ copied ? 'Copied' : 'Copy' }}</button>
         </div>
-        <div class="flex items-baseline justify-between">
-          <span class="label !mb-0">Date</span>
-          <span class="font-medium">{{ new Date(reservation.date + 'T00:00:00').toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' }) }}</span>
-        </div>
-        <div class="flex items-baseline justify-between">
-          <span class="label !mb-0">Time</span>
-          <span class="font-medium">{{ reservation.time }}</span>
-        </div>
-        <div class="flex items-baseline justify-between">
-          <span class="label !mb-0">Party</span>
-          <span class="font-medium">{{ reservation.partySize }} {{ reservation.partySize === 1 ? 'guest' : 'guests' }}</span>
-        </div>
-        <div v-if="area" class="flex items-baseline justify-between">
-          <span class="label !mb-0">Seating</span>
-          <span class="font-medium">{{ area.name }}</span>
-        </div>
+        <dl class="grid grid-cols-2 gap-4 text-sm">
+          <div><dt class="text-muted">Date</dt><dd class="text-base font-semibold">{{ dateLabel }}</dd></div>
+          <div><dt class="text-muted">Time</dt><dd class="text-base font-semibold">{{ reservation.time }}</dd></div>
+          <div><dt class="text-muted">Guests</dt><dd class="text-base font-semibold">{{ reservation.partySize }}</dd></div>
+          <div v-if="area"><dt class="text-muted">Seating</dt><dd class="text-base font-semibold">{{ area.name }}</dd></div>
+          <div v-if="reservation.guestNotes" class="col-span-2"><dt class="text-muted">Notes</dt><dd class="whitespace-pre-line">{{ reservation.guestNotes }}</dd></div>
+        </dl>
+        <StatusChip :status="reservation.status" />
       </div>
 
-      <p class="mt-6 text-sm text-gioi-ink/70">
-        Need to change anything? Reply to your confirmation message or contact us on
-        <a class="text-gioi-moss underline" :href="`https://wa.me/${data.settings.restaurant.whatsapp.replace(/\D/g, '')}`">{{ data.settings.restaurant.whatsapp }}</a>.
-      </p>
-      <RouterLink to="/" class="btn-secondary mt-6 inline-flex">Back to home</RouterLink>
+      <div class="mt-6 flex flex-wrap gap-3">
+        <a :href="icsHref" :download="`gioi-${reservation.bookingCode}.ics`" class="btn-primary"><PhCalendarPlus :size="20" aria-hidden="true" /> Add to calendar</a>
+        <a :href="info.mapsUrl" target="_blank" rel="noopener" class="btn-secondary"><PhMapPin :size="20" aria-hidden="true" /> Get directions</a>
+        <a :href="`https://wa.me/${info.whatsapp.replace(/\D/g, '')}`" class="btn-secondary"><PhWhatsappLogo :size="20" aria-hidden="true" /> Message us</a>
+      </div>
+      <RouterLink to="/" class="mt-8 inline-block text-sm font-medium text-accent underline underline-offset-4">Back to home</RouterLink>
     </div>
   </div>
 </template>

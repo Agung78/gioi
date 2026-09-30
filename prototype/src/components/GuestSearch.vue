@@ -49,7 +49,7 @@ function highlight(g: Guest): string[] {
     />
     <div v-if="query.length < 2" class="text-sm text-gioi-moss/60">Type at least 2 characters.</div>
     <div v-else-if="results.length === 0" class="text-sm text-gioi-moss/60">No guests match.</div>
-    <ul v-else class="divide-y divide-gioi-sand/40 rounded-md border border-gioi-sand bg-white">
+    <ul v-else class="divide-y divide-gioi-sand/40 rounded-md border border-gioi-sand bg-raised">
       <li
         v-for="g in results"
         :key="g.id"
@@ -62,9 +62,8 @@ function highlight(g: Guest): string[] {
         </div>
         <div class="flex flex-wrap items-center gap-1">
           <span v-for="f in highlight(g)" :key="f" class="chip" :class="{
-            'bg-red-100 text-red-800 ring-1 ring-red-200': f === 'allergy',
-            'bg-amber-100 text-amber-800 ring-1 ring-amber-200': f === 'accessibility',
-            'bg-violet-100 text-violet-800 ring-1 ring-violet-200': f === 'repeat',
+            'bg-danger/15 text-danger': f === 'allergy' || f === 'accessibility',
+            'bg-accent/15 text-accent': f === 'repeat',
           }">
             <template v-if="f === 'allergy'">⚠ Allergy: {{ g.allergies.join(', ') }}</template>
             <template v-else-if="f === 'accessibility'">♿ {{ g.accessibility }}</template>

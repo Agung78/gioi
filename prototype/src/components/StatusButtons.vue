@@ -1,43 +1,44 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { nextStatuses, statusLabel } from '../domain/status'
 import type { Reservation, ReservationStatus } from '../domain/types'
 
-const props = defineProps<{
-  reservation: Reservation
-}>()
+const props = defineProps<{ reservation: Reservation }>()
+const emit = defineEmits<{ (e: 'change', to: ReservationStatus): void }>()
 
-const emit = defineEmits<{
-  (e: 'change', to: ReservationStatus): void
-}>()
-
+const DESTRUCTIVE: ReservationStatus[] = ['cancelled', 'no_show']
 const options = computed(() => nextStatuses(props.reservation.status))
+const primary = computed(() => options.value.find((s) => !DESTRUCTIVE.includes(s)))
+const destructive = computed(() => options.value.filter((s) => DESTRUCTIVE.includes(s)))
+const confirming = ref<ReservationStatus | null>(null)
 
-function toneClass(s: ReservationStatus): string {
-  switch (s) {
-    case 'confirmed': return 'bg-sky-600 text-white hover:bg-sky-700'
-    case 'arrived': return 'bg-indigo-600 text-white hover:bg-indigo-700'
-    case 'seated': return 'bg-violet-600 text-white hover:bg-violet-700'
-    case 'completed': return 'bg-emerald-600 text-white hover:bg-emerald-700'
-    case 'cancelled': return 'bg-red-600 text-white hover:bg-red-700'
-    case 'no_show': return 'bg-red-700 text-white hover:bg-red-800'
-    default: return 'bg-gioi-moss text-white hover:bg-gioi-olive'
-  }
+function go(to: ReservationStatus) {
+  confirming.value = null
+  emit('change', to)
 }
 </script>
 
 <template>
   <div class="flex flex-wrap items-center gap-2">
-    <button
-      v-for="next in options"
-      :key="next"
-      type="button"
-      class="rounded-md px-3 py-1.5 text-xs font-semibold uppercase tracking-wide shadow-sm"
-      :class="toneClass(next)"
-      @click="emit('change', next)"
-    >
-      {{ statusLabel(next) }}
-    </button>
-    <span v-if="options.length === 0" class="text-xs text-gioi-moss/60">No further actions</span>
+    <template v-if="confirming">
+      <span class="text-sm font-medium">Mark as {{ statusLabel(confirming) }}?</span>
+      <button type="button" class="btn-danger min-h-12" @click="go(confirming)">Yes, {{ statusLabel(confirming) }}</button>
+      <button type="button" class="btn-secondary min-h-12" @click="confirming = null">Keep booking</button>
+    </template>
+    <template v-else>
+      <button v-if="primary" type="button" class="btn-primary min-h-14 px-8 text-base" @click="go(primary)">
+        {{ statusLabel(primary) }}
+      </button>
+      <button
+        v-for="d in destructive"
+        :key="d"
+        type="button"
+        class="btn-secondary min-h-12 text-danger"
+        @click="confirming = d"
+      >
+        {{ statusLabel(d) }}
+      </button>
+      <span v-if="options.length === 0" class="text-sm text-muted">No further actions</span>
+    </template>
   </div>
 </template>

@@ -2,7 +2,8 @@
 import { computed } from 'vue'
 import { useRoute, RouterLink } from 'vue-router'
 import { useDataStore } from '../stores/data'
-import { statusChipClass, statusLabel } from '../domain/status'
+import { statusLabel } from '../domain/status'
+import StatusChip from '../components/StatusChip.vue'
 
 const route = useRoute()
 const data = useDataStore()
@@ -52,12 +53,12 @@ function statusHistory(reservationId: string) {
       </header>
 
       <section v-if="guest.allergies.length || guest.accessibility || guest.seatingPreference || guest.notes" class="mt-4 grid gap-3 sm:grid-cols-2">
-        <div v-if="guest.allergies.length" class="card !p-4 ring-1 ring-red-200">
-          <p class="label !text-red-700">Allergies</p>
+        <div v-if="guest.allergies.length" class="card !p-4 ring-1 ring-danger/40">
+          <p class="label !text-danger">Allergies</p>
           <p class="mt-1 text-sm">{{ guest.allergies.join(', ') }}</p>
         </div>
-        <div v-if="guest.accessibility" class="card !p-4 ring-1 ring-amber-200">
-          <p class="label !text-amber-700">Accessibility</p>
+        <div v-if="guest.accessibility" class="card !p-4 ring-1 ring-danger/40">
+          <p class="label !text-danger">Accessibility</p>
           <p class="mt-1 text-sm">{{ guest.accessibility }}</p>
         </div>
         <div v-if="guest.seatingPreference" class="card !p-4">
@@ -86,7 +87,7 @@ function statusHistory(reservationId: string) {
                   <span v-if="r.occasion"> · {{ r.occasion }}</span>
                 </p>
               </div>
-              <span class="chip" :class="statusChipClass(r.status)">{{ statusLabel(r.status) }}</span>
+              <StatusChip :status="r.status" />
             </div>
             <details v-if="statusHistory(r.id).length" class="mt-1 text-xs text-gioi-moss/70">
               <summary class="cursor-pointer">Status history ({{ statusHistory(r.id).length }})</summary>

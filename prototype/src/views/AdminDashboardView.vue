@@ -155,7 +155,7 @@ const cueLabel: Record<string, string> = {
         <dl class="mt-4 grid grid-cols-2 gap-3 text-sm">
           <div>
             <dt class="text-gioi-moss/60">No-show rate</dt>
-            <dd :class="['text-2xl font-semibold', dashboard.reliability.noShowRate > data.settings.noShowTargetPercent ? 'text-red-700' : 'text-gioi-ink']">
+            <dd :class="['text-2xl font-semibold', dashboard.reliability.noShowRate > data.settings.noShowTargetPercent ? 'text-danger' : 'text-gioi-ink']">
               {{ dashboard.reliability.noShowRate }}%
             </dd>
             <p class="text-xs text-gioi-moss/60">Target ≤ {{ data.settings.noShowTargetPercent }}%</p>
