@@ -1,0 +1,80 @@
+{
+  "restaurant": {
+    "name": "GIOI Bali",
+    "tagline": "Balinese garden kitchen, slow-fire cooking, sunset views.",
+    "intro": "A small, ingredient-led restaurant tucked into a working garden in Canggu. Open daily for lunch and dinner, with a few indoor tables, a sunset terrace, and a chef's counter overlooking the wood-fired hearth.",
+    "address": "Jl. Subak Canggu No. 88, Canggu, Bali 80361",
+    "phone": "+62 361 555 0142",
+    "whatsapp": "+62 812 5555 0142",
+    "email": "hello@gioi.bali",
+    "mapsUrl": "https://maps.google.com/?q=GIOI+Bali+Canggu",
+    "hoursSummary": "Daily 12:00–22:00 · Friday and Saturday until 23:00",
+    "heroEmoji": "🌿"
+  },
+  "openingHours": {
+    "mon": {
+      "open": "12:00",
+      "close": "22:00"
+    },
+    "tue": {
+      "open": "12:00",
+      "close": "22:00"
+    },
+    "wed": {
+      "open": "12:00",
+      "close": "22:00"
+    },
+    "thu": {
+      "open": "12:00",
+      "close": "22:00"
+    },
+    "fri": {
+      "open": "12:00",
+      "close": "23:00"
+    },
+    "sat": {
+      "open": "12:00",
+      "close": "23:00"
+    },
+    "sun": {
+      "open": "12:00",
+      "close": "22:00"
+    }
+  },
+  "closedDates": [
+    "2026-12-25",
+    "2026-01-01"
+  ],
+  "bookingIntervalMinutes": 30,
+  "partySizeLimits": {
+    "min": 1,
+    "max": 8
+  },
+  "leadTimeMinutes": 60,
+  "cutoffMinutes": 120,
+  "noShowTargetPercent": 8,
+  "overCapacityAlertPercent": 85,
+  "seatingAreas": [
+    {
+      "id": "main",
+      "name": "Main Hall",
+      "capacity": 24,
+      "bookable": true
+    },
+    {
+      "id": "terrace",
+      "name": "Sunset Terrace",
+      "capacity": 12,
+      "bookable": true,
+      "minParty": 2
+    },
+    {
+      "id": "counter",
+      "name": "Chef's Counter",
+      "capacity": 6,
+      "bookable": true,
+      "maxParty": 4
+    }
+  ],
+  "cancellationPolicy": "Please cancel or reschedule at least 4 hours before your booking. Late cancellations and no-shows may be charged a 200,000 IDR per-person fee."
+}

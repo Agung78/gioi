@@ -1,0 +1,498 @@
+[
+  {
+    "id": "g001",
+    "fullName": "Cokorda Kusuma",
+    "phone": "+6287025735739",
+    "country": "UK",
+    "allergies": [],
+    "marketingConsent": true,
+    "marketingConsentAt": "2026-01-15T10:00:00Z",
+    "createdAt": "2026-01-10T08:00:00Z",
+    "updatedAt": "2026-01-15T10:00:00Z"
+  },
+  {
+    "id": "g002",
+    "fullName": "Tjok Sanjaya",
+    "phone": "+6285571796495",
+    "email": "tjok.sanjaya@example.com",
+    "country": "Australia",
+    "allergies": [
+      "Dairy-free"
+    ],
+    "seatingPreference": "Counter seat",
+    "notes": "Birthday in March — send a small dessert.",
+    "marketingConsent": true,
+    "marketingConsentAt": "2026-01-15T10:00:00Z",
+    "createdAt": "2026-01-10T08:00:00Z",
+    "updatedAt": "2026-01-15T10:00:00Z"
+  },
+  {
+    "id": "g003",
+    "fullName": "Darma Anggraini",
+    "phone": "+6282685845389",
+    "email": "darma.anggraini@example.com",
+    "country": "Indonesia",
+    "allergies": [],
+    "seatingPreference": "Window seat",
+    "notes": "Often brings business guests — discreet service.",
+    "marketingConsent": false,
+    "createdAt": "2026-01-10T08:00:00Z",
+    "updatedAt": "2026-01-15T10:00:00Z"
+  },
+  {
+    "id": "g004",
+    "fullName": "Gst Mahendra",
+    "phone": "+6287687285571",
+    "country": "Japan",
+    "allergies": [
+      "Shellfish allergy"
+    ],
+    "seatingPreference": "Counter seat",
+    "marketingConsent": false,
+    "createdAt": "2026-01-10T08:00:00Z",
+    "updatedAt": "2026-01-15T10:00:00Z"
+  },
+  {
+    "id": "g005",
+    "fullName": "Citra Nugraha",
+    "phone": "+6289422351998",
+    "country": "USA",
+    "allergies": [
+      "Gluten-free"
+    ],
+    "marketingConsent": true,
+    "marketingConsentAt": "2026-01-15T10:00:00Z",
+    "createdAt": "2026-01-10T08:00:00Z",
+    "updatedAt": "2026-01-15T10:00:00Z"
+  },
+  {
+    "id": "g006",
+    "fullName": "Mega Putri",
+    "phone": "+6282656828397",
+    "email": "mega.putri@example.com",
+    "country": "Brazil",
+    "allergies": [
+      "Sesame allergy"
+    ],
+    "marketingConsent": false,
+    "createdAt": "2026-01-10T08:00:00Z",
+    "updatedAt": "2026-01-15T10:00:00Z"
+  },
+  {
+    "id": "g007",
+    "fullName": "Bagus Sanjaya",
+    "phone": "+6283750478588",
+    "email": "bagus.sanjaya@example.com",
+    "country": "Brazil",
+    "allergies": [],
+    "marketingConsent": false,
+    "createdAt": "2026-01-10T08:00:00Z",
+    "updatedAt": "2026-01-15T10:00:00Z"
+  },
+  {
+    "id": "g008",
+    "fullName": "Dewi Antara",
+    "phone": "+6288091421842",
+    "email": "dewi.antara@example.com",
+    "country": "Japan",
+    "allergies": [],
+    "seatingPreference": "Family-friendly section",
+    "notes": "Newly vegetarian — keep menu options handy.",
+    "marketingConsent": false,
+    "createdAt": "2026-01-10T08:00:00Z",
+    "updatedAt": "2026-01-15T10:00:00Z"
+  },
+  {
+    "id": "g009",
+    "fullName": "Rai Permata",
+    "phone": "+6284028626660",
+    "country": "Germany",
+    "allergies": [],
+    "marketingConsent": true,
+    "marketingConsentAt": "2026-01-15T10:00:00Z",
+    "createdAt": "2026-01-10T08:00:00Z",
+    "updatedAt": "2026-01-15T10:00:00Z"
+  },
+  {
+    "id": "g010",
+    "fullName": "Nyoman Wirawan",
+    "phone": "+6286788839173",
+    "email": "nyoman.wirawan@example.com",
+    "country": "Brazil",
+    "allergies": [
+      "Vegan"
+    ],
+    "seatingPreference": "Window seat",
+    "marketingConsent": false,
+    "createdAt": "2026-01-10T08:00:00Z",
+    "updatedAt": "2026-01-15T10:00:00Z"
+  },
+  {
+    "id": "g011",
+    "fullName": "Komang Sanjaya",
+    "phone": "+6283099416151",
+    "email": "komang.sanjaya@example.com",
+    "country": "Indonesia",
+    "allergies": [],
+    "seatingPreference": "Counter seat",
+    "marketingConsent": true,
+    "marketingConsentAt": "2026-01-15T10:00:00Z",
+    "createdAt": "2026-01-10T08:00:00Z",
+    "updatedAt": "2026-01-15T10:00:00Z"
+  },
+  {
+    "id": "g012",
+    "fullName": "Rai Antara",
+    "phone": "+6284090603945",
+    "email": "rai.antara@example.com",
+    "country": "Japan",
+    "allergies": [],
+    "marketingConsent": true,
+    "marketingConsentAt": "2026-01-15T10:00:00Z",
+    "createdAt": "2026-01-10T08:00:00Z",
+    "updatedAt": "2026-01-15T10:00:00Z"
+  },
+  {
+    "id": "g013",
+    "fullName": "Komang Sanjaya",
+    "phone": "+6283025237254",
+    "email": "komang.sanjaya@example.com",
+    "country": "Germany",
+    "allergies": [],
+    "seatingPreference": "Window seat",
+    "marketingConsent": true,
+    "marketingConsentAt": "2026-01-15T10:00:00Z",
+    "createdAt": "2026-01-10T08:00:00Z",
+    "updatedAt": "2026-01-15T10:00:00Z"
+  },
+  {
+    "id": "g014",
+    "fullName": "Putu Lestari",
+    "phone": "+6288349542387",
+    "email": "putu.lestari@example.com",
+    "country": "Netherlands",
+    "allergies": [],
+    "marketingConsent": false,
+    "createdAt": "2026-01-10T08:00:00Z",
+    "updatedAt": "2026-01-15T10:00:00Z"
+  },
+  {
+    "id": "g015",
+    "fullName": "Cokorda Saputra",
+    "phone": "+6284559109860",
+    "email": "cokorda.saputra@example.com",
+    "country": "Singapore",
+    "allergies": [],
+    "marketingConsent": true,
+    "marketingConsentAt": "2026-01-15T10:00:00Z",
+    "createdAt": "2026-01-10T08:00:00Z",
+    "updatedAt": "2026-01-15T10:00:00Z"
+  },
+  {
+    "id": "g016",
+    "fullName": "Fajar Anggraini",
+    "phone": "+6287899238343",
+    "email": "fajar.anggraini@example.com",
+    "country": "Germany",
+    "allergies": [],
+    "marketingConsent": true,
+    "marketingConsentAt": "2026-01-15T10:00:00Z",
+    "createdAt": "2026-01-10T08:00:00Z",
+    "updatedAt": "2026-01-15T10:00:00Z"
+  },
+  {
+    "id": "g017",
+    "fullName": "Karsa Antara",
+    "phone": "+6289466333963",
+    "country": "Japan",
+    "allergies": [],
+    "seatingPreference": "Window seat",
+    "notes": "Often brings business guests — discreet service.",
+    "marketingConsent": false,
+    "createdAt": "2026-01-10T08:00:00Z",
+    "updatedAt": "2026-01-15T10:00:00Z"
+  },
+  {
+    "id": "g018",
+    "fullName": "Karsa Pratama",
+    "phone": "+6282334572252",
+    "country": "Brazil",
+    "allergies": [
+      "Shellfish allergy"
+    ],
+    "marketingConsent": false,
+    "createdAt": "2026-01-10T08:00:00Z",
+    "updatedAt": "2026-01-15T10:00:00Z"
+  },
+  {
+    "id": "g019",
+    "fullName": "Gede Antara",
+    "phone": "+6285052215131",
+    "email": "gede.antara@example.com",
+    "country": "France",
+    "allergies": [],
+    "seatingPreference": "Window seat",
+    "marketingConsent": true,
+    "marketingConsentAt": "2026-01-15T10:00:00Z",
+    "createdAt": "2026-01-10T08:00:00Z",
+    "updatedAt": "2026-01-15T10:00:00Z"
+  },
+  {
+    "id": "g020",
+    "fullName": "Ketut Sukma",
+    "phone": "+6282210332333",
+    "email": "ketut.sukma@example.com",
+    "country": "USA",
+    "allergies": [],
+    "accessibility": "Eldery mobility — ground floor only",
+    "seatingPreference": "Counter seat",
+    "notes": "Newly vegetarian — keep menu options handy.",
+    "marketingConsent": true,
+    "marketingConsentAt": "2026-01-15T10:00:00Z",
+    "createdAt": "2026-01-10T08:00:00Z",
+    "updatedAt": "2026-01-15T10:00:00Z"
+  },
+  {
+    "id": "g021",
+    "fullName": "Indra Lestari",
+    "phone": "+6281996977750",
+    "email": "indra.lestari@example.com",
+    "country": "France",
+    "allergies": [],
+    "marketingConsent": false,
+    "createdAt": "2026-01-10T08:00:00Z",
+    "updatedAt": "2026-01-15T10:00:00Z"
+  },
+  {
+    "id": "g022",
+    "fullName": "Citra Sari",
+    "phone": "+6283470497015",
+    "country": "Indonesia",
+    "allergies": [],
+    "seatingPreference": "Sunset view",
+    "marketingConsent": true,
+    "marketingConsentAt": "2026-01-15T10:00:00Z",
+    "createdAt": "2026-01-10T08:00:00Z",
+    "updatedAt": "2026-01-15T10:00:00Z"
+  },
+  {
+    "id": "g023",
+    "fullName": "Ketut Mahendra",
+    "phone": "+6289533965665",
+    "email": "ketut.mahendra@example.com",
+    "country": "Netherlands",
+    "allergies": [],
+    "marketingConsent": false,
+    "createdAt": "2026-01-10T08:00:00Z",
+    "updatedAt": "2026-01-15T10:00:00Z"
+  },
+  {
+    "id": "g024",
+    "fullName": "Wayan Cahyani",
+    "phone": "+6287259885914",
+    "email": "wayan.cahyani@example.com",
+    "country": "France",
+    "allergies": [],
+    "marketingConsent": false,
+    "createdAt": "2026-01-10T08:00:00Z",
+    "updatedAt": "2026-01-15T10:00:00Z"
+  },
+  {
+    "id": "g025",
+    "fullName": "Jati Wijaya",
+    "phone": "+6283989184719",
+    "email": "jati.wijaya@example.com",
+    "country": "UK",
+    "allergies": [],
+    "marketingConsent": false,
+    "createdAt": "2026-01-10T08:00:00Z",
+    "updatedAt": "2026-01-15T10:00:00Z"
+  },
+  {
+    "id": "g026",
+    "fullName": "Fajar Putri",
+    "phone": "+6285434736676",
+    "country": "Netherlands",
+    "allergies": [],
+    "marketingConsent": false,
+    "createdAt": "2026-01-10T08:00:00Z",
+    "updatedAt": "2026-01-15T10:00:00Z"
+  },
+  {
+    "id": "g027",
+    "fullName": "Ketut Pratama",
+    "phone": "+6285590387077",
+    "email": "ketut.pratama@example.com",
+    "country": "Indonesia",
+    "allergies": [],
+    "marketingConsent": false,
+    "createdAt": "2026-01-10T08:00:00Z",
+    "updatedAt": "2026-01-15T10:00:00Z"
+  },
+  {
+    "id": "g028",
+    "fullName": "Fajar Sari",
+    "phone": "+6284484538540",
+    "email": "fajar.sari@example.com",
+    "country": "Australia",
+    "allergies": [],
+    "accessibility": "Wheelchair user",
+    "seatingPreference": "Booth for two",
+    "marketingConsent": false,
+    "createdAt": "2026-01-10T08:00:00Z",
+    "updatedAt": "2026-01-15T10:00:00Z"
+  },
+  {
+    "id": "g029",
+    "fullName": "Lestari Pranata",
+    "phone": "+6281966443158",
+    "email": "lestari.pranata@example.com",
+    "country": "Japan",
+    "allergies": [],
+    "seatingPreference": "Booth for two",
+    "marketingConsent": false,
+    "createdAt": "2026-01-10T08:00:00Z",
+    "updatedAt": "2026-01-15T10:00:00Z"
+  },
+  {
+    "id": "g030",
+    "fullName": "Dewi Cahyani",
+    "phone": "+6289220491529",
+    "email": "dewi.cahyani@example.com",
+    "country": "Germany",
+    "allergies": [
+      "Gluten-free"
+    ],
+    "seatingPreference": "Family-friendly section",
+    "marketingConsent": false,
+    "createdAt": "2026-01-10T08:00:00Z",
+    "updatedAt": "2026-01-15T10:00:00Z"
+  },
+  {
+    "id": "g031",
+    "fullName": "Gst Wirawan",
+    "phone": "+6288243822839",
+    "country": "Brazil",
+    "allergies": [],
+    "seatingPreference": "Window seat",
+    "marketingConsent": true,
+    "marketingConsentAt": "2026-01-15T10:00:00Z",
+    "createdAt": "2026-01-10T08:00:00Z",
+    "updatedAt": "2026-01-15T10:00:00Z"
+  },
+  {
+    "id": "g032",
+    "fullName": "Darma Pratama",
+    "phone": "+6282623095969",
+    "email": "darma.pratama@example.com",
+    "country": "Netherlands",
+    "allergies": [],
+    "marketingConsent": true,
+    "marketingConsentAt": "2026-01-15T10:00:00Z",
+    "createdAt": "2026-01-10T08:00:00Z",
+    "updatedAt": "2026-01-15T10:00:00Z"
+  },
+  {
+    "id": "g033",
+    "fullName": "Cokorda Handayani",
+    "phone": "+6289356957706",
+    "country": "Singapore",
+    "allergies": [
+      "Sesame allergy"
+    ],
+    "seatingPreference": "Window seat",
+    "marketingConsent": false,
+    "createdAt": "2026-01-10T08:00:00Z",
+    "updatedAt": "2026-01-15T10:00:00Z"
+  },
+  {
+    "id": "g034",
+    "fullName": "Kadek Pranata",
+    "phone": "+6282767835567",
+    "email": "kadek.pranata@example.com",
+    "country": "USA",
+    "allergies": [
+      "Soy allergy"
+    ],
+    "accessibility": "Wheelchair user",
+    "marketingConsent": false,
+    "createdAt": "2026-01-10T08:00:00Z",
+    "updatedAt": "2026-01-15T10:00:00Z"
+  },
+  {
+    "id": "g035",
+    "fullName": "Cokorda Pratama",
+    "phone": "+6282598118463",
+    "email": "cokorda.pratama@example.com",
+    "country": "Germany",
+    "allergies": [],
+    "marketingConsent": true,
+    "marketingConsentAt": "2026-01-15T10:00:00Z",
+    "createdAt": "2026-01-10T08:00:00Z",
+    "updatedAt": "2026-01-15T10:00:00Z"
+  },
+  {
+    "id": "g036",
+    "fullName": "Kadek Pratama",
+    "phone": "+6288742724834",
+    "email": "kadek.pratama@example.com",
+    "country": "Indonesia",
+    "allergies": [],
+    "seatingPreference": "Counter seat",
+    "notes": "Returning regular — sometimes books last-minute.",
+    "marketingConsent": false,
+    "createdAt": "2026-01-10T08:00:00Z",
+    "updatedAt": "2026-01-15T10:00:00Z"
+  },
+  {
+    "id": "g037",
+    "fullName": "Gangga Sari",
+    "phone": "+6285953345612",
+    "email": "gangga.sari@example.com",
+    "country": "France",
+    "allergies": [],
+    "notes": "Newly vegetarian — keep menu options handy.",
+    "marketingConsent": true,
+    "marketingConsentAt": "2026-01-15T10:00:00Z",
+    "createdAt": "2026-01-10T08:00:00Z",
+    "updatedAt": "2026-01-15T10:00:00Z"
+  },
+  {
+    "id": "g038",
+    "fullName": "Gede Wijaya",
+    "phone": "+6289335116562",
+    "email": "gede.wijaya@example.com",
+    "country": "Brazil",
+    "allergies": [],
+    "seatingPreference": "Counter seat",
+    "marketingConsent": true,
+    "marketingConsentAt": "2026-01-15T10:00:00Z",
+    "createdAt": "2026-01-10T08:00:00Z",
+    "updatedAt": "2026-01-15T10:00:00Z"
+  },
+  {
+    "id": "g039",
+    "fullName": "Aria Dewi",
+    "phone": "+6286395108498",
+    "email": "aria.dewi@example.com",
+    "country": "Brazil",
+    "allergies": [],
+    "accessibility": "Eldery mobility — ground floor only",
+    "seatingPreference": "Counter seat",
+    "marketingConsent": false,
+    "createdAt": "2026-01-10T08:00:00Z",
+    "updatedAt": "2026-01-15T10:00:00Z"
+  },
+  {
+    "id": "g040",
+    "fullName": "Cokorda Pranata",
+    "phone": "+6289898159704",
+    "email": "cokorda.pranata@example.com",
+    "country": "Germany",
+    "allergies": [],
+    "notes": "Always orders the tasting — let the chef know.",
+    "marketingConsent": false,
+    "createdAt": "2026-01-10T08:00:00Z",
+    "updatedAt": "2026-01-15T10:00:00Z"
+  }
+]
