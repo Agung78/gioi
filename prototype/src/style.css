@@ -3,6 +3,9 @@
 @tailwind utilities;
 
 @layer base {
+  @media (prefers-reduced-motion: no-preference) {
+    html { scroll-behavior: smooth; }
+  }
   :root {
     --surface: 243 245 244;
     --surface-raised: 251 252 252;
@@ -83,4 +86,14 @@
   @supports (animation-timeline: view()) {
     .reveal { animation: rise 1ms linear both; animation-timeline: view(); animation-range: entry 0% entry 40%; }
   }
+}
+
+/* route transition (see router.ts): old page fades out fast, new page rises in. Enter-only motion, under 300ms. */
+::view-transition-old(root) { animation: 150ms cubic-bezier(0.23, 1, 0.32, 1) both vt-out; }
+::view-transition-new(root) { animation: 250ms cubic-bezier(0.23, 1, 0.32, 1) both vt-in; }
+@keyframes vt-out { to { opacity: 0; } }
+@keyframes vt-in { from { opacity: 0; transform: translateY(8px); } }
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-new(root) { animation-name: vt-fade; }
+  @keyframes vt-fade { from { opacity: 0; } }
 }

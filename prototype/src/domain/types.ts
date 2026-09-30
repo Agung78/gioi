@@ -17,7 +17,6 @@ export type Channel =
   | 'instagram'
   | 'google'
   | 'whatsapp'
-  | 'chope'
   | 'walk_in'
   | 'phone'
   | 'host'
@@ -27,7 +26,6 @@ export const CHANNELS: Channel[] = [
   'instagram',
   'google',
   'whatsapp',
-  'chope',
   'walk_in',
   'phone',
   'host',

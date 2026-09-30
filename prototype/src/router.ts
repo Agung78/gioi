@@ -1,3 +1,4 @@
+import { nextTick } from 'vue'
 import { createRouter, createWebHistory } from 'vue-router'
 import type { RouteRecordRaw } from 'vue-router'
 import { useAuthStore } from './stores/auth'
@@ -64,7 +65,7 @@ const router = createRouter({
   history: createWebHistory(),
   routes,
   scrollBehavior() {
-    return { top: 0 }
+    return { top: 0, behavior: 'instant' }
   },
 })
 
@@ -79,5 +80,15 @@ router.beforeEach((to) => {
   }
   return true
 })
+
+// page switch: native View Transitions cross-fade; unsupported browsers swap instantly
+let finishTransition: (() => void) | undefined
+router.beforeResolve((to, from) => {
+  if (!document.startViewTransition || !from.matched.length || to.path === from.path) return
+  return new Promise<void>((ready) => {
+    document.startViewTransition(() => new Promise<void>((done) => { finishTransition = done; ready() }))
+  })
+})
+router.afterEach(() => nextTick(() => { finishTransition?.(); finishTransition = undefined }))
 
 export default router

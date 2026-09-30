@@ -1,15 +1,15 @@
 {
   "restaurant": {
-    "name": "GIOI Ocean Gourmet",
-    "tagline": "Sunset dining on Kuta beach.",
-    "intro": "Asian fusion, cold coconuts and the best sunsets in Kuta, steps from the sand.",
-    "address": "Discovery Shopping Mall, Jl. Kartika Plaza, Kuta, Bali",
+    "name": "GIOI Bali",
+    "tagline": "Balinese garden kitchen, slow-fire cooking, sunset views.",
+    "intro": "A small, ingredient-led restaurant tucked into a working garden in Canggu. Open daily for lunch and dinner, with a few indoor tables, a sunset terrace, and a chef's counter overlooking the wood-fired hearth.",
+    "address": "Jl. Subak Canggu No. 88, Canggu, Bali 80361",
     "phone": "+62 361 555 0142",
     "whatsapp": "+62 812 5555 0142",
     "email": "hello@gioi.bali",
-    "mapsUrl": "https://maps.google.com/?q=GIOI+Ocean+Gourmet+Kuta",
+    "mapsUrl": "https://maps.google.com/?q=GIOI+Bali+Canggu",
     "hoursSummary": "Daily 12:00–22:00 · Friday and Saturday until 23:00",
-    "heroEmoji": ""
+    "heroEmoji": "🌿"
   },
   "openingHours": {
     "mon": {

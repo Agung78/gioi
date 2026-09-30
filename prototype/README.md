@@ -128,7 +128,7 @@ Writes `src/mock/{settings,users,guests,reservations,audit}.json` deterministica
 - 40 guests (~25% with allergies, ~12% with accessibility needs, ~50% with seating
   preferences).
 - ~155 reservations across the past 30 days and the next 14 days from a mix of
-  channels: website, Instagram, Google, WhatsApp, Chope, walk-in, phone, Host.
+  channels: website, Instagram, Google, WhatsApp, walk-in, phone, Host.
 - Today always has five hand-curated reservations so the host view and action cues
   are demonstrable on first load.
 

@@ -174,7 +174,7 @@ function isoMinutes(iso, time) {
   return new Date(`${iso}T${time}:00Z`).getTime()
 }
 
-const SOURCES = ['website', 'instagram', 'google', 'whatsapp', 'chope', 'walk_in', 'phone', 'host']
+const SOURCES = ['website', 'instagram', 'google', 'whatsapp', 'walk_in', 'phone', 'host']
 const OCCASIONS = ['Birthday', 'Anniversary', 'Date night', 'Business dinner', 'Friends catching up', 'Celebration', null, null, null]
 const TIME_SLOTS_LUNCH = ['12:00', '12:30', '13:00', '13:30', '14:00']
 const TIME_SLOTS_DINNER = ['18:00', '18:30', '19:00', '19:30', '20:00', '20:30', '21:00']
