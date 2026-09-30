@@ -73,8 +73,8 @@ const settings = {
 const users = [
   {
     id: 'u-admin',
-    name: 'Made Wirawan',
-    login: 'made',
+    name: 'Yodha Kautsar',
+    login: 'yodha',
     role: 'SUPER_ADMIN',
     active: true,
     createdAt: '2026-01-01T00:00:00Z',
@@ -93,14 +93,14 @@ const users = [
 
 // ---- Guests (40) ----
 const FIRST = [
-  'Adi','Ayu','Bayu','Citra','Dewi','Eka','Fajar','Gede','Hadi','Indra',
-  'Kadek','Komang','Luh','Made','Nyoman','Putu','Rai','Ratna','Sari','Wayan',
-  'Yanti','Ketut','Anak','Bagus','Cokorda','Gst','I','Ni','Sang','Tjok',
-  'Aria','Darma','Gangga','Indah','Jati','Karsa','Lestari','Mega','Nara','Oka',
+  'Adi', 'Ayu', 'Bayu', 'Citra', 'Dewi', 'Eka', 'Fajar', 'Gede', 'Hadi', 'Indra',
+  'Kadek', 'Komang', 'Luh', 'Made', 'Nyoman', 'Putu', 'Rai', 'Ratna', 'Sari', 'Wayan',
+  'Yanti', 'Ketut', 'Anak', 'Bagus', 'Cokorda', 'Gst', 'I', 'Ni', 'Sang', 'Tjok',
+  'Aria', 'Darma', 'Gangga', 'Indah', 'Jati', 'Karsa', 'Lestari', 'Mega', 'Nara', 'Oka',
 ]
 const LAST = [
-  'Wirawan','Sari','Dewi','Permata','Mahendra','Putri','Sanjaya','Wijaya','Kusuma','Pratama',
-  'Anggraini','Handayani','Sukma','Antara','Lestari','Cahyani','Saputra','Pranata','Nugraha','Gunawan',
+  'Wirawan', 'Sari', 'Dewi', 'Permata', 'Mahendra', 'Putri', 'Sanjaya', 'Wijaya', 'Kusuma', 'Pratama',
+  'Anggraini', 'Handayani', 'Sukma', 'Antara', 'Lestari', 'Cahyani', 'Saputra', 'Pranata', 'Nugraha', 'Gunawan',
 ]
 const COUNTRIES = ['Indonesia', 'Australia', 'Singapore', 'Japan', 'USA', 'France', 'Germany', 'Brazil', 'UK', 'Netherlands']
 const ALLERGENS = [
@@ -236,20 +236,20 @@ for (let d = -30; d < 0; d++) {
       occasion: rand() < 0.45 ? pick(OCCASIONS) : undefined,
       guestNotes: rand() < 0.3
         ? pick([
-            'Window seat please.',
-            'One vegetarian diner in the party.',
-            'Celebrating a birthday — small dessert welcome.',
-            'Quiet table for business chat.',
-            'Allergic to shellfish.',
-          ])
+          'Window seat please.',
+          'One vegetarian diner in the party.',
+          'Celebrating a birthday — small dessert welcome.',
+          'Quiet table for business chat.',
+          'Allergic to shellfish.',
+        ])
         : undefined,
       internalNotes: rand() < 0.15
         ? pick([
-            'Repeat VIP — pre-stock the pét-nat.',
-            'Service dog arrives with the guest.',
-            'Wheelchair access — main entrance only.',
-            'Allergy alert on file.',
-          ])
+          'Repeat VIP — pre-stock the pét-nat.',
+          'Service dog arrives with the guest.',
+          'Wheelchair access — main entrance only.',
+          'Allergy alert on file.',
+        ])
         : undefined,
       source: pick(SOURCES),
       status,
@@ -285,11 +285,11 @@ for (let d = 0; d < 14; d++) {
       occasion: rand() < 0.35 ? pick(OCCASIONS) : undefined,
       guestNotes: rand() < 0.25
         ? pick([
-            'Outdoor seating if possible.',
-            'One diner is gluten-free.',
-            'Bringing a small cake for a birthday.',
-            'Anniversary — would love a quiet spot.',
-          ])
+          'Outdoor seating if possible.',
+          'One diner is gluten-free.',
+          'Bringing a small cake for a birthday.',
+          'Anniversary — would love a quiet spot.',
+        ])
         : undefined,
       internalNotes: undefined,
       source,
