@@ -10,7 +10,7 @@
 import { chromium } from 'playwright'
 import readline from 'node:readline/promises'
 
-const BASE = process.env.BASE_URL ?? 'http://127.0.0.1:5173'
+const BASE = process.env.BASE_URL ?? 'http://localhost:5173'
 const SPEED = Number(process.env.SPEED ?? 1)
 const picked = process.argv.slice(2).map(Number)
 
