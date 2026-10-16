@@ -202,6 +202,17 @@ const totalCapacity = computed(() => draft.value.seatingAreas.filter((a) => a.bo
     </section>
 
     <section class="card mb-6">
+      <h2 class="font-display text-xl font-semibold text-gioi-moss">Guest feedback</h2>
+      <p class="mt-1 text-sm text-gioi-moss/70">GIOI owns this native feedback form. Configure the WhatsApp message template; responses are stored in this prototype and reviewed in the Admin dashboard.</p>
+      <div class="mt-4 grid gap-4">
+        <div>
+          <label class="label">WhatsApp message template</label>
+          <textarea v-model="draft.feedbackMessageTemplate" rows="3" class="field" placeholder="Use {{guestName}}, {{restaurantName}}, and {{feedbackUrl}}" />
+        </div>
+      </div>
+      <div class="mt-4 flex justify-end"><button class="btn-primary" type="button" @click="saveSettings">Save feedback settings</button></div>
+    </section>
+    <section class="card mb-6">
       <h2 class="font-display text-xl font-semibold text-gioi-moss">Seating areas</h2>
       <p class="text-sm text-gioi-moss/70">Total bookable capacity: {{ totalCapacity }} covers</p>
       <div class="mt-4 space-y-3">

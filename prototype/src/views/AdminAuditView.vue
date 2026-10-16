@@ -16,7 +16,7 @@ function describe(e: AuditEvent): string {
     case 'reservation.created': return `Created reservation ${data.getReservation(e.entityId)?.bookingCode ?? e.entityId}`
     case 'reservation.updated': return `Edited reservation ${data.getReservation(e.entityId)?.bookingCode ?? e.entityId}`
     case 'reservation.status_changed': return `Status ${(e.changes as { status?: { from: string; to: string } })?.status?.from} → ${(e.changes as { status?: { from: string; to: string } })?.status?.to}`
-    case 'settings.updated': return 'Settings updated'
+    case 'feedback_link.sent': return `Feedback WhatsApp link opened for ${data.getReservation(e.entityId)?.bookingCode ?? e.entityId}`
     case 'seating_area.updated': return 'Seating areas updated'
     case 'user.updated': return 'Users updated'
     default: return e.action
@@ -42,7 +42,7 @@ function fields(e: AuditEvent): string {
         <option value="reservation_status">Status changes</option>
         <option value="settings">Settings</option>
         <option value="seating_area">Seating areas</option>
-        <option value="user">Users</option>
+        <option value="feedback_link">Feedback links</option>
       </select>
     </header>
 

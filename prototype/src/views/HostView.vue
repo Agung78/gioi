@@ -5,9 +5,10 @@ import { useDataStore } from '../stores/data'
 import { useReservationsStore } from '../stores/reservations'
 import { useAuthStore } from '../stores/auth'
 import { todayISO, addDays } from '../domain/dates'
-import { PhWarning, PhWheelchair, PhStar } from '@phosphor-icons/vue'
+import { PhWarning, PhWheelchair, PhStar, PhWhatsappLogo } from '@phosphor-icons/vue'
 import StatusChip from '../components/StatusChip.vue'
 import type { Reservation, ReservationStatus } from '../domain/types'
+import { feedbackWhatsAppUrl } from '../domain/feedback'
 import StatusButtons from '../components/StatusButtons.vue'
 import GuestSearch from '../components/GuestSearch.vue'
 import WalkInModal from '../components/WalkInModal.vue'
@@ -39,6 +40,19 @@ function openGuest(r: Reservation) {
 
 function guestOf(r: Reservation) { return data.getGuest(r.guestId) }
 function areaOf(r: Reservation) { return data.settings.seatingAreas.find((a) => a.id === r.seatingAreaId) }
+
+function sendFeedback(r: Reservation) {
+  const guest = guestOf(r)
+  if (!guest) return
+  const url = feedbackWhatsAppUrl(data.settings, r, guest, window.location.origin)
+  if (!url) {
+    lastError.value = 'This guest does not have a valid WhatsApp number.'
+    return
+  }
+  window.open(url, '_blank', 'noopener,noreferrer')
+  data.appendAudit({ id: `feedback_${Date.now()}`, at: new Date().toISOString(), actorId: auth.userId ?? 'u-host', actorName: auth.user?.name ?? 'Host', action: 'feedback_link.sent', entityType: 'feedback_link', entityId: r.id, note: `WhatsApp feedback link opened for ${guest.fullName}` })
+  lastError.value = null
+}
 
 function isAllergyAlert(r: Reservation): boolean {
   return (guestOf(r)?.allergies?.length ?? 0) > 0
@@ -155,8 +169,11 @@ function isRepeat(r: Reservation): boolean {
                 </div>
               </div>
 
-              <div class="mt-4">
+              <div class="mt-4 flex flex-wrap items-center gap-3">
                 <StatusButtons :reservation="r" @change="(to) => changeStatus(r, to)" />
+                <button v-if="r.status === 'completed'" class="btn-ghost inline-flex items-center gap-2" type="button" @click="sendFeedback(r)">
+                  <PhWhatsappLogo :size="20" aria-hidden="true" /> Send feedback via WhatsApp
+                </button>
               </div>
             </article>
           </div>

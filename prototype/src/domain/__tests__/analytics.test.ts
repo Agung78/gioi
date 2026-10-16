@@ -7,6 +7,8 @@ import {
   reliabilityPanel,
   todayLivePanel,
   upcomingDaysPanel,
+  filterReservations,
+  resolveDateRange,
 } from '../analytics'
 import type { Guest, Reservation, Settings } from '../types'
 
@@ -44,6 +46,7 @@ const baseSettings: Settings = {
     { id: 'terrace', name: 'Terrace', capacity: 10, bookable: true, minParty: 2 },
   ],
   cancellationPolicy: '',
+  feedbackMessageTemplate: 'Hi {{guestName}} {{feedbackUrl}}',
 }
 
 const baseReservation = (over: Partial<Reservation>): Reservation => ({
@@ -176,5 +179,14 @@ describe('dashboardData', () => {
     // reservations count. today = 2026-06-15 → 4 reservations on that date.
     expect(data.reliability.totalRealised).toBe(4)
     expect(Array.isArray(data.cues)).toBe(true)
+  })
+})
+describe('dashboard filters', () => {
+  it('resolves presets and filters reservation attributes', () => {
+    expect(resolveDateRange('last7', '2026-06-15')).toEqual({ start: '2026-06-09', end: '2026-06-15' })
+    const rows = filterReservations(makeReservations(), {
+      rangeStart: '2026-06-15', rangeEnd: '2026-06-18', status: 'confirmed', source: 'instagram', seatingAreaId: 'all', occasion: 'all',
+    })
+    expect(rows.map((r) => r.id)).toEqual(['7'])
   })
 })

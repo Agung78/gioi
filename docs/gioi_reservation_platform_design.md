@@ -335,47 +335,37 @@ The system must never treat a failed notification as a failed reservation unless
 
 ## 9. Reporting Roadmap
 
-### Initial operational reporting
+### Initial business intelligence dashboard
 
-- Reservations by date and status.
-- Expected covers.
-- Completed covers.
-- Cancellations and no-shows.
-- Booking source.
-- Average booking lead time.
-- Guest visit count.
+The Admin dashboard uses only reservation, guest, status-history, seating-area, source, occasion, and settings data currently captured by the system.
 
-### Later data intelligence
+- **Today Live:** bookings, expected/arrived/seated/completed covers, remaining capacity, occupancy, no-shows, and cancellations.
+- **Demand Outlook:** covers/bookings for 7 and 30 days, fill by day, busiest time slots, and demand by seating area.
+- **Guest Relationship:** first-time versus repeat guests, repeat share, visit count, occasion mix, party-size mix, and country/city where present.
+- **Channel Performance:** bookings, covers, and share by recorded source.
+- **Reliability:** no-show and cancellation rates, rates by day/time/source, average booking lead time, and status progression.
+- **Operations and Configuration:** capacity, slot load, booking-window rules, closed dates, configuration changes, and audit/status activity.
 
-Only after sufficient clean history exists:
+Dashboard filters are date range, status, source, seating area, time slot, and occasion. Every metric must show its denominator and date range and drill into the underlying reservations. Calculations use the restaurant timezone.
 
-- Repeat-guest rate and cohorts.
-- Recency/frequency/spend segmentation.
-- Customer lifetime value.
-- Occupancy and booking-pace analysis.
-- Re-engagement segments.
-- Campaign conversion.
+Expected covers exclude cancelled and no-show reservations. Realised visits use arrived, seated, and completed statuses. Repeat guests are guests with more than one realised visit in the available history. Capacity fill is configured bookable capacity, not actual table occupancy.
 
+Revenue, spend, POS, menu items, staff productivity, advertising cost, marketing attribution, conversion, and submitted feedback responses are not available in the current data model and must not be presented as dashboard facts.
 
-Reports must define their denominator and timezone. For example, no-show rate should distinguish reservations from covers and should exclude bookings that were cancelled before service.
+### Native feedback form and service recovery
 
-### Future feedback and loyalty foundation
-
-The first release does not include a feedback form or loyalty program. A later phase may add a post-visit feedback link, using a hosted form such as Google Forms or a dedicated GIOI feedback page.
-
-The future feedback flow should associate the response with the relevant reservation and guest where consent permits:
+The prototype and planned product use a GIOI-owned feedback page, not Google Forms. After a reservation is marked `Completed`, staff can open WhatsApp with a prefilled message linking to `/feedback/:bookingCode`.
 
 ```text
 Completed reservation
-  -> Feedback link
-  -> Guest rating and comments
-  -> Internal service-recovery review
-  -> Optional loyalty or re-engagement action
+  -> Staff clicks "Send feedback via WhatsApp"
+  -> WhatsApp opens with a prefilled message and native GIOI feedback link
+  -> Guest submits rating, service tags, and comments
+  -> Response is stored against the reservation and guest
+  -> Super Admin reviews response history and audit activity
 ```
 
-The reservation system should retain the reservation code, guest identity, visit date, and communication-consent status needed to support that future integration. The choice between Google Forms, a native feedback page, and a loyalty platform will be made after GIOI has enough reservation volume and a clear loyalty strategy.
-
-Feedback collection must not automatically imply marketing consent. Loyalty enrollment and promotional communication require separate, explicit consent.
+GIOI owns the form questions, response UI, and response history. Feedback collection must not automatically imply marketing consent. Loyalty enrollment and promotional communication require separate, explicit consent.
 
 ---
 

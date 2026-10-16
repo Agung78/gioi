@@ -1,44 +1,40 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { useDataStore } from '../stores/data'
-import { dashboardData, describeDayLabel } from '../domain/analytics'
-import { todayISO, addDays } from '../domain/dates'
+import { dashboardData, defaultDashboardFilters, describeDayLabel, resolveDateRange, type DateRangePreset } from '../domain/analytics'
+import { CHANNELS, TERMINAL_STATUSES, ACTIVE_STATUSES, type ReservationStatus } from '../domain/types'
+import { statusLabel } from '../domain/status'
+import { todayISO } from '../domain/dates'
 import BarChart from '../components/BarChart.vue'
 import Sparkline from '../components/Sparkline.vue'
+import StatusChip from '../components/StatusChip.vue'
 
 const data = useDataStore()
 const today = todayISO()
+const preset = ref<DateRangePreset>('last30')
+const filters = ref(defaultDashboardFilters(today))
+const dashboard = computed(() => dashboardData(data.settings, data.reservations, data.guests, today, filters.value))
+const statusOptions: ReservationStatus[] = [...ACTIVE_STATUSES, ...TERMINAL_STATUSES]
 
-const dashboard = computed(() => dashboardData(data.settings, data.reservations, data.guests, today))
-
-const upcoming7Days = computed(() =>
-  dashboard.value.upcoming7.daysBreakdown.map((d) => ({ label: describeDayLabel(d.date, today), value: d.covers, meta: `(${d.fillPercent}%)` })),
-)
-const upcoming30Days = computed(() =>
-  dashboard.value.upcoming30.daysBreakdown.map((d) => ({ label: describeDayLabel(d.date, today), value: d.covers, meta: `(${d.fillPercent}%)` })),
-)
-const channelRows = computed(() =>
-  dashboard.value.channel.rows.map((r) => ({ label: r.channel, value: r.covers, meta: `${r.bookings} bk · ${r.share}%` })),
-)
-const occasionRows = computed(() =>
-  dashboard.value.guestMix.occasionMix.map((o) => ({ label: o.occasion, value: o.covers })),
-)
-const partySizeRows = computed(() =>
-  dashboard.value.guestMix.partySizeMix.map((p) => ({ label: `${p.bucket} pax`, value: p.bookings })),
-)
-
-const reliabilityValues = computed(() => dashboard.value.reliability.byDay.map((d) => d.noShowRate))
-
-const sparklineDates = computed(() =>
-  dashboard.value.upcoming30.daysBreakdown.map((d) => d.covers),
-)
-
-const cueLabel: Record<string, string> = {
-  slot_over_capacity: 'Slot over capacity',
-  no_show_rate_high: 'No-show rate above target',
-  cancellation_rate_high: 'Cancellation rate high',
-  allergy_repeat_today: 'Allergy repeat guest today',
+function setPreset(next: DateRangePreset) {
+  preset.value = next
+  const range = resolveDateRange(next, today, filters.value.rangeStart, filters.value.rangeEnd)
+  filters.value = { ...filters.value, rangeStart: range.start, rangeEnd: range.end }
 }
+
+const occasions = computed(() => [...new Set(data.reservations.map((r) => r.occasion?.trim() || 'No occasion'))].sort())
+const guestName = (id: string) => data.guests.find((g) => g.id === id)?.fullName ?? 'Unknown guest'
+const areaName = (id: string) => data.settings.seatingAreas.find((a) => a.id === id)?.name ?? id
+const rangeLabel = computed(() => `${filters.value.rangeStart} → ${filters.value.rangeEnd}`)
+const feedbackAverage = computed(() => data.feedbackResponses.length ? (data.feedbackResponses.reduce((sum, r) => sum + r.rating, 0) / data.feedbackResponses.length).toFixed(1) : '—')
+const upcoming7Days = computed(() => dashboard.value.upcoming7.daysBreakdown.map((d) => ({ label: describeDayLabel(d.date, today), value: d.covers, meta: `(${d.fillPercent}%)` })))
+const upcoming30Days = computed(() => dashboard.value.upcoming30.daysBreakdown.map((d) => ({ label: describeDayLabel(d.date, today), value: d.covers, meta: `(${d.fillPercent}%)` })))
+const channelRows = computed(() => dashboard.value.channel.rows.map((r) => ({ label: r.channel, value: r.covers, meta: `${r.bookings} bk · ${r.share}%` })))
+const occasionRows = computed(() => dashboard.value.guestMix.occasionMix.map((o) => ({ label: o.occasion, value: o.covers })))
+const partySizeRows = computed(() => dashboard.value.guestMix.partySizeMix.map((p) => ({ label: `${p.bucket} pax`, value: p.bookings })))
+const reliabilityValues = computed(() => dashboard.value.reliability.byDay.map((d) => d.noShowRate))
+const sparklineDates = computed(() => dashboard.value.upcoming30.daysBreakdown.map((d) => d.covers))
+const cueLabel: Record<string, string> = { slot_over_capacity: 'Slot over capacity', no_show_rate_high: 'No-show rate above target', cancellation_rate_high: 'Cancellation rate high', allergy_repeat_today: 'Allergy repeat guest today' }
 </script>
 
 <template>
@@ -50,8 +46,18 @@ const cueLabel: Record<string, string> = {
           {{ new Date(today + 'T00:00:00').toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' }) }}
         </h1>
       </div>
-      <p class="text-sm text-gioi-moss/60">Live · last 30 days range</p>
+      <p class="text-sm text-gioi-moss/60">Live · {{ rangeLabel }}</p>
     </header>
+
+    <section class="card mb-6 grid gap-3 md:grid-cols-3 lg:grid-cols-6">
+      <label class="label">Range<select v-model="preset" class="input mt-1" @change="setPreset(preset)"><option value="today">Today</option><option value="last7">Last 7 days</option><option value="last30">Last 30 days</option><option value="custom">Custom</option></select></label>
+      <label v-if="preset === 'custom'" class="label">From<input v-model="filters.rangeStart" type="date" class="input mt-1"></label>
+      <label v-if="preset === 'custom'" class="label">To<input v-model="filters.rangeEnd" type="date" class="input mt-1"></label>
+      <label class="label">Status<select v-model="filters.status" class="input mt-1"><option value="all">All statuses</option><option v-for="status in statusOptions" :key="status" :value="status">{{ statusLabel(status) }}</option></select></label>
+      <label class="label">Source<select v-model="filters.source" class="input mt-1"><option value="all">All sources</option><option v-for="source in CHANNELS" :key="source" :value="source">{{ source }}</option></select></label>
+      <label class="label">Area<select v-model="filters.seatingAreaId" class="input mt-1"><option value="all">All areas</option><option v-for="area in data.settings.seatingAreas" :key="area.id" :value="area.id">{{ area.name }}</option></select></label>
+      <label class="label">Occasion<select v-model="filters.occasion" class="input mt-1"><option value="all">All occasions</option><option v-for="occasion in occasions" :key="occasion" :value="occasion">{{ occasion }}</option></select></label>
+    </section>
 
     <section v-if="dashboard.cues.length" class="mb-6 space-y-2">
       <h2 class="font-display text-lg font-semibold text-gioi-moss">Action cues</h2>
@@ -177,5 +183,26 @@ const cueLabel: Record<string, string> = {
         <Sparkline :values="reliabilityValues" :height="80" color="#b7612f" fill="rgba(183, 97, 47, 0.12)" />
       </section>
     </div>
+    <section class="card mt-4">
+      <div class="flex flex-wrap items-baseline justify-between gap-2"><h3 class="font-display text-lg font-semibold text-gioi-moss">Guest feedback</h3><span class="text-sm text-gioi-moss/60">{{ data.feedbackResponses.length }} responses · {{ feedbackAverage }}/5 average</span></div>
+      <div v-if="data.feedbackResponses.length" class="mt-4 space-y-3">
+        <article v-for="response in data.feedbackResponses.slice(0, 10)" :key="response.id" class="rounded-input bg-line/30 p-3 text-sm"><div class="flex justify-between gap-3"><strong>{{ guestName(response.guestId) }}</strong><span>{{ response.rating }}/5 · {{ new Date(response.submittedAt).toLocaleDateString() }}</span></div><p v-if="response.comments" class="mt-1">{{ response.comments }}</p><p v-if="response.serviceTags.length" class="mt-1 text-xs text-gioi-moss/70">{{ response.serviceTags.join(' · ') }}</p></article>
+      </div>
+      <p v-else class="mt-4 text-sm text-gioi-moss/60">No native feedback responses yet.</p>
+    </section>
+    <section class="card mt-4">
+      <div class="flex flex-wrap items-baseline justify-between gap-2">
+        <h3 class="font-display text-lg font-semibold text-gioi-moss">Filtered reservations</h3>
+        <span class="text-sm text-gioi-moss/60">{{ dashboard.filtered.length }} matching</span>
+      </div>
+      <div v-if="dashboard.filtered.length" class="mt-4 overflow-x-auto">
+        <table class="w-full text-left text-sm">
+          <thead><tr class="border-b border-gioi-sand/60 text-gioi-moss/60"><th class="p-2">Date</th><th class="p-2">Guest</th><th class="p-2">Party</th><th class="p-2">Area</th><th class="p-2">Source</th><th class="p-2">Status</th></tr></thead>
+          <tbody><tr v-for="reservation in dashboard.filtered.slice(0, 50)" :key="reservation.id" class="border-b border-gioi-sand/30"><td class="p-2">{{ reservation.date }} {{ reservation.time }}</td><td class="p-2">{{ guestName(reservation.guestId) }}<div class="text-xs text-gioi-moss/60">{{ reservation.bookingCode }}</div></td><td class="p-2">{{ reservation.partySize }}</td><td class="p-2">{{ areaName(reservation.seatingAreaId) }}</td><td class="p-2">{{ reservation.source }}</td><td class="p-2"><StatusChip :status="reservation.status" /></td></tr></tbody>
+        </table>
+        <p v-if="dashboard.filtered.length > 50" class="mt-2 text-xs text-gioi-moss/60">Showing first 50 reservations.</p>
+      </div>
+      <p v-else class="mt-4 text-sm text-gioi-moss/60">No reservations match these filters.</p>
+    </section>
   </div>
 </template>

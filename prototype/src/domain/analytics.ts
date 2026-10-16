@@ -9,6 +9,37 @@ import { addDays, daysBetween, fromISODate, todayISO, toISODate } from './dates'
 
 const VISIT_STATUSES = new Set(['arrived', 'seated', 'completed', 'no_show'])
 
+export type DateRangePreset = 'today' | 'last7' | 'last30' | 'custom'
+export interface DashboardFilters {
+  rangeStart: string
+  rangeEnd: string
+  status: Reservation['status'] | 'all'
+  source: Reservation['source'] | 'all'
+  seatingAreaId: string
+  occasion: string
+}
+
+export const defaultDashboardFilters = (today: string): DashboardFilters => ({
+  rangeStart: addDays(today, -30), rangeEnd: today, status: 'all', source: 'all', seatingAreaId: 'all', occasion: 'all',
+})
+
+export function resolveDateRange(preset: DateRangePreset, today: string, start = today, end = today) {
+  if (preset === 'today') return { start: today, end: today }
+  if (preset === 'last7') return { start: addDays(today, -6), end: today }
+  if (preset === 'last30') return { start: addDays(today, -30), end: today }
+  return start <= end ? { start, end } : { start: end, end: start }
+}
+
+export function filterReservations(reservations: Reservation[], filters: DashboardFilters) {
+  return reservations
+    .filter((r) => r.date >= filters.rangeStart && r.date <= filters.rangeEnd)
+    .filter((r) => filters.status === 'all' || r.status === filters.status)
+    .filter((r) => filters.source === 'all' || r.source === filters.source)
+    .filter((r) => filters.seatingAreaId === 'all' || r.seatingAreaId === filters.seatingAreaId)
+    .filter((r) => filters.occasion === 'all' || (r.occasion?.trim() || 'No occasion') === filters.occasion)
+    .sort((a, b) => `${b.date}T${b.time}`.localeCompare(`${a.date}T${a.time}`))
+}
+
 export interface TodayLivePanel {
   date: string
   bookings: number
@@ -379,6 +410,7 @@ export interface DashboardData {
   channel: ChannelPerformancePanel
   reliability: ReliabilityPanel
   cues: ActionCue[]
+  filtered: Reservation[]
 }
 
 export function dashboardData(
@@ -386,16 +418,18 @@ export function dashboardData(
   reservations: Reservation[],
   guests: Guest[],
   today: string = todayISO(),
+  filters: DashboardFilters = defaultDashboardFilters(today),
 ): DashboardData {
-  const start30 = addDays(today, -30)
+  const filtered = filterReservations(reservations, filters)
   return {
     today: todayLivePanel(settings, reservations, today),
     upcoming7: upcomingDaysPanel(settings, reservations, today, 7),
     upcoming30: upcomingDaysPanel(settings, reservations, today, 30),
-    guestMix: guestMixPanel(reservations, guests, start30, today),
-    channel: channelPerformancePanel(reservations, start30, today),
-    reliability: reliabilityPanel(reservations, start30, today),
+    guestMix: guestMixPanel(filtered, guests),
+    channel: channelPerformancePanel(filtered),
+    reliability: reliabilityPanel(filtered),
     cues: actionCues(settings, reservations, guests, today),
+    filtered,
   }
 }
 

@@ -89,6 +89,7 @@ export interface Settings {
   overCapacityAlertPercent: number
   seatingAreas: SeatingArea[]
   cancellationPolicy: string
+  feedbackMessageTemplate: string
 }
 
 export interface Guest {
@@ -137,7 +138,16 @@ export interface ReservationStatusEvent {
   at: string // ISO
 }
 
-export type AuditEntityType = 'reservation' | 'settings' | 'seating_area' | 'user' | 'reservation_status'
+export interface FeedbackResponse {
+  id: string
+  reservationId: string
+  guestId: string
+  rating: number
+  comments: string
+  serviceTags: string[]
+  submittedAt: string
+}
+export type AuditEntityType = 'reservation' | 'settings' | 'seating_area' | 'user' | 'reservation_status' | 'feedback_link'
 
 export interface AuditEvent {
   id: string
