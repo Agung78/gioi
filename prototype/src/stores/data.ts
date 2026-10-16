@@ -2,6 +2,7 @@ import { defineStore } from 'pinia'
 import { computed, ref, watch } from 'vue'
 import type {
   AuditEvent,
+  FeedbackResponse,
   Guest,
   Reservation,
   Settings,
@@ -12,12 +13,14 @@ import seedGuests from '../mock/guests.json'
 import seedReservations from '../mock/reservations.json'
 import seedAudit from '../mock/audit.json'
 import seedUsers from '../mock/users.json'
+import seedFeedback from '../mock/feedback.json'
 import { shiftDate, shiftTimestamp } from '../composables/dateAnchor'
 
 const SETTINGS_KEY = 'gioi.settings.v1'
 const RES_KEY = 'gioi.reservations.v1'
 const GUEST_KEY = 'gioi.guests.v1'
 const AUDIT_KEY = 'gioi.audit.v1'
+const FEEDBACK_KEY = 'gioi.feedback.v1'
 const USER_KEY = 'gioi.users.v1'
 
 const clone = <T>(v: T): T => JSON.parse(JSON.stringify(v))
@@ -65,6 +68,7 @@ export const useDataStore = defineStore('data', () => {
   const guests = ref<Guest[]>([])
   const reservations = ref<Reservation[]>([])
   const audit = ref<AuditEvent[]>([])
+  const feedbackResponses = ref<FeedbackResponse[]>([])
   const users = ref<User[]>([])
   const hydrated = ref(false)
 
@@ -76,13 +80,14 @@ export const useDataStore = defineStore('data', () => {
         localStorage.removeItem(RES_KEY)
         localStorage.removeItem(GUEST_KEY)
         localStorage.removeItem(AUDIT_KEY)
+        localStorage.removeItem(FEEDBACK_KEY)
         localStorage.removeItem(USER_KEY)
       } catch {
         // ignore
       }
     }
-    const persistedSettings = loadJSON<Settings | null>(SETTINGS_KEY, null)
-    settings.value = persistedSettings ?? clone(seedSettings as Settings)
+    const persistedSettings = loadJSON<Partial<Settings> | null>(SETTINGS_KEY, null)
+    settings.value = { ...clone(seedSettings as Settings), ...persistedSettings }
 
     const persistedGuests = loadJSON<Guest[] | null>(GUEST_KEY, null)
     if (persistedGuests) {
@@ -100,6 +105,9 @@ export const useDataStore = defineStore('data', () => {
 
     const persistedAudit = loadJSON<AuditEvent[] | null>(AUDIT_KEY, null)
     audit.value = persistedAudit ?? clone(seedAudit as AuditEvent[])
+    const persistedFeedback = loadJSON<FeedbackResponse[] | null>(FEEDBACK_KEY, null)
+    feedbackResponses.value = persistedFeedback
+      ?? (seedFeedback as FeedbackResponse[]).map((f) => ({ ...f, submittedAt: shiftTimestamp(f.submittedAt) }))
 
     const persistedUsers = loadJSON<User[] | null>(USER_KEY, null)
     if (persistedUsers) {
@@ -125,6 +133,9 @@ export const useDataStore = defineStore('data', () => {
   }, { deep: true })
   watch(users, (val) => {
     try { localStorage.setItem(USER_KEY, JSON.stringify(val)) } catch { /* ignore */ }
+  }, { deep: true })
+  watch(feedbackResponses, (val) => {
+    try { localStorage.setItem(FEEDBACK_KEY, JSON.stringify(val)) } catch { /* ignore */ }
   }, { deep: true })
 
   // ---- Lookups ----
@@ -169,6 +180,7 @@ export const useDataStore = defineStore('data', () => {
     guests,
     reservations,
     audit,
+    feedbackResponses,
     users,
     hydrated,
     hydrate,

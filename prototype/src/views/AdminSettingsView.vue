@@ -20,7 +20,13 @@ watch(() => data.users, (val) => { users.value = clone(val) }, { deep: true })
 const saved = ref<string | null>(null)
 function flash() { saved.value = `Saved at ${new Date().toLocaleTimeString()}`; setTimeout(() => { saved.value = null }, 2000) }
 
+const parseTags = (text: string) => text.split(',').map((t) => t.trim()).filter(Boolean)
+const feedbackTagsText = ref((draft.value.feedbackTags ?? []).join(', '))
+watch(() => data.settings.feedbackTags, (val) => { feedbackTagsText.value = (val ?? []).join(', ') }, { deep: true })
+const feedbackTagsPreview = computed(() => parseTags(feedbackTagsText.value))
+
 function saveSettings() {
+  draft.value.feedbackTags = feedbackTagsPreview.value
   settings.updateSettings(draft.value)
   flash()
 }
@@ -201,6 +207,30 @@ const totalCapacity = computed(() => draft.value.seatingAreas.filter((a) => a.bo
       </div>
     </section>
 
+    <section class="card mb-6">
+      <h2 class="font-display text-xl font-semibold text-gioi-moss">Guest feedback</h2>
+      <p class="mt-1 text-sm text-gioi-moss/70">GIOI owns this native feedback form. Configure the WhatsApp message template; responses are stored in this prototype and reviewed in the Admin dashboard.</p>
+      <div class="mt-4 grid gap-4">
+        <div>
+          <label class="label">Feedback question / title</label>
+          <input v-model="draft.feedbackTitle" type="text" class="field" placeholder="How was your visit?" />
+        </div>
+        <div>
+          <label class="label">Feedback subtitle / description</label>
+          <input v-model="draft.feedbackSubtitle" type="text" class="field" placeholder="A few words from you help our team make the next visit better." />
+        </div>
+        <div>
+          <label class="label">What stood out? tags (comma-separated)</label>
+          <input v-model="feedbackTagsText" type="text" class="field" placeholder="Food, Service, Atmosphere, Value" />
+          <div class="mt-2 flex flex-wrap gap-2"><span v-for="tag in feedbackTagsPreview" :key="tag" class="chip bg-line/50">{{ tag }}</span></div>
+        </div>
+        <div>
+          <label class="label">WhatsApp message template</label>
+          <textarea v-model="draft.feedbackMessageTemplate" rows="3" class="field" placeholder="Use {{guestName}}, {{restaurantName}}, and {{feedbackUrl}}" />
+        </div>
+      </div>
+      <div class="mt-4 flex justify-end"><button class="btn-primary" type="button" @click="saveSettings">Save feedback settings</button></div>
+    </section>
     <section class="card mb-6">
       <h2 class="font-display text-xl font-semibold text-gioi-moss">Seating areas</h2>
       <p class="text-sm text-gioi-moss/70">Total bookable capacity: {{ totalCapacity }} covers</p>

@@ -26,6 +26,9 @@ function areaOf(id: string) { return data.settings.seatingAreas.find((a) => a.id
 function statusHistory(reservationId: string) {
   return data.reservations.find((r) => r.id === reservationId)?.statusHistory ?? []
 }
+function feedbackOf(reservationId: string) {
+  return data.feedbackResponses.find((f) => f.reservationId === reservationId)
+}
 </script>
 
 <template>
@@ -88,6 +91,16 @@ function statusHistory(reservationId: string) {
                 </p>
               </div>
               <StatusChip :status="r.status" />
+            </div>
+            <div v-if="feedbackOf(r.id)" class="mt-2 rounded bg-line/40 p-2.5 text-xs">
+              <div class="flex items-center justify-between font-medium text-gioi-moss">
+                <span>Guest feedback: {{ feedbackOf(r.id)!.rating }}/5</span>
+                <span class="text-gioi-moss/60">{{ new Date(feedbackOf(r.id)!.submittedAt).toLocaleDateString() }}</span>
+              </div>
+              <p v-if="feedbackOf(r.id)!.comments" class="mt-1 text-gioi-ink">{{ feedbackOf(r.id)!.comments }}</p>
+              <p v-if="feedbackOf(r.id)!.serviceTags.length" class="mt-0.5 text-gioi-moss/70">
+                Stood out: {{ feedbackOf(r.id)!.serviceTags.join(' · ') }}
+              </p>
             </div>
             <details v-if="statusHistory(r.id).length" class="mt-1 text-xs text-gioi-moss/70">
               <summary class="cursor-pointer">Status history ({{ statusHistory(r.id).length }})</summary>

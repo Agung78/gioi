@@ -55,5 +55,9 @@
       "maxParty": 4
     }
   ],
-  "cancellationPolicy": "Please cancel or reschedule at least 4 hours before your booking. Late cancellations and no-shows may be charged a 200,000 IDR per-person fee."
+  "cancellationPolicy": "Please cancel or reschedule at least 4 hours before your booking. Late cancellations and no-shows may be charged a 200,000 IDR per-person fee.",
+  "feedbackMessageTemplate": "Hi {{guestName}}, thank you for dining at {{restaurantName}}. We would love your feedback: {{feedbackUrl}}",
+  "feedbackTitle": "How was your visit?",
+  "feedbackSubtitle": "A few words from you help our team make the next visit better.",
+  "feedbackTags": ["Food", "Service", "Atmosphere", "Value"]
 }

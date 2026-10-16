@@ -222,13 +222,14 @@ A scenario is **Working** when the described result is visible in the prototype.
    - Party-size limit.
    - Seating-area capacity.
    - Booking policy.
+   - Guest feedback form settings (question title, subtitle, standout tags, WhatsApp template).
    - Host user details or active status.
 4. Return to the public booking flow and confirm the changed rule affects availability.
 5. Open **Audit**.
 
 ### Expected result
 
-- Super Admin can configure operational rules and seating areas.
+- Super Admin can configure operational rules, seating areas, and guest feedback form settings (question, subtitle, tags, message template).
 - Super Admin can manage Host accounts.
 - A Host cannot access these settings or the audit view.
 - Configuration changes are logged with actor, timestamp, changed fields, and previous/new values where applicable.
@@ -254,8 +255,9 @@ A scenario is **Working** when the described result is visible in the prototype.
    - **Guest mix:** first-timers/repeat guests, occasions, party sizes.
    - **Channel performance:** website, Instagram, Google, WhatsApp, Chope, walk-in, phone, and Host sources.
    - **Reliability:** no-show/cancellation rate and booking lead time.
-4. Compare the displayed action cues with the seeded data.
-5. Change a reservation status in the Host view, then return to the dashboard.
+4. Review the **Guest feedback** section and click a feedback response to inspect its detail modal (rating, standout tags, comments, linked booking, and guest profile link).
+5. Compare the displayed action cues with the seeded data.
+6. Change a reservation status in the Host view, then return to the dashboard.
 
 ### Expected result
 
@@ -266,8 +268,9 @@ A scenario is **Working** when the described result is visible in the prototype.
    - No-show rate above target.
    - A repeat guest with allergy notes arriving today.
 - Metrics use reservation data and do not claim revenue or POS data.
+- Feedback responses can be drilled into for details and linked guest/reservation context.
 
-**Evidence:** Five dashboard panels, visible action cues, and counts changing after a status update.
+**Evidence:** Five dashboard panels, feedback response detail modal, visible action cues, and counts changing after a status update.
 
 **Prototype note:** This demonstrates the dashboard calculations with seeded/local data. It is not a shared real-time multi-user dashboard until connected to a server database.
 

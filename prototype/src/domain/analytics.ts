@@ -1,13 +1,41 @@
 // Pure analytics — the 5 dashboard panels from scope §9 + action cues.
 
 import type { Guest, Reservation, Settings } from './types'
-import {
-  reservedCovers,
-  remainingCapacityForParty,
-} from './availability'
+import { reservedCovers } from './availability'
 import { addDays, daysBetween, fromISODate, todayISO, toISODate } from './dates'
 
 const VISIT_STATUSES = new Set(['arrived', 'seated', 'completed', 'no_show'])
+
+export type DateRangePreset = 'today' | 'last7' | 'last30' | 'custom'
+export interface DashboardFilters {
+  rangeStart: string
+  rangeEnd: string
+  status: Reservation['status'] | 'all'
+  source: Reservation['source'] | 'all'
+  seatingAreaId: string
+  occasion: string
+}
+
+export const defaultDashboardFilters = (today: string): DashboardFilters => ({
+  rangeStart: addDays(today, -30), rangeEnd: today, status: 'all', source: 'all', seatingAreaId: 'all', occasion: 'all',
+})
+
+export function resolveDateRange(preset: DateRangePreset, today: string, start = today, end = today) {
+  if (preset === 'today') return { start: today, end: today }
+  if (preset === 'last7') return { start: addDays(today, -6), end: today }
+  if (preset === 'last30') return { start: addDays(today, -30), end: today }
+  return start <= end ? { start, end } : { start: end, end: start }
+}
+
+export function filterReservations(reservations: Reservation[], filters: DashboardFilters) {
+  return reservations
+    .filter((r) => r.date >= filters.rangeStart && r.date <= filters.rangeEnd)
+    .filter((r) => filters.status === 'all' || r.status === filters.status)
+    .filter((r) => filters.source === 'all' || r.source === filters.source)
+    .filter((r) => filters.seatingAreaId === 'all' || r.seatingAreaId === filters.seatingAreaId)
+    .filter((r) => filters.occasion === 'all' || (r.occasion?.trim() || 'No occasion') === filters.occasion)
+    .sort((a, b) => `${b.date}T${b.time}`.localeCompare(`${a.date}T${a.time}`))
+}
 
 export interface TodayLivePanel {
   date: string
@@ -311,9 +339,12 @@ export function actionCues(
 ): ActionCue[] {
   const cues: ActionCue[] = []
 
-  // Slot over capacity threshold — check each slot today
+  // Slot over capacity threshold — one cue per date+time+area
+  const seenSlots = new Set<string>()
   for (const r of reservations.filter((r) => r.date === date)) {
-    const fit = remainingCapacityForParty(settings, reservations, r.date, r.time, r.partySize)
+    const slotKey = `${r.date}|${r.time}|${r.seatingAreaId}`
+    if (seenSlots.has(slotKey)) continue
+    seenSlots.add(slotKey)
     const used = reservedCovers(reservations, r.date, r.time, r.seatingAreaId)
     const area = settings.seatingAreas.find((a) => a.id === r.seatingAreaId)
     if (!area) continue
@@ -328,8 +359,6 @@ export function actionCues(
         time: r.time,
       })
     }
-    // suppress unused var warning
-    void fit
   }
 
   // No-show rate above target (last 30 days)
@@ -379,6 +408,7 @@ export interface DashboardData {
   channel: ChannelPerformancePanel
   reliability: ReliabilityPanel
   cues: ActionCue[]
+  filtered: Reservation[]
 }
 
 export function dashboardData(
@@ -386,20 +416,28 @@ export function dashboardData(
   reservations: Reservation[],
   guests: Guest[],
   today: string = todayISO(),
+  filters: DashboardFilters = defaultDashboardFilters(today),
 ): DashboardData {
-  const start30 = addDays(today, -30)
+  const filtered = filterReservations(reservations, filters)
+  // Period analytics ignore the status filter, else reliability rates are meaningless
+  const period = filterReservations(reservations, { ...filters, status: 'all' })
   return {
     today: todayLivePanel(settings, reservations, today),
     upcoming7: upcomingDaysPanel(settings, reservations, today, 7),
     upcoming30: upcomingDaysPanel(settings, reservations, today, 30),
-    guestMix: guestMixPanel(reservations, guests, start30, today),
-    channel: channelPerformancePanel(reservations, start30, today),
-    reliability: reliabilityPanel(reservations, start30, today),
+    guestMix: guestMixPanel(period, guests),
+    channel: channelPerformancePanel(period),
+    reliability: reliabilityPanel(period),
     cues: actionCues(settings, reservations, guests, today),
+    filtered,
   }
 }
 
 // ---- helpers used by views ----
+
+export function formatLeadTime(hours: number): string {
+  return hours >= 24 ? `${(hours / 24).toFixed(1)} days` : `${hours}h`
+}
 
 export function describeDayLabel(dateISO: string, today: string = todayISO()): string {
   const diff = daysBetween(today, dateISO)

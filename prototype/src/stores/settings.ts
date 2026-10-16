@@ -9,6 +9,7 @@ function diffSettings(prev: Settings, next: Settings): NonNullable<AuditEvent['c
     'bookingIntervalMinutes', 'leadTimeMinutes', 'cutoffMinutes',
     'noShowTargetPercent', 'overCapacityAlertPercent',
     'partySizeLimits', 'openingHours', 'closedDates', 'cancellationPolicy',
+    'feedbackMessageTemplate', 'feedbackTitle', 'feedbackSubtitle', 'feedbackTags',
   ]
   for (const k of topKeys) {
     if (JSON.stringify(prev[k]) !== JSON.stringify(next[k])) {
