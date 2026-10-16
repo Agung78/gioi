@@ -112,6 +112,7 @@ Admin settings
   -> Configure opening schedule
   -> Configure seating areas and capacity
   -> Configure booking windows and policies
+  -> Configure guest feedback form (question, subtitle, standout tags, WhatsApp template)
   -> Review reservations and guest history
   -> Export or report on operational data
 ```
@@ -362,10 +363,10 @@ Completed reservation
   -> WhatsApp opens with a prefilled message and native GIOI feedback link
   -> Guest submits rating, service tags, and comments
   -> Response is stored against the reservation and guest
-  -> Super Admin reviews response history and audit activity
+  -> Super Admin reviews response history, feedback details (rating, tags, comments, linked booking), and audit activity
 ```
 
-GIOI owns the form questions, response UI, and response history. Feedback collection must not automatically imply marketing consent. Loyalty enrollment and promotional communication require separate, explicit consent.
+GIOI owns the form questions, response UI, and response history. Feedback responses are directly inspectable via the Admin dashboard drill-down modal and the guest's visit history, showing rating, standout category tags, written comments, linked reservation context, and direct guest profile navigation. The feedback form question, subtitle description, standout tags (e.g. Food, Service, Atmosphere, Value), and WhatsApp message template are configurable by Super Admin in Settings (`/admin/settings`) and tracked via audit logs. Feedback collection must not automatically imply marketing consent. Loyalty enrollment and promotional communication require separate, explicit consent.
 
 ---
 

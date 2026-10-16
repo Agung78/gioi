@@ -41,6 +41,7 @@
 | Landing | `/` | taste-skill full | 7 | 5 | 3 |
 | Booking flow | `/book` | taste-skill form rules only (4.5, 4.6) | 4 | 3 | 4 |
 | Confirmation | `/confirmation/:code` | taste-skill | 5 | 4 | 3 |
+| Feedback | `/feedback/:code` | taste-skill | 5 | 3 | 3 |
 | Login | `/login` | operational | 2 | 2 | 4 |
 | Host (tablet) | `/host`, `/guests/:id` | operational | 2 | 2 | 7 |
 | Admin | `/admin/*` | operational | 2 | 2 | 6 |
@@ -238,6 +239,13 @@ Mobile                                   Desktop (lg)
 - Status shown in words ("Confirmed", "Pending deposit"), not only color.
 - One supporting image (dining room), small.
 
+### 6.1 Guest Feedback `/feedback/:code`
+- Public guest form restricted to valid reservations with status `Completed`.
+- Dynamic question title and subtitle configured from Admin Settings (defaults: *"How was your visit?"* / *"A few words from you help our team make the next visit better."*).
+- 1–5 star rating using Phosphor `PhStar`.
+- Standout tags rendered as clickable chips, dynamically configured in Admin Settings (defaults: Food, Service, Atmosphere, Value).
+- Optional comments textarea (1,000 char limit).
+- Success state with `PhCheckCircle` and thank-you messaging.
 ---
 
 ## 7. Host (tablet) `/host`, `/guests/:id`
@@ -288,7 +296,8 @@ Single-hue ramp on `--accent` plus neutral and danger. Color is never the only s
 ## 8. Admin `/admin/*`
 - Same tokens, density 6. Left nav: Dashboard, Settings, Audit.
 - Dashboard: 4 stat tiles max (Covers today, Bookings this week, No-show rate, Direct vs Chope share). Use the `dataviz` skill when building charts.
-- Settings: grouped forms (Seating areas, Booking windows, Policies, Deposit). Save bar sticky at bottom; unsaved-change guard.
+- Guest feedback card: shows average rating, response counts, and recent responses. Clicking any response opens a feedback detail modal with rating, standout chips, full comments, linked reservation details, and a link to the guest profile.
+- Settings: grouped forms (Hours & rules, Guest feedback [custom question, subtitle, standout tags preview, WhatsApp template], Seating areas, Policies). Save actions per section; unsaved-change guard.
 - Audit: filterable table (who, what, when, before/after). Table is the right tool here.
 
 ---

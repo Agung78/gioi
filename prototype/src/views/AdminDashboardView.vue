@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
+import { RouterLink } from 'vue-router'
 import { useDataStore } from '../stores/data'
 import { dashboardData, defaultDashboardFilters, describeDayLabel, resolveDateRange, type DateRangePreset } from '../domain/analytics'
-import { CHANNELS, TERMINAL_STATUSES, ACTIVE_STATUSES, type ReservationStatus } from '../domain/types'
+import { CHANNELS, TERMINAL_STATUSES, ACTIVE_STATUSES, type ReservationStatus, type FeedbackResponse } from '../domain/types'
 import { statusLabel } from '../domain/status'
 import { todayISO } from '../domain/dates'
 import BarChart from '../components/BarChart.vue'
@@ -27,6 +28,9 @@ const guestName = (id: string) => data.guests.find((g) => g.id === id)?.fullName
 const areaName = (id: string) => data.settings.seatingAreas.find((a) => a.id === id)?.name ?? id
 const rangeLabel = computed(() => `${filters.value.rangeStart} → ${filters.value.rangeEnd}`)
 const feedbackAverage = computed(() => data.feedbackResponses.length ? (data.feedbackResponses.reduce((sum, r) => sum + r.rating, 0) / data.feedbackResponses.length).toFixed(1) : '—')
+const selectedFeedback = ref<FeedbackResponse | null>(null)
+const guestOf = (id: string) => data.guests.find((g) => g.id === id)
+const reservationOf = (id: string) => data.reservations.find((r) => r.id === id)
 const upcoming7Days = computed(() => dashboard.value.upcoming7.daysBreakdown.map((d) => ({ label: describeDayLabel(d.date, today), value: d.covers, meta: `(${d.fillPercent}%)` })))
 const upcoming30Days = computed(() => dashboard.value.upcoming30.daysBreakdown.map((d) => ({ label: describeDayLabel(d.date, today), value: d.covers, meta: `(${d.fillPercent}%)` })))
 const channelRows = computed(() => dashboard.value.channel.rows.map((r) => ({ label: r.channel, value: r.covers, meta: `${r.bookings} bk · ${r.share}%` })))
@@ -186,10 +190,129 @@ const cueLabel: Record<string, string> = { slot_over_capacity: 'Slot over capaci
     <section class="card mt-4">
       <div class="flex flex-wrap items-baseline justify-between gap-2"><h3 class="font-display text-lg font-semibold text-gioi-moss">Guest feedback</h3><span class="text-sm text-gioi-moss/60">{{ data.feedbackResponses.length }} responses · {{ feedbackAverage }}/5 average</span></div>
       <div v-if="data.feedbackResponses.length" class="mt-4 space-y-3">
-        <article v-for="response in data.feedbackResponses.slice(0, 10)" :key="response.id" class="rounded-input bg-line/30 p-3 text-sm"><div class="flex justify-between gap-3"><strong>{{ guestName(response.guestId) }}</strong><span>{{ response.rating }}/5 · {{ new Date(response.submittedAt).toLocaleDateString() }}</span></div><p v-if="response.comments" class="mt-1">{{ response.comments }}</p><p v-if="response.serviceTags.length" class="mt-1 text-xs text-gioi-moss/70">{{ response.serviceTags.join(' · ') }}</p></article>
+        <article
+          v-for="response in data.feedbackResponses.slice(0, 10)"
+          :key="response.id"
+          class="group rounded-input bg-line/30 p-3 text-sm cursor-pointer transition hover:bg-line/60 focus:outline-none focus:ring-2 focus:ring-accent"
+          tabindex="0"
+          role="button"
+          aria-label="View feedback details"
+          @click="selectedFeedback = response"
+          @keydown.enter="selectedFeedback = response"
+        >
+          <div class="flex justify-between gap-3"><strong class="group-hover:text-accent">{{ guestName(response.guestId) }}</strong><span class="text-xs text-gioi-moss/70">{{ response.rating }}/5 · {{ new Date(response.submittedAt).toLocaleDateString() }}</span></div>
+          <p v-if="response.comments" class="mt-1 text-gioi-ink">{{ response.comments }}</p>
+          <div class="mt-1 flex flex-wrap items-center justify-between gap-2">
+            <p v-if="response.serviceTags.length" class="text-xs text-gioi-moss/70">{{ response.serviceTags.join(' · ') }}</p>
+            <span class="text-xs font-medium text-accent underline underline-offset-2">View details →</span>
+          </div>
+        </article>
       </div>
       <p v-else class="mt-4 text-sm text-gioi-moss/60">No native feedback responses yet.</p>
     </section>
+    <!-- Feedback detail modal -->
+    <Transition name="modal">
+      <div
+        v-if="selectedFeedback"
+        class="modal-backdrop fixed inset-0 z-40 grid place-items-center overflow-y-auto bg-ink/50 p-4"
+        @click.self="selectedFeedback = null"
+      >
+        <div class="modal-panel card max-h-[calc(100dvh-2rem)] w-full max-w-lg overflow-y-auto">
+          <div class="flex items-start justify-between gap-3">
+            <div>
+              <p class="text-xs uppercase tracking-wide text-gioi-moss/70">Feedback detail</p>
+              <h2 class="font-display text-2xl font-semibold text-gioi-moss">
+                {{ guestOf(selectedFeedback.guestId)?.fullName ?? 'Guest feedback' }}
+              </h2>
+            </div>
+            <button class="btn-ghost" type="button" @click="selectedFeedback = null">Close</button>
+          </div>
+
+          <div class="mt-4 space-y-4 text-sm">
+            <div class="rounded-input bg-line/30 p-3">
+              <div class="flex items-center justify-between">
+                <span class="font-medium text-gioi-moss">Rating</span>
+                <span class="text-lg font-bold text-accent">{{ selectedFeedback.rating }} / 5</span>
+              </div>
+              <div v-if="selectedFeedback.serviceTags?.length" class="mt-2">
+                <span class="text-xs text-gioi-moss/70">Standout tags:</span>
+                <div class="mt-1 flex flex-wrap gap-1.5">
+                  <span
+                    v-for="tag in selectedFeedback.serviceTags"
+                    :key="tag"
+                    class="rounded-full bg-line px-2.5 py-0.5 text-xs text-gioi-ink"
+                  >
+                    {{ tag }}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <h4 class="label">Comments</h4>
+              <p
+                class="mt-1 rounded-input bg-line/20 p-3 text-gioi-ink"
+                :class="{ 'italic text-gioi-moss/60': !selectedFeedback.comments }"
+              >
+                {{ selectedFeedback.comments || 'No comments provided.' }}
+              </p>
+            </div>
+
+            <div v-if="reservationOf(selectedFeedback.reservationId)" class="rounded-input border border-gioi-sand/60 p-3">
+              <div class="flex items-center justify-between">
+                <h4 class="label">Linked reservation</h4>
+                <span class="font-mono text-xs text-gioi-moss/80">
+                  {{ reservationOf(selectedFeedback.reservationId)!.bookingCode }}
+                </span>
+              </div>
+              <dl class="mt-2 grid grid-cols-2 gap-2 text-xs">
+                <div>
+                  <dt class="text-gioi-moss/60">Date & time</dt>
+                  <dd class="font-medium text-gioi-ink">
+                    {{ reservationOf(selectedFeedback.reservationId)!.date }} · {{ reservationOf(selectedFeedback.reservationId)!.time }}
+                  </dd>
+                </div>
+                <div>
+                  <dt class="text-gioi-moss/60">Party & area</dt>
+                  <dd class="font-medium text-gioi-ink">
+                    {{ reservationOf(selectedFeedback.reservationId)!.partySize }} guests · {{ areaName(reservationOf(selectedFeedback.reservationId)!.seatingAreaId) }}
+                  </dd>
+                </div>
+                <div>
+                  <dt class="text-gioi-moss/60">Source</dt>
+                  <dd class="font-medium text-gioi-ink capitalize">
+                    {{ reservationOf(selectedFeedback.reservationId)!.source }}
+                  </dd>
+                </div>
+                <div v-if="reservationOf(selectedFeedback.reservationId)!.occasion">
+                  <dt class="text-gioi-moss/60">Occasion</dt>
+                  <dd class="font-medium text-gioi-ink">
+                    {{ reservationOf(selectedFeedback.reservationId)!.occasion }}
+                  </dd>
+                </div>
+              </dl>
+            </div>
+
+            <div v-if="guestOf(selectedFeedback.guestId)" class="flex items-center justify-between rounded-input bg-line/20 p-3">
+              <div class="text-xs">
+                <p class="font-medium text-gioi-ink">{{ guestOf(selectedFeedback.guestId)!.fullName }}</p>
+                <p class="text-gioi-moss/70">{{ guestOf(selectedFeedback.guestId)!.phone }}</p>
+              </div>
+              <RouterLink
+                :to="{ name: 'guest', params: { id: selectedFeedback.guestId } }"
+                class="btn-primary !py-1.5 !px-3 !text-xs"
+              >
+                Open guest profile →
+              </RouterLink>
+            </div>
+
+            <p class="text-right text-xs text-gioi-moss/60">
+              Submitted {{ new Date(selectedFeedback.submittedAt).toLocaleString() }}
+            </p>
+          </div>
+        </div>
+      </div>
+    </Transition>
     <section class="card mt-4">
       <div class="flex flex-wrap items-baseline justify-between gap-2">
         <h3 class="font-display text-lg font-semibold text-gioi-moss">Filtered reservations</h3>

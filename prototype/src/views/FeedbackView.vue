@@ -14,7 +14,12 @@ const comments = ref('')
 const tags = ref<string[]>([])
 const submitted = ref(false)
 const error = ref('')
-const tagOptions = ['Food', 'Service', 'Atmosphere', 'Value']
+const headline = computed(() => data.settings.feedbackTitle?.trim() || 'How was your visit?')
+const subtitle = computed(() => data.settings.feedbackSubtitle?.trim() || 'A few words from you help our team make the next visit better.')
+const tagOptions = computed(() => {
+  const list = (data.settings.feedbackTags ?? []).map((t) => t.trim()).filter(Boolean)
+  return list.length ? list : ['Food', 'Service', 'Atmosphere', 'Value']
+})
 
 function toggleTag(tag: string) {
   tags.value = tags.value.includes(tag) ? tags.value.filter((t) => t !== tag) : [...tags.value, tag]
@@ -42,8 +47,8 @@ function submit() {
     </div>
     <form v-else class="card" @submit.prevent="submit">
       <p class="text-sm font-medium text-accent">GIOI Ocean Gourmet</p>
-      <h1 class="mt-2 text-3xl font-extrabold">How was your visit?</h1>
-      <p class="mt-2 text-muted">A few words from you help our team make the next visit better.</p>
+      <h1 class="mt-2 text-3xl font-extrabold">{{ headline }}</h1>
+      <p class="mt-2 text-muted">{{ subtitle }}</p>
       <fieldset class="mt-8">
         <legend class="label">Overall rating</legend>
         <div class="mt-2 flex gap-2" role="radiogroup" aria-label="Overall rating">

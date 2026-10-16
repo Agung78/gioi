@@ -90,6 +90,9 @@ export interface Settings {
   seatingAreas: SeatingArea[]
   cancellationPolicy: string
   feedbackMessageTemplate: string
+  feedbackTitle?: string
+  feedbackSubtitle?: string
+  feedbackTags?: string[]
 }
 
 export interface Guest {

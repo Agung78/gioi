@@ -180,8 +180,8 @@ Super Admin users can:
 - Configure bookable time slots.
 - Configure seating areas and capacity.
 - Manage Host accounts.
-- Configure the post-visit feedback form link and WhatsApp message template.
-- Review feedback-link activity and feedback history associated with reservations.
+- Configure the post-visit feedback form (question title, subtitle, standout tags) and WhatsApp message template.
+- Review feedback-link activity, response history, and detailed feedback submissions (rating, standout tags, comments, linked reservation, and guest context).
 - Export operational data.
 - View operational reports.
 - Review system activity and audit history.
@@ -357,7 +357,7 @@ The dashboard should highlight a slot above the configured capacity threshold, n
 
 ### Data boundaries
 
-The current database does not contain revenue, spend, menu-item, POS, staff-productivity, advertising-cost, conversion, or submitted-feedback-response data. The Admin prototype now captures native feedback responses after the feedback page is implemented; dashboard feedback metrics remain limited to collected responses. Feedback-link sent/open history and response history are shown only for records stored by the application.
+The current database does not contain revenue, spend, menu-item, POS, staff-productivity, advertising-cost, or conversion data. Native feedback responses collected via the GIOI feedback page are captured and included in scope; Super Admin can inspect feedback response details (rating, standout tags, written comments, submission timestamp, and linked booking/guest profile) via the dashboard drill-down modal and within the guest's visit history. Feedback-link sent/open activity and response history are tracked for records stored by the application.
 
 ---
 
@@ -398,7 +398,7 @@ After the reservation system has collected reliable data, GIOI may choose to add
 - Provider delivery logs.
 - Deposit and payment notifications.
 - **Post-visit feedback action:** after a reservation is marked `Completed`, the authorized staff user can click a button that opens WhatsApp with a prefilled message containing the GIOI-managed feedback-form link.
-- GIOI builds and maintains the feedback form itself. Super Admin can configure the form URL and message template, and review feedback-link logs/history against the related reservation and guest where consent permits.
+- GIOI builds and maintains the feedback form itself. Super Admin can configure the feedback question/title, subtitle, standout tags, and WhatsApp message template directly in Admin Settings, and review feedback-link logs/history against the related reservation and guest where consent permits.
 
 Feedback collection must not automatically enroll a guest in marketing or loyalty communications. Those actions require separate explicit consent.
 ### Phase 3 — Operational intelligence
