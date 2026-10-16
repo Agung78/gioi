@@ -1,0 +1,171 @@
+[
+  {
+    "id": "fb001",
+    "reservationId": "r110",
+    "guestId": "g006",
+    "rating": 5,
+    "comments": "Wonderful tasting menu — every course felt considered. Staff remembered our anniversary without being told.",
+    "serviceTags": [
+      "Food",
+      "Service",
+      "Ambience"
+    ],
+    "submittedAt": "2026-09-28T22:30:00.000Z"
+  },
+  {
+    "id": "fb002",
+    "reservationId": "r111",
+    "guestId": "g034",
+    "rating": 4,
+    "comments": "Great food, but we waited about 15 minutes past our booking time for the table.",
+    "serviceTags": [
+      "Food",
+      "Wait time"
+    ],
+    "submittedAt": "2026-09-28T22:30:00.000Z"
+  },
+  {
+    "id": "fb003",
+    "reservationId": "r112",
+    "guestId": "g022",
+    "rating": 5,
+    "comments": "Best counter seat in town. Watching the kitchen work was half the experience.",
+    "serviceTags": [
+      "Counter seat",
+      "Food"
+    ],
+    "submittedAt": "2026-09-28T22:30:00.000Z"
+  },
+  {
+    "id": "fb004",
+    "reservationId": "r105",
+    "guestId": "g002",
+    "rating": 3,
+    "comments": "Dishes were good but the dining room was loud for a quiet dinner.",
+    "serviceTags": [
+      "Noise",
+      "Food"
+    ],
+    "submittedAt": "2026-09-27T22:30:00.000Z"
+  },
+  {
+    "id": "fb005",
+    "reservationId": "r106",
+    "guestId": "g025",
+    "rating": 5,
+    "comments": "Handled my dairy allergy flawlessly and the alternative dessert was a highlight.",
+    "serviceTags": [
+      "Allergy care",
+      "Service"
+    ],
+    "submittedAt": "2026-09-27T15:30:00.000Z"
+  },
+  {
+    "id": "fb006",
+    "reservationId": "r108",
+    "guestId": "g040",
+    "rating": 4,
+    "comments": "Lovely evening. Pacing between courses was a touch slow near the end.",
+    "serviceTags": [
+      "Pacing",
+      "Ambience"
+    ],
+    "submittedAt": "2026-09-27T22:30:00.000Z"
+  },
+  {
+    "id": "fb007",
+    "reservationId": "r99",
+    "guestId": "g033",
+    "rating": 5,
+    "comments": "Perfect birthday celebration — thank you for the candle and the handwritten card.",
+    "serviceTags": [
+      "Service",
+      "Celebration"
+    ],
+    "submittedAt": "2026-09-25T15:30:00.000Z"
+  },
+  {
+    "id": "fb008",
+    "reservationId": "r100",
+    "guestId": "g001",
+    "rating": 2,
+    "comments": "Our reservation was not ready on arrival and no one apologised until we asked.",
+    "serviceTags": [
+      "Wait time",
+      "Service"
+    ],
+    "submittedAt": "2026-09-25T22:30:00.000Z"
+  },
+  {
+    "id": "fb009",
+    "reservationId": "r101",
+    "guestId": "g026",
+    "rating": 4,
+    "comments": "Excellent value for the quality. Would love a longer wine list.",
+    "serviceTags": [
+      "Value",
+      "Drinks"
+    ],
+    "submittedAt": "2026-09-25T22:30:00.000Z"
+  },
+  {
+    "id": "fb010",
+    "reservationId": "r93",
+    "guestId": "g010",
+    "rating": 5,
+    "comments": "Warm, attentive and unhurried. We will be back with friends.",
+    "serviceTags": [
+      "Service",
+      "Ambience"
+    ],
+    "submittedAt": "2026-09-24T22:30:00.000Z"
+  },
+  {
+    "id": "fb011",
+    "reservationId": "r94",
+    "guestId": "g023",
+    "rating": 4,
+    "comments": "Beautiful plating and balanced flavours. Terrace was a little warm.",
+    "serviceTags": [
+      "Food",
+      "Ambience"
+    ],
+    "submittedAt": "2026-09-24T22:30:00.000Z"
+  },
+  {
+    "id": "fb012",
+    "reservationId": "r95",
+    "guestId": "g006",
+    "rating": 5,
+    "comments": "Booked on a whim through the website and it was seamless from start to finish.",
+    "serviceTags": [
+      "Booking",
+      "Service"
+    ],
+    "submittedAt": "2026-09-24T22:30:00.000Z"
+  },
+  {
+    "id": "fb013",
+    "reservationId": "r96",
+    "guestId": "g017",
+    "rating": 3,
+    "comments": "Food was fine; portions felt small for the price.",
+    "serviceTags": [
+      "Value",
+      "Food"
+    ],
+    "submittedAt": "2026-09-24T22:30:00.000Z"
+  },
+  {
+    "id": "fb014",
+    "reservationId": "r97",
+    "guestId": "g039",
+    "rating": 5,
+    "comments": "Chef came out to explain the final course. Memorable.",
+    "serviceTags": [
+      "Food",
+      "Service"
+    ],
+    "submittedAt": "2026-09-24T15:30:00.000Z"
+  }
+]

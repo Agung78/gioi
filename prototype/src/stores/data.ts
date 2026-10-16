@@ -13,6 +13,7 @@ import seedGuests from '../mock/guests.json'
 import seedReservations from '../mock/reservations.json'
 import seedAudit from '../mock/audit.json'
 import seedUsers from '../mock/users.json'
+import seedFeedback from '../mock/feedback.json'
 import { shiftDate, shiftTimestamp } from '../composables/dateAnchor'
 
 const SETTINGS_KEY = 'gioi.settings.v1'
@@ -105,7 +106,8 @@ export const useDataStore = defineStore('data', () => {
     const persistedAudit = loadJSON<AuditEvent[] | null>(AUDIT_KEY, null)
     audit.value = persistedAudit ?? clone(seedAudit as AuditEvent[])
     const persistedFeedback = loadJSON<FeedbackResponse[] | null>(FEEDBACK_KEY, null)
-    feedbackResponses.value = persistedFeedback ?? []
+    feedbackResponses.value = persistedFeedback
+      ?? (seedFeedback as FeedbackResponse[]).map((f) => ({ ...f, submittedAt: shiftTimestamp(f.submittedAt) }))
 
     const persistedUsers = loadJSON<User[] | null>(USER_KEY, null)
     if (persistedUsers) {

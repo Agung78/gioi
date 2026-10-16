@@ -3,6 +3,9 @@ import {
   actionCues,
   channelPerformancePanel,
   dashboardData,
+  formatLeadTime,
+  defaultDashboardFilters,
+  type DashboardFilters,
   guestMixPanel,
   reliabilityPanel,
   todayLivePanel,
@@ -188,5 +191,25 @@ describe('dashboard filters', () => {
       rangeStart: '2026-06-15', rangeEnd: '2026-06-18', status: 'confirmed', source: 'instagram', seatingAreaId: 'all', occasion: 'all',
     })
     expect(rows.map((r) => r.id)).toEqual(['7'])
+  })
+})
+describe('dashboard fixes', () => {
+  it('dedupes over-capacity cues per date+time+area', () => {
+    const reservations = [1, 2, 3].map((i) =>
+      baseReservation({ id: `d${i}`, date: '2026-06-15', time: '19:00', partySize: 6, status: 'confirmed' }))
+    const cues = actionCues(baseSettings, reservations, makeGuests(), '2026-06-15')
+    expect(cues.filter((c) => c.kind === 'slot_over_capacity').length).toBeLessThanOrEqual(1)
+  })
+
+  it('keeps reliability independent of the status filter', () => {
+    const base = defaultDashboardFilters('2026-06-15')
+    const rel = (status: DashboardFilters['status']) =>
+      dashboardData(baseSettings, makeReservations(), makeGuests(), '2026-06-15', { ...base, status }).reliability
+    expect(rel('confirmed')).toEqual(rel('all'))
+  })
+
+  it('formats lead time as days from 24h up', () => {
+    expect(formatLeadTime(383.2)).toBe('16.0 days')
+    expect(formatLeadTime(5.5)).toBe('5.5h')
   })
 })
