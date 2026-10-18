@@ -63,7 +63,11 @@ const partySizeRows = computed(() => dashboard.value.guestMix.partySizeMix.map((
 const reliabilityValues = computed(() => dashboard.value.reliability.byDay.map((d) => d.noShowRate))
 const upcoming30Covers = computed(() => dashboard.value.upcoming30.daysBreakdown.map((d) => d.covers))
 const upcoming30Peak = computed(() => dashboard.value.upcoming30.daysBreakdown.reduce((a, b) => (b.covers > a.covers ? b : a)))
-const cueLabel: Record<string, string> = { slot_over_capacity: 'Slot over capacity', no_show_rate_high: 'No-show rate above target', cancellation_rate_high: 'Cancellation rate high', allergy_repeat_today: 'Allergy repeat guest today' }
+const isMilestoneDay = (date: string, index: number) => {
+  const day = new Date(date + 'T00:00:00').getDate()
+  return index === 0 || index === 29 || day === 1 || day === 15 || (index + 1) % 5 === 0
+}
+const cueLabel:Record<string, string> = { slot_over_capacity: 'Slot over capacity', no_show_rate_high: 'No-show rate above target', cancellation_rate_high: 'Cancellation rate high', allergy_repeat_today: 'Allergy repeat guest today' }
 </script>
 
 <template>
@@ -79,13 +83,13 @@ const cueLabel: Record<string, string> = { slot_over_capacity: 'Slot over capaci
     </header>
 
     <section class="card mb-6 grid gap-3 md:grid-cols-3 lg:grid-cols-6">
-      <label class="label">Range<select v-model="preset" class="input mt-1" @change="setPreset(preset)"><option value="today">Today</option><option value="last7">Last 7 days</option><option value="last30">Last 30 days</option><option value="custom">Custom</option></select></label>
-      <label v-if="preset === 'custom'" class="label">From<input v-model="filters.rangeStart" type="date" class="input mt-1"></label>
-      <label v-if="preset === 'custom'" class="label">To<input v-model="filters.rangeEnd" type="date" class="input mt-1"></label>
-      <label class="label">Status<select v-model="filters.status" class="input mt-1"><option value="all">All statuses</option><option v-for="status in statusOptions" :key="status" :value="status">{{ statusLabel(status) }}</option></select></label>
-      <label class="label">Source<select v-model="filters.source" class="input mt-1"><option value="all">All sources</option><option v-for="source in CHANNELS" :key="source" :value="source">{{ source }}</option></select></label>
-      <label class="label">Area<select v-model="filters.seatingAreaId" class="input mt-1"><option value="all">All areas</option><option v-for="area in data.settings.seatingAreas" :key="area.id" :value="area.id">{{ area.name }}</option></select></label>
-      <label class="label">Occasion<select v-model="filters.occasion" class="input mt-1"><option value="all">All occasions</option><option v-for="occasion in occasions" :key="occasion" :value="occasion">{{ occasion }}</option></select></label>
+      <label class="label">Range<select v-model="preset" class="field mt-1 !py-1.5 !px-3 text-sm" @change="setPreset(preset)"><option value="today">Today</option><option value="last7">Last 7 days</option><option value="last30">Last 30 days</option><option value="custom">Custom</option></select></label>
+      <label v-if="preset === 'custom'" class="label">From<input v-model="filters.rangeStart" type="date" class="field mt-1 !py-1.5 !px-3 text-sm"></label>
+      <label v-if="preset === 'custom'" class="label">To<input v-model="filters.rangeEnd" type="date" class="field mt-1 !py-1.5 !px-3 text-sm"></label>
+      <label class="label">Status<select v-model="filters.status" class="field mt-1 !py-1.5 !px-3 text-sm"><option value="all">All statuses</option><option v-for="status in statusOptions" :key="status" :value="status">{{ statusLabel(status) }}</option></select></label>
+      <label class="label">Source<select v-model="filters.source" class="field mt-1 !py-1.5 !px-3 text-sm"><option value="all">All sources</option><option v-for="source in CHANNELS" :key="source" :value="source">{{ source }}</option></select></label>
+      <label class="label">Area<select v-model="filters.seatingAreaId" class="field mt-1 !py-1.5 !px-3 text-sm"><option value="all">All areas</option><option v-for="area in data.settings.seatingAreas" :key="area.id" :value="area.id">{{ area.name }}</option></select></label>
+      <label class="label">Occasion<select v-model="filters.occasion" class="field mt-1 !py-1.5 !px-3 text-sm"><option value="all">All occasions</option><option v-for="occasion in occasions" :key="occasion" :value="occasion">{{ occasion }}</option></select></label>
       <p class="text-xs text-muted md:col-span-3 lg:col-span-6">
         Filters apply to period analytics ({{ periodLabel }}: guest mix, channels, reliability) and the reservations table. Status only narrows the table. Today live, Next 7 days and Next 30 days are always live.
       </p>
@@ -97,8 +101,7 @@ const cueLabel: Record<string, string> = { slot_over_capacity: 'Slot over capaci
         <li
           v-for="(cue, i) in dashboard.cues"
           :key="i"
-          class="alert-warn"
-          :class="cue.severity === 'danger' ? 'alert-danger' : ''"
+          :class="cue.severity === 'danger' ? 'alert-danger' : 'alert-warn'"
         >
           <strong>{{ cueLabel[cue.kind] ?? cue.kind }}:</strong> {{ cue.message }}
           <RouterLink v-if="cueLink(cue)" :to="cueLink(cue)!" class="ml-2 font-medium underline underline-offset-2">{{ cueLinkLabel(cue) }}</RouterLink>
@@ -165,9 +168,10 @@ const cueLabel: Record<string, string> = { slot_over_capacity: 'Slot over capaci
         <Sparkline class="mt-3" :values="upcoming30Covers" :height="120" />
         <div class="grid text-center text-[10px] leading-tight text-muted" style="grid-template-columns: repeat(30, minmax(0, 1fr))">
           <span
-            v-for="d in dashboard.upcoming30.daysBreakdown"
+            v-for="(d, i) in dashboard.upcoming30.daysBreakdown"
             :key="d.date"
             class="py-1"
+            :class="isMilestoneDay(d.date, i) ? '' : 'invisible lg:visible'"
             :title="`${describeDayLabel(d.date, today)}: ${d.covers} covers · ${d.bookings} bookings · ${d.fillPercent}% full`"
           >
             <span class="block font-medium text-ink">{{ d.covers }}</span>{{ new Date(d.date + 'T00:00:00').getDate() }}
@@ -361,7 +365,7 @@ const cueLabel: Record<string, string> = { slot_over_capacity: 'Slot over capaci
       <div class="flex flex-wrap items-baseline justify-between gap-2">
         <h3 class="font-display text-lg font-semibold text-ink">Filtered reservations</h3>
         <div class="flex flex-wrap items-center gap-2">
-          <input v-model="search" type="search" class="input !w-56" placeholder="Search name, code, phone" aria-label="Search reservations">
+          <input v-model="search" type="search" class="field !w-56 !py-1.5 !px-3 text-sm" placeholder="Search name, code, phone" aria-label="Search reservations">
           <span class="text-sm text-muted">{{ searchedReservations.length }} matching</span>
           <button type="button" class="btn-secondary !min-h-9 !px-4" :disabled="!searchedReservations.length" @click="exportCSV">Export CSV</button>
         </div>

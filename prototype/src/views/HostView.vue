@@ -71,18 +71,19 @@ function isRepeat(r: Reservation): boolean {
 </script>
 
 <template>
-  <div class="mx-auto max-w-6xl px-4 py-8 text-[17px]">
+  <div class="mx-auto max-w-6xl px-4 py-8">
     <header class="mb-6 flex flex-wrap items-center justify-between gap-3">
       <div>
         <p class="text-sm font-medium text-muted">Service day</p>
         <h1 class="font-display text-3xl font-extrabold">
           {{ new Date(date + 'T00:00:00').toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' }) }}
         </h1>
-        <p class="text-sm text-gioi-moss/70">{{ todays.length }} bookings · {{ activeCount }} active</p>
+        <p class="text-sm text-muted">{{ todays.length }} bookings · {{ activeCount }} active</p>
       </div>
       <div class="flex flex-wrap items-center gap-2">
         <button class="btn-ghost min-h-12" type="button" @click="date = addDays(date, -1)">Previous</button>
         <button class="btn-ghost min-h-12" type="button" @click="date = todayISO()">Today</button>
+        <input v-model="date" type="date" class="field !w-auto !py-1 !px-2.5 text-sm" aria-label="Service date" />
         <button class="btn-ghost min-h-12" type="button" @click="date = addDays(date, 1)">Next</button>
         <button class="btn-primary min-h-12" type="button" @click="showWalkIn = true">+ Walk-in</button>
       </div>
@@ -109,30 +110,30 @@ function isRepeat(r: Reservation): boolean {
       </button>
     </nav>
 
-    <section v-if="tab === 'search'" class="card">
+    <Transition name="fade" mode="out-in">
+    <section v-if="tab === 'search'" key="search" class="card">
       <h2 class="font-display text-xl font-bold">Find a guest</h2>
-      <p class="mt-1 text-sm text-gioi-ink/70">Search by name, phone, or email to see their visit history and notes.</p>
+      <p class="mt-1 text-sm text-muted">Search by name, phone, or email to see their visit history and notes.</p>
       <div class="mt-4">
         <GuestSearch />
       </div>
     </section>
 
-    <section v-else>
+    <section v-else key="today">
       <div v-if="todays.length === 0" class="card text-center">
-        <p class="text-gioi-moss/80">No bookings for this day.</p>
+        <p class="text-muted">No bookings for this day.</p>
       </div>
       <div v-else class="space-y-6">
         <div v-for="group in groupByTime(todays)" :key="group.time">
           <div class="mb-2 flex items-baseline gap-3">
             <h2 class="font-display text-xl font-bold">{{ group.time }}</h2>
-            <p class="text-sm text-gioi-moss/70">{{ group.items.length }} booking{{ group.items.length === 1 ? '' : 's' }} · {{ group.covers }} covers</p>
+            <p class="text-sm text-muted">{{ group.items.length }} booking{{ group.items.length === 1 ? '' : 's' }} · {{ group.covers }} covers</p>
           </div>
           <div class="space-y-3">
             <article
               v-for="r in group.items"
               :key="r.id"
               class="card"
-              :class="{ 'ring-2 ring-danger/60': isAllergyAlert(r) || isAccessibilityAlert(r) }"
             >
               <div class="flex flex-wrap items-start justify-between gap-3">
                 <div>
@@ -146,10 +147,10 @@ function isRepeat(r: Reservation): boolean {
                     </button>
                     <span v-if="isRepeat(r)" class="chip bg-accent/15 text-accent"><PhStar :size="14" weight="fill" aria-hidden="true" /> Repeat</span>
                   </div>
-                  <p class="text-sm text-gioi-moss/70">
+                  <p class="text-sm text-muted">
                     {{ r.partySize }} guests · {{ areaOf(r)?.name }} · {{ r.bookingCode }} · {{ r.source }}
                   </p>
-                  <p v-if="r.occasion" class="mt-1 text-xs text-gioi-moss/60">{{ r.occasion }}</p>
+                  <p v-if="r.occasion" class="mt-1 text-xs text-muted">{{ r.occasion }}</p>
                 </div>
                 <StatusChip :status="r.status" />
               </div>
@@ -162,10 +163,10 @@ function isRepeat(r: Reservation): boolean {
                   <PhWheelchair :size="22" aria-hidden="true" /> <strong>Accessibility:</strong> {{ guestOf(r)?.accessibility }}
                 </div>
                 <div v-if="r.guestNotes" class="rounded-input bg-line/40 p-3 text-sm">
-                  <strong class="text-gioi-moss">Guest note:</strong> {{ r.guestNotes }}
+                  <strong class="text-ink">Guest note:</strong> {{ r.guestNotes }}
                 </div>
                 <div v-if="r.internalNotes" class="rounded-input bg-line/40 p-3 text-sm">
-                  <strong class="text-gioi-moss">Internal:</strong> {{ r.internalNotes }}
+                  <strong class="text-ink">Internal:</strong> {{ r.internalNotes }}
                 </div>
               </div>
 
@@ -180,6 +181,7 @@ function isRepeat(r: Reservation): boolean {
         </div>
       </div>
     </section>
+    </Transition>
 
     <WalkInModal :open="showWalkIn" @close="showWalkIn = false" @created="lastError = null" />
   </div>

@@ -64,6 +64,17 @@ const navLinks = computed(() => {
           <button v-if="auth.user" class="btn-secondary min-h-12" type="button" @click="auth.logout()">Sign out</button>
         </div>
       </div>
+      <nav v-if="navLinks.length > 1" class="mx-auto flex max-w-6xl gap-1 overflow-x-auto border-t border-line px-4 py-1.5 sm:hidden" aria-label="Primary">
+        <RouterLink
+          v-for="link in navLinks"
+          :key="link.to"
+          :to="link.to"
+          class="min-h-10 shrink-0 rounded-full px-4 py-2 text-sm font-medium text-muted"
+          active-class="bg-line/60 !text-ink"
+        >
+          {{ link.label }}
+        </RouterLink>
+      </nav>
     </header>
 
     <main class="flex-1">
