@@ -33,7 +33,7 @@ Use these scenarios to record a client-facing walkthrough of the GIOI Bali reser
 
 1. Show the hero headline: **Fresh from the coast. Made for sunset.**
 2. Slowly scroll through **From first light to last call** and the three dining scenes.
-3. Show the beachfront location, food, and visit information.
+3. Show the beachfront Discovery Mall location, food, and visit information.
 4. Return to the hero and use the date picker and guest count in the booking shortcut.
 5. Click **Find a table**.
 6. Return to `/` and click the floating theme button to show light/dark mode; leave the preferred theme enabled for the next public scenario.
@@ -184,6 +184,8 @@ Use these scenarios to record a client-facing walkthrough of the GIOI Bali reser
 7. Show **Guest mix**, including total guests, first-timers, repeats, retention share, occasions, and party size.
 8. Show **Channel performance (last 30d)**.
 9. Show **Reliability (last 30d)**, including no-show rate, cancellation rate, average lead time, realised covers, and trend.
+10. Show **Guest feedback**: rating distribution, top service tags, and click a feedback item to open the feedback detail modal.
+11. Show **Filtered reservations**: search by guest name, booking code, or phone, and highlight the CSV export button.
 
 **Show in the video:**
 
@@ -192,7 +194,8 @@ Use these scenarios to record a client-facing walkthrough of the GIOI Bali reser
 - Guest mix and acquisition-channel performance.
 - Reliability metrics with target comparison.
 - Actionable cues rather than charts alone.
-
+- Guest feedback ratings, service tags, and feedback response modal.
+- Filtered reservation search and CSV export.
 ---
 
 ## Scenario 7 — Settings, seating areas, users, and CSV export
@@ -206,11 +209,12 @@ Use these scenarios to record a client-facing walkthrough of the GIOI Bali reser
 1. Open **Settings**.
 2. In **Restaurant**, edit a harmless value such as the tagline, then click **Save restaurant** and show the saved timestamp.
 3. In **Opening hours & rules**, show opening/closing times, booking interval, minimum/maximum party size, lead time, cut-off, no-show target, and over-capacity alert threshold.
-4. Click **+ Add** under **Closed dates**, enter a valid future date in `YYYY-MM-DD` format, then click **Save hours & rules**. Remove it afterward if the recording continues with booking tests.
-5. In **Seating areas**, show names, capacities, party-size limits, bookable toggles, and total bookable capacity.
-6. Add a seating area, rename it, and click **Save seating areas**. Remove the temporary area afterward if desired.
-7. In **Users**, show name, login, role, and active state. Click **Save users** without changing access unless the client specifically wants that demonstration.
-8. In **Data export**, click **Download reservations CSV** and show the browser download confirmation.
+4. In **Opening hours & rules**, pick a valid future date in the **Closed date** field, click **+ Add**, then click **Save hours & rules**. Remove it afterward if the recording continues with booking tests.
+5. In **Guest feedback**, review the native feedback title, subtitle, and WhatsApp message template configuration. Click **Save feedback settings**.
+6. In **Seating areas**, show names, capacities, party-size limits, bookable toggles, and total bookable capacity.
+7. Add a seating area, rename it, and click **Save seating areas**. Remove the temporary area afterward if desired.
+8. In **Users**, show name, login, role, and active state. Click **Save users** without changing access unless the client specifically wants that demonstration.
+9. In **Data export**, click **Download reservations CSV** and show the browser download confirmation.
 
 **Show in the video:**
 
@@ -218,8 +222,8 @@ Use these scenarios to record a client-facing walkthrough of the GIOI Bali reser
 - Availability and alert rules.
 - Seating capacity management.
 - User-role management.
+- Guest feedback form configuration.
 - Reservation CSV export.
-
 **Data note:** The export contains guest contact, allergy, and accessibility information. Treat the downloaded file as sensitive demo data.
 
 ---
