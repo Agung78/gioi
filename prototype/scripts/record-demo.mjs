@@ -114,8 +114,6 @@ const scenarios = {
     await pause(1500)
     await glide(page.locator('#experience ol'), 2000)
     await pause(2000)
-    await glide(page.getByRole('heading', { name: 'Right on the water' }), 2000)
-    await pause(1500)
     await glide(page.locator('#visit'), 2000)
     await pause(2500)
     await glide(0, 3000)
@@ -203,7 +201,7 @@ const scenarios = {
     await glide(0, 1500)
     await click(page.locator('article button.font-display'), 2000)
     await glide(page.getByRole('heading', { name: 'Visit history' }), 1500)
-    await click(page.getByRole('link', { name: '← Back to host' }), 1500)
+    await click(page.getByRole('link', { name: /Back to host/ }), 1500)
 
     // Walk one booking through its status chain.
     const startable = page.locator('article').filter({ has: btn('Confirmed') }).or(page.locator('article').filter({ has: btn('Arrived') }))
@@ -254,7 +252,7 @@ const scenarios = {
     await pause(1500)
     const summary = page.locator('summary')
     if (await summary.count()) await click(summary, 2500)
-    await click(page.getByRole('link', { name: '← Back to host' }), 1500)
+    await click(page.getByRole('link', { name: /Back to host/ }), 1500)
   },
 
   // 6 — Manager dashboard
@@ -263,9 +261,23 @@ const scenarios = {
     await click(page.getByRole('link', { name: 'Dashboard', exact: true }), 2000)
     const cues = page.getByRole('heading', { name: 'Action cues' })
     if (await cues.count()) await pause(2500)
-    for (const h of ['Today live', 'Next 7 days — covers', 'Next 30 days — covers per day', 'Guest mix', 'Channel performance (last 30d)', 'Reliability (last 30d)']) {
+    for (const h of [/Today live/, /Next 7 days/, /Next 30 days/, /Guest mix/, /Channel performance/, /Reliability/]) {
       await glide(page.getByRole('heading', { name: h }), 1800)
-      await pause(2200)
+      await pause(2000)
+    }
+    await glide(page.getByRole('heading', { name: /Guest feedback/ }), 1800)
+    await pause(2000)
+    const feedbackCard = page.locator('article[role="button"]').first()
+    if (await feedbackCard.count()) {
+      await click(feedbackCard, 2000)
+      await pause(2000)
+      await click(btn('Close', page.locator('.modal-panel')), 1200)
+    }
+    await glide(page.getByRole('heading', { name: /Filtered reservations/ }), 1800)
+    const filterSearch = page.locator('input[aria-label="Search reservations"]')
+    if (await filterSearch.count()) {
+      await type(filterSearch, 'Sarah')
+      await pause(2000)
     }
   },
 
@@ -283,9 +295,12 @@ const scenarios = {
     await glide(page.getByRole('heading', { name: 'Opening hours & rules' }), 2000)
     await pause(2500)
     const closedDate = new Date(Date.now() + 60 * 864e5).toISOString().slice(0, 10)
-    page.once('dialog', d => d.accept(closedDate))
+    const closedInput = page.locator('input[aria-label="Closed date"]')
+    await closedInput.fill(closedDate)
     await click(btn('+ Add'), 1500)
     await click(btn('Save hours & rules'), 1500)
+    await glide(page.getByRole('heading', { name: /Guest feedback/ }), 1800)
+    await pause(2000)
 
     await glide(page.getByRole('heading', { name: 'Seating areas' }), 2000)
     await pause(1500)
@@ -360,5 +375,9 @@ for (const n of order) {
     if (process.env.SHOTS) await page.screenshot({ path: `${process.env.SHOTS}/fail-${n}.png` }).catch(() => {})
   }
   await pause(2000)
+}
+if (process.env.HEADLESS || process.env.AUTO_CLOSE) {
+  await browser.close()
+  process.exit(0)
 }
 console.log('Done. Browser stays open — Ctrl+C to quit.')

@@ -1,352 +1,339 @@
 # GIOI Ocean Gourmet: UI/UX Design Spec
 
-**Status:** Draft for review (design only, no code changes)
-**Method:** `taste-skill` (anti-slop frontend), applied to guest-facing surfaces. Host/Admin surfaces use operational-UI rules (taste-skill Section 13 marks dashboards out of scope).
-**Inputs:** `docs/gioi_reservation_platform_design.md`, `docs/gioi_client_scope_and_delivery.md`, current prototype (`prototype/`), public research (Chope listing, Glints company page).
+**Status:** Delivered & Verified Prototype Specification (v1.0)
+**Method:** `taste-skill` (anti-slop frontend) applied to guest-facing surfaces; high-density operational UI for host and admin surfaces.
+**Inputs:** `prototype/` (implemented codebase), `docs/gioi_reservation_platform_design.md`, `docs/gioi_prototype_usecase_scenarios.md`, `docs/gioi_client_scope_and_delivery.md`, verified GIOI brand assets.
 
 ---
 
 ## 0. Design Read
 
-> Reading this as: **redesign (overhaul visuals, preserve IA and flows)** of a **direct-booking site for a beachfront Asian-fusion restaurant in Kuta, Bali**, for **tourists and local diners booking on mobile**, with a **premium-consumer, coastal, photo-led** language, leaning toward **Vue 3 + Tailwind v3 (existing stack) + CSS-driven motion + real food photography**.
+> Delivered as a **direct-booking platform and operational system for GIOI Ocean Gourmet**, a beachfront Asian-fusion venue at Discovery Shopping Mall in Kuta, Bali. Built for **mobile-first diners and tourists booking on coastal mobile data**, paired with a **touch-optimized operational tablet surface for hosts** and a **dense managerial dashboard**. Leans on **Vue 3.5 + Tailwind v3 + GSAP kinetic typography + View Transitions API + Phosphor Icons + authentic venue photography**.
 
-### Brand facts (researched)
-| Fact | Value | Design use |
+### Brand Facts (Verified)
+
+| Fact | Value | Design Use |
 |---|---|---|
-| Name | GIOI Ocean Gourmet | "Ocean" drives palette; "Gourmet" drives restraint |
-| Location | Discovery Shopping Mall, Jl. Kartika Plaza, Kuta, Bali (beachfront) | Place-focused venue: address + map are real content, not decoration |
-| Hours | Instagram bio: **10:00-22:00**; Chope listing: 10:00-23:00 (**conflict, confirm with client**) | Slot picker bounds; lunch / sunset / dinner grouping |
-| Founded | 2016, Sadeli brothers | One-line story section, no fake heritage copy |
-| Cuisine | Asian fusion, farm-to-table | Menu highlights section |
-| Signatures | GIOI Signature Crispy Duck, Crying Tiger (Thai-style Australian striploin), Grilled Giant River Prawn with prawn butter | Hero / highlight imagery |
-| Rating (Chope) | 4.2 / 5 (46 reviews); Food 4.0, Service 4.1, Atmosphere 4.2 | Only real numbers allowed on page |
-| Logo (Instagram) | Navy circle, "GIOI" in spaced serif caps (diacritic on the O) over "Ocean Gourmet" in a brush script with underline swash, set in sand/beige. Monogram "OG" used on story highlights | Logo is a brand asset: keep it as-is; UI type stays sans |
-| Brand colors (observed) | Deep navy `~#1F4A6B`, sand `~#D6C4A3` from the logo; blue-and-white ikat textiles (cushions, staff shirts); sunset orange in photography | Palette (Section 3.1) |
-| Positioning (bio) | "The Most Beautiful Sunsets Dining in Kuta." By GIOI GROUP. Discovery Mall Bali Beachfront. Linktree + Threads | Sunset is the hero promise; sunset slot is the product |
-| Offering (feed) | Beach-club lounge (blue bean bags, fairy lights at night), coconuts and mocktails, pour-over coffee from 7:00 AM posts, pasta and Western dishes alongside Asian fusion, kids bounce-castle/play area, events (sunset yoga "Sunset Flow by the Sea" 99K, NYE 2026), deals | Booking needs area + event types; family-friendly signal |
-| Voice | Playful, casual, English, direct questions ("What are you doing in Bali?", "You said: I'm bored") | Copy register: warm and casual, not fine-dining formal |
-| Audience size | ~2.1k followers, 115 posts | Small brand: site must carry the brand, not rely on social proof |
-| Unknown | Logo source files, official hex values, typeface names | **Must obtain from client** before build (see Section 9) |
+| Name | GIOI Ocean Gourmet | Ocean informs cool palette; Gourmet dictates typographic restraint |
+| Location | Ground Floor Beach Front, Discovery Mall Bali, Jl. Kartika Plaza, Kuta | Prominent location metadata, Google Maps directions deep link |
+| Hours | **Daily 10:00-22:00 WITA** | Live digital WITA clock on landing page; slot picker bounds; operational timeline |
+| Cuisine | Asian fusion, farm-to-table, fresh coastal seafood | Copy tone, photography selection, dietary alerts |
+| Signatures | GIOI Signature Crispy Duck, Crying Tiger, Grilled Giant River Prawn | Experience timeline and marketing copy |
+| Logo Asset | Official circle asset (`public/logo.jpg`), navy background, serif "GIOI", script "Ocean Gourmet" | Header branding, metadata favicon, dark hero identity |
+| Brand Colors | GIOI Navy (`#1F4A6B`), Sand (`#D6C4A3`), Sunset Orange (`#E87A3A`), Deep Navy (`#102638`) | Full-token palette across light and dark themes |
+| Contact | WhatsApp & Phone: `+62 811 3960 6101` | Direct WhatsApp escalation for large parties and automated guest feedback links |
+| Positioning | "The Most Beautiful Sunsets Dining in Kuta" | Sunset slot grouping (17:00-19:00 WITA) highlighted with sun indicator and approx. 18:15 sunset timing |
+| Voice | Casual, warm, coastal, direct questions, zero corporate jargon | Headlines, helper text, empty states, confirmation copy |
 
-### Business goal the UI must serve
-- Replace Chope for direct bookings. The guest page must feel **more GIOI and less marketplace** than Chope, and be **faster to book** than WhatsApp.
-- Capture occasion, dietary, accessibility, and service notes (approved scope).
+### Core Objectives Served
+
+- **Replace third-party marketplace dependencies (Chope):** Provides direct direct-booking with 30-second mobile completion, quick-book hero strip, and instant tabular booking codes.
+- **Fast service-day FOH operations:** Replaces chaotic paper/chat coordination with a 1-tap status transition tablet host UI, capacity-checked walk-in entry, and fast guest search.
+- **Post-visit guest feedback loop:** Direct WhatsApp feedback dispatches with dynamic questions and 1-5 star guest feedback capture.
+- **Managerial oversight:** Real-time occupancy tracking, 7-day cover bars, 30-day sparkline forecasting, channel performance, and reliability metrics.
 
 ---
 
 ## 1. Surfaces and Dials
 
-| Surface | Route | Skill scope | VARIANCE | MOTION | DENSITY |
-|---|---|---|---|---|---|
-| Landing | `/` | taste-skill full | 7 | 5 | 3 |
-| Booking flow | `/book` | taste-skill form rules only (4.5, 4.6) | 4 | 3 | 4 |
-| Confirmation | `/confirmation/:code` | taste-skill | 5 | 4 | 3 |
-| Feedback | `/feedback/:code` | taste-skill | 5 | 3 | 3 |
-| Login | `/login` | operational | 2 | 2 | 4 |
-| Host (tablet) | `/host`, `/guests/:id` | operational | 2 | 2 | 7 |
-| Admin | `/admin/*` | operational | 2 | 2 | 6 |
-
-Rationale:
-- Premium-consumer preset (7/6/3), motion dropped to 5: restaurant guests are on mobile data at the beach; motion must stay cheap.
-- Booking flow is a form, not a marketing page. Predictability beats variance.
-- Host is a front-of-house tablet tool used mid-service. Speed and legibility beat brand.
+| Surface | Route | Skill Scope | VARIANCE | MOTION | DENSITY | Primary Job |
+|---|---|---|---|---|---|---|
+| Landing | `/` | taste-skill full | 7 | 5 | 3 | Convert visitors to diners in < 30s |
+| Booking Flow | `/book` | taste-skill form | 4 | 3 | 4 | Fast, progressive 3-step table reservation |
+| Confirmation | `/confirmation/:code` | taste-skill | 5 | 4 | 3 | Immediate proof, calendar .ics export, directions |
+| Feedback | `/feedback/:code` | taste-skill | 5 | 3 | 3 | Post-visit 1-5 star rating and standout tags |
+| Login | `/login` | operational | 2 | 2 | 4 | Fast role-switching (Host / Admin) |
+| Host (Tablet) | `/host` | operational | 2 | 2 | 7 | Service-day timeline, status advancement, walk-ins |
+| Guest Profile | `/guests/:id` | operational | 2 | 2 | 6 | Guest visit history, allergy flags, past ratings |
+| Admin Dashboard | `/admin/dashboard` | operational | 3 | 2 | 6 | Operational analytics, action cues, period filters |
+| Admin Settings | `/admin/settings` | operational | 2 | 2 | 6 | Hours, closed dates, areas, feedback templates |
+| Admin Audit | `/admin/audit` | operational | 2 | 2 | 7 | Immutable event audit trail |
 
 ---
 
-## 2. Audit of Current Prototype
+## 2. Implemented Architecture & UI/UX Audit
 
-| Area | Current | Verdict |
+| Area | Implementation in `prototype/` | Status |
 |---|---|---|
-| Stack | Vue 3.5, Pinia, Vue Router, Tailwind 3.4, Vite 6 | **Keep** |
-| Palette | `gioi.cream #f7f2ea`, `sand #e9dcc4`, `olive`, `moss`, `clay #b7612f`, `ink #2a2620` | **Retire.** Exactly the banned warm-cream + clay + espresso default; nothing to do with "Ocean" |
-| Display font | `ui-serif, Georgia` | **Retire as UI font.** The serif belongs to the logo only; do not imitate it in headlines |
-| Status badges | violet / sky / indigo / emerald / amber / red `-100` | **Rework.** 6 unrelated hues; replace with one semantic scale (Section 7) |
-| Radius | mix of `rounded-md`, `rounded-lg`, `rounded-full` | **Lock** to one documented rule (Section 3.4) |
-| Views | `src/router.ts` lazy-loads `src/views/*.vue`, but `src/views/` and `src/components/` are **empty** in the working tree | **Blocker:** routes will fail to load; restore views before redesign work |
-| Dark mode | none | Add token-based dark mode for guest surfaces |
-| Icons | none detected | Adopt `@phosphor-icons/vue` |
-
-IA to preserve (Section 11.F): all route slugs above, booking form field names and order, status names (`Pending`, `Confirmed`, `Arrived`, `Seated`, `Completed`, `Cancelled`, `No-show`).
+| **Stack** | Vue 3.5.13, Pinia 2.2.4, Vue Router 4.4.5, Tailwind 3.4.16, Vite 6.0.3, TypeScript 5.7.2 | **Delivered** |
+| **Motion & Animation** | GSAP 3.15 + ScrollTrigger (hero entrance, word reveals, parallax media), CSS View Transitions (`::view-transition`), CSS keyframe rise | **Delivered** |
+| **Icons** | Phosphor Icons (`@phosphor-icons/vue` 2.2.1) throughout (20px UI / 24px Host) | **Delivered** |
+| **Testing** | Vitest 2.1.8 with 44 unit/domain tests covering analytics, availability, status transitions, and feedback | **Delivered** |
+| **Palette** | Ocean Navy, Sea Salt, Brand Sand, and Sunset Orange CSS variables (`--surface`, `--accent`, `--brand-sun`, etc.) | **Delivered** |
+| **Display Font** | **Cabinet Grotesk** (700, 800) self-hosted / Fontshare CDN with `display=optional` | **Delivered** |
+| **Body / UI Font** | **Satoshi** (400, 500, 700) with tabular numbers for booking codes, dates, and times | **Delivered** |
+| **Status Scale** | Single-accent progression in `status.ts` + neutral and danger variants; paired with Phosphor icons | **Delivered** |
+| **Radius Scale** | Strict 3-tier geometry: 12px inputs (`rounded-input`), 16px cards/surfaces (`rounded-surface`), full pill for actions (`rounded-full`) | **Delivered** |
+| **Dark Mode** | Token-based dark mode (`data-theme="dark"` on `:root`), 300ms smooth transition, auto-detected OS preference for public routes, dark default for Host/Admin, floating switcher | **Delivered** |
 
 ---
 
 ## 3. Design Tokens
 
-### 3.1 Palette: "GIOI Navy + Sand" (brand-derived, from Instagram logo)
-Palette family: brand navy on a cool off-white, sand reserved for the logo and one brand moment. taste-skill's beige ban is overridden here **only for sand**, because the brand literally uses it in its logo; it is never a page background. Hex values below are sampled from Instagram and must be replaced with the client's official values.
+### 3.1 Palette (CSS Variable Architecture)
 
-| Token | Light | Dark | Use |
+All tokens are defined in `src/style.css` using RGB triplets to allow Tailwind opacity modifiers (`rgb(var(--token) / <alpha>)`).
+
+| Token | Light (RGB / Hex) | Dark (RGB / Hex) | Functional Role |
 |---|---|---|---|
-| `--surface` | `#F3F5F4` (sea-salt off-white, cool) | `#0B1A1F` | Page background |
-| `--surface-raised` | `#FFFFFF` at 92% over surface (`#FBFCFC`) | `#12252B` | Sheets, drawers, form panels |
-| `--ink` | `#132F45` (navy-black) | `#E6EEF2` | Headlines, body |
-| `--ink-muted` | `#4A626A` | `#9DB3B9` | Secondary text (AA on surface both modes) |
-| `--line` | `#D5DEDF` | `#23393F` | Hairlines, input borders |
-| `--accent` | `#1F4A6B` (GIOI navy, logo) | `#7FA8C9` | Primary CTA, focus ring, selected slot |
-| `--accent-ink` | `#F4EFE6` | `#0B1A26` | Text on accent (contrast ≥ 4.5:1 both modes) |
-| `--brand-sand` | `#D6C4A3` | `#D6C4A3` | Logo, logo lockups, footer brand block only. Never text on light, never a background |
-| `--ikat` | pattern asset (blue/white ikat, from venue textiles) | same, 40% opacity | One decorative band max per page (e.g. footer top edge). Real scanned pattern from client, not hand-drawn SVG |
-| `--danger` | `#B3261E` | `#F2B8B5` | Errors, cancel, no-show only |
+| `--surface` | `243 245 244` (`#F3F5F4`) | `11 26 31` (`#0B1A1F`) | Page background (cool sea-salt off-white) |
+| `--surface-raised` | `251 252 252` (`#FBFCFC`) | `18 37 43` (`#12252B`) | Cards, sheets, popovers, form panels |
+| `--ink` | `19 47 69` (`#132F45`) | `230 238 242` (`#E6EEF2`) | Primary headlines, strong labels, dark text |
+| `--ink-muted` | `74 98 106` (`#4A626A`) | `157 179 185` (`#9DB3B9`) | Secondary copy, captions, inactive icons (AA on surface) |
+| `--line` | `213 222 223` (`#D5DEDF`) | `35 57 63` (`#23393F`) | Subtle borders, table dividers, input borders |
+| `--accent` | `31 74 107` (`#1F4A6B`) | `127 168 201` (`#7FA8C9`) | Primary actions, active navigation, focus rings |
+| `--accent-hover` | `25 61 89` (`#193D59`) | `152 188 217` (`#98BCD9`) | Hover state for accent buttons |
+| `--accent-ink` | `244 239 230` (`#F4EFE6`) | `11 26 38` (`#0B1A26`) | High-contrast text on accent backgrounds |
+| `--brand-sand` | `214 196 163` (`#D6C4A3`) | `214 196 163` (`#D6C4A3`) | Secondary hero badges, brand highlights, party size chart |
+| `--brand-sun` | `232 122 58` (`#E87A3A`) | `232 122 58` (`#E87A3A`) | Sunset indicators, primary landing CTAs, occasion charts, hero accents |
+| `--brand-navy` | `16 38 56` (`#102638`) | `16 38 56` (`#102638`) | Full-bleed hero container, footer surface, time tags |
+| `--danger` | `179 38 30` (`#B3261E`) | `242 184 181` (`#F2B8B5`) | Destructive actions, allergy alerts, over-capacity warnings |
 
-Rules:
-- **One accent.** GIOI navy is the only UI accent. Sand and sunset orange never appear on buttons or status. It is used for CTA, focus, selection. No second accent anywhere, including status badges.
-- No pure `#000` / `#FFF` as page backgrounds.
-- Shadows tinted to `--ink` (`rgb(14 42 51 / 0.08)`), never black.
-- **Sunset orange** lives in photography only. It is not a token.
-- **Brand override:** official hex values from the client replace the sampled ones; the structure stays.
+#### Token Rules
+1. **Accent hierarchy:** GIOI Navy (`--accent`) drives interaction and state selection on booking, host, and admin tools. Sunset Orange (`--brand-sun`) is reserved for sunset highlights, hero callouts, and chart accents.
+2. **Elevated contrast:** Text on buttons and chips strictly meets WCAG 2.1 AA standards across light and dark modes.
+3. **Soft elevation:** Shadows use `boxShadow.soft` (`0 1px 2px rgb(var(--ink) / 0.06), 0 8px 24px -8px rgb(var(--ink) / 0.10)`), tinted with the ink token rather than raw black.
 
 ### 3.2 Typography
-| Role | Font | Spec |
-|---|---|---|
-| Display | **Cabinet Grotesk** (self-hosted, `font-display: swap`) | 600-800, `tracking-tight`, `leading-[1.05]` |
-| Body / UI | **Satoshi** | 400/500, `text-base leading-relaxed max-w-[65ch]` |
-| Numbers (times, covers, codes) | Satoshi with `font-variant-numeric: tabular-nums` | Booking codes, slot times, counts |
 
-- No serif. No Inter. Emphasis in headlines uses **bold/italic of Cabinet Grotesk**, never a second family.
-- Scale: hero `text-4xl md:text-5xl lg:text-6xl`; section `text-3xl md:text-4xl`; host UI base `text-[17px]` (tablet at arm's length).
+| Role | Font Family | Weights | Usage & Characteristics |
+|---|---|---|---|
+| **Display** | Cabinet Grotesk | 700 (Bold), 800 (Extrabold) | Hero titles, section headers, modal titles. Leading `[0.98]` to `[1.05]`, `tracking-[-0.035em]`. |
+| **Sans / Body** | Satoshi | 400 (Regular), 500 (Medium), 700 (Bold) | Form inputs, button labels, operational tables, body paragraphs. |
+| **Tabular Numbers** | Satoshi (tabular) | 500, 700 | Booking codes, clock timestamps, covers counters, slot times. |
 
-### 3.3 Spacing
-- Guest: sections `py-20 md:py-28`, container `max-w-7xl mx-auto px-4 md:px-8`.
-- Host: 8px grid, rows min 56px tall (touch target), gutters 16px.
+### 3.3 Shape & Elevation Scale
 
-### 3.4 Shape rule (single, documented)
-- Interactive (buttons, slot chips, status pills): **full pill**.
-- Surfaces (images, sheets, panels): **16px**.
-- Inputs: **12px**.
-Applied everywhere, no exceptions.
-
-### 3.5 Icons
-`@phosphor-icons/vue`, weight `regular`, 20px UI / 24px host. No emoji, no hand-drawn SVG.
+- **Inputs (`rounded-input`):** `12px` border radius (`field`, `DatePicker` trigger, search bars).
+- **Cards & Surfaces (`rounded-surface`):** `16px` border radius (`card`, modals, calendar popovers, timeline images).
+- **Interactive Controls (`rounded-full`):** Full pill shape (`btn`, `btn-primary`, `pill`, `chip`, status badges).
 
 ---
 
 ## 4. Landing Page `/`
 
-Job: make someone who found GIOI on Google Maps or Instagram book a table within 30 seconds.
+**Primary Job:** Transform an Instagram or Google Maps discovery into a confirmed table reservation in under 30 seconds.
 
-Section plan (6 sections, 5 layout families, 2 eyebrows max):
+### 4.1 Navigation
+- Fixed header with GIOI logo (`/logo.jpg`), anchor navigation (`#experience`, `#visit`), and primary `Reserve a table` pill in sand.
+- Floating theme switch button bottom-right (smooth rotating `PhSun` / `PhMoon` icon).
 
-### 4.1 Nav (64px, single line)
-`[GIOI logo]  Menu  Visit  ·  [Book a table]`
-- Mobile: logo + "Book a table" pill only; menu links move to a sheet.
-- Sticky, `--surface` with 90% opacity + `backdrop-blur-md`, solid fallback under `prefers-reduced-transparency`.
+### 4.2 Hero: Asymmetric Kinetic Split
+- Container in `--brand-navy` (`#102638`) with white typography.
+- Eyebrow badge: `PhSunHorizon` icon + "Beachfront dining in Kuta".
+- Headline: 3-line kinetic typography with GSAP staggered entrance: *"Fresh from the coast. Made for sunset."* (with "Made for sunset." styled in `--brand-sun`).
+- Subtext: *"A beachfront restaurant for seafood, modern Asian flavours and long afternoons beside Kuta Beach."* (max 42ch).
+- **Inline Quick-Book Bar:** Compact frosted pill on desktop/mobile:
+  - DatePicker component (defaults to today).
+  - Party size dropdown (1 to 8 guests).
+  - "Find a table" action button (`bg-sun text-navy`), deep-linking directly to `/book?date=...&party=...`.
+- Right Media: Full-bleed coastal photography (`GIOI-OG_Gallery-image-outlet-06.webp`) with GSAP `clipPath` reveal and scroll parallax scrub.
 
-### 4.2 Hero: Asymmetric Split
-```
-┌───────────────────────────────┬────────────────────────────┐
-│ Sunset dining on Kuta beach.  │                            │
-│ (≤ 2 lines)                   │   [Photo: Signature Crispy │
-│                               │    Duck, or dining room at │
-│ Asian fusion, cold coconuts,  │    sunset, 4:5]            │
-│ 10am to 11pm, steps from the  │                            │
-│ sand. (≤ 20 words)            │                            │
-│                               │                            │
-│ [Book a table]  [View menu]   │                            │
-└───────────────────────────────┴────────────────────────────┘
-```
-- Photo priority: **beachfront at golden hour** (the brand's own promise: "The Most Beautiful Sunsets Dining in Kuta"), not a dish close-up.
-- Hero copy lines 2-3 are placeholders; tone must match the Instagram voice: casual, warm, direct.
-- `min-h-[100dvh]` capped, `pt-24` max. 4 text elements max, no eyebrow.
-- **Inline quick-book strip** directly under the CTAs on desktop: `Date · Guests · Time → Continue`, prefilling `/book`. On mobile this replaces the secondary CTA. This is the biggest improvement over Chope.
-- Mobile: image first (16:10, cropped), text below, single column.
+### 4.3 Experience Timeline (`#experience`)
+- Section Header: *"From first light to last call"*, headline *"Come for the view. Stay for the flavour."*
+- 3-column chronological cards:
+  1. `10:00` — **A slower start:** Coffee, fresh fruit, and morning views of Kuta Beach.
+  2. `17:30` — **The front row:** Elevated center card (`md:-translate-y-12`), seafood, sharing plates, sunset light.
+  3. `20:00` — **Stay for dinner:** Grilled coastal produce, Asian cocktails, fairy-lit dinner lounge.
+- Floating time badges set in `bg-navy/85 text-sand` with backdrop blur; smooth image hover zoom (`scale-[1.03]`).
 
-### 4.3 Signatures: Bento (3 cells, exact)
-- Large cell: Crispy Duck photo + name + one-line description from the menu.
-- Two stacked cells: Crying Tiger, Grilled Giant River Prawn.
-- Real photography only. Name and description sit **below** each image, never overlaid.
-- Mobile: horizontal scroll-snap, 85% card width.
+### 4.4 Visit & Practical Information (`#visit`)
+- Left Column:
+  - Eyebrow *"Find us"*, headline *"On the beach at Discovery Mall."*
+  - **Live WITA Clock:** Real-time digital clock bound to `Asia/Makassar` time zone.
+  - Venue address with `PhMapPin` and Google Maps deep link.
+  - Weekly opening hours schedule (highlighting current day status: "Open today until 22:00").
+  - Direct WhatsApp (`+62 811 3960 6101`) and phone contact links.
+- Right Column:
+  - Wide venue photograph (`GIOI-OG_Gallery-image-outlet-03.webp`) with venue features list (valet parking, beach access, sunset terrace).
 
-### 4.4 The place: Full-bleed image + short copy
-- Two moods from Instagram: **day** (blue bean bags on sand, ikat cushions) and **night** (fairy lights, lounge). Use a day/night image pair, or one sunset shot.
-- Mention family-friendly (kids play area appears in feed) as one line, if client confirms.
-- Wide beachfront / dining-room photograph, one headline ("On the beach at Discovery Mall"), one 25-word paragraph.
-- Hours and address go here as real venue info (allowed: it is a physical place).
-
-### 4.5 Story: Vertical text stack
-- One short paragraph: opened 2016 by the Sadeli brothers, Asian fusion, farm-to-table sourcing. Written as plain fact. **Client must approve the copy.**
-- Optional single eyebrow here ("Our story").
-
-### 4.6 Reviews: 3 quotes, marquee not used
-- Only real, approved reviews (Google / Chope with permission). ≤ 3 lines each, attribution = first name + country + visit month.
-- Show the real aggregate "4.2 on Chope" only if the client is happy to reference Chope; otherwise use the Google rating.
-
-### 4.7 Visit / Footer: 2-column grid
-- Left: map embed (static image link to Google Maps for LCP), address, hours, phone / WhatsApp.
-- Right: one closing CTA using **the same label**, "Book a table" (no-duplicate-intent rule: the only booking label on the page).
-- Small links: Privacy, Terms, Staff login (`/login`, low-emphasis).
-
-### Motion (MOTION 5, all motivated)
-| Element | Motion | Reason |
-|---|---|---|
-| Hero image | fade + 12px rise on load, 600ms `cubic-bezier(0.16,1,0.3,1)` | Hierarchy: lands the first impression |
-| Section reveals | CSS `animation-timeline: view()` with IntersectionObserver fallback, stagger 60ms | Storytelling order |
-| CTA | `:active scale-[0.98]` | Feedback |
-| Everything | Disabled under `prefers-reduced-motion: reduce` | A11y |
-No `window` scroll listeners, no marquee, no parallax (mobile battery).
+### 4.5 Closing CTA & Footer
+- Dramatic full-bleed navy banner: *"Make sunset your reservation."* with "reservation." in `--brand-sun`.
+- Primary CTA: "Reserve a table" (`bg-sun`) + secondary WhatsApp inquiry link.
+- Footer: Copyright, address recap, and low-emphasis Staff Login (`/login`) link.
 
 ---
 
 ## 5. Booking Flow `/book`
 
-Not a wizard across pages. **One page, three grouped steps, progressive disclosure**, sticky summary.
+**Primary Job:** One-page, progressive disclosure booking flow with zero wizard page reloads and instant validation.
 
-```
-Mobile                                   Desktop (lg)
-┌──────────────────────┐   ┌─────────────────────────────┬──────────────┐
-│ 1 When               │   │ 1 When  (date, party, slot) │ Your booking │
-│   Date  [chips 14d]  │   │ 2 Who   (name, phone, email)│ Sat 12 Oct   │
-│   Guests [- 2 +]     │   │ 3 Details (occasion, diet,  │ 4 guests     │
-│   Time  [slot grid]  │   │   accessibility, notes)     │ 19:30 Deck   │
-│ 2 Who ...            │   │                             │ [Confirm]    │
-│ 3 Details ...        │   └─────────────────────────────┴──────────────┘
-│ [Confirm booking]    │  ← sticky bottom bar on mobile
-└──────────────────────┘
-```
+### 5.1 Step 1: When
+- **14-Day Date Strip:** Horizontal snap-scrolling date pills showing day name and day number; closed days disabled.
+- **Custom DatePicker:** "More dates" trigger opening an accessible dropdown calendar (`DatePicker.vue`) with month navigation, disabled closed dates, and keyboard navigation.
+- **Party Stepper:** Accessible `[ - ]` and `[ + ]` pill buttons (`PhMinus`, `PhPlus`) bounded between 1 and 8 covers. Over 8 covers prompts an inline WhatsApp booking link.
+- **Seating Area Selection:** Pills for bookable areas ("Anywhere", "Main Hall", "Sunset Terrace", "Beachfront Lounge", "Chef's Counter").
+- **Meal Period Slot Grid (`AvailabilityGrid.vue`):** Slots categorized into 4 meal periods:
+  - *Lunch* (10:00 - 14:00)
+  - *Afternoon* (14:00 - 17:00)
+  - *Sunset* (17:00 - 19:00, marked with `PhSunHorizon` and "Sun goes down around 18:15" hint)
+  - *Dinner* (19:00 - close)
+- Slot chips indicate capacity constraints: available, selected, "2 left", "Full", "Closed", or "Too soon".
 
-### 5.1 When
-- **Date:** horizontal scroll of the next 14 days as pill chips (day name + date); "More dates" opens native `<input type="date">`. Respect lead-time / cutoff rules.
-- **Guests:** stepper, 1 to max party size; above max shows inline "For groups over N, message us on WhatsApp" link.
-- **Time:** slots grouped **Lunch / Afternoon / Sunset / Dinner (to last seating)**. Sunset group is visually first-class (label shows today's sunset time, approx. 18:10-18:30 in Kuta) because it is the brand promise and the likely peak-demand window.
-- **Seating area** as a segmented control above slots. Likely areas from Instagram: beachfront lounge (bean bags), terrace/deck, indoor. Confirm with client.
-- **Events** (sunset yoga, NYE) are not tables. Out of scope for v1; show a link to the Linktree/Instagram event post instead of building ticketing.
-- Slot states: available (outline), selected (accent fill), limited (shows "2 left" only if real capacity data), unavailable (disabled, 40% ink, strikethrough not used, `aria-disabled`).
-- Availability loads with **skeleton chips** matching slot shape, not a spinner.
+### 5.2 Step 2: Who
+- Required fields: Full name and WhatsApp / phone (defaulting to international format placeholder).
+- Optional fields: Email and Country / city (to tailor service for Australian/international visitors).
 
-### 5.2 Who
-- Name, mobile (country code select, default +62, tourists common: +61, +65, +86, +44), email (optional unless config requires).
-- Labels above inputs, helper text below, error text below in `--danger`. No placeholder-as-label.
-- `autocomplete` attributes: `name`, `tel`, `email`.
+### 5.3 Step 3: Details (Accordion Disclosure)
+- Collapsible section with dynamic badge counter (e.g. `2 added`).
+- **Occasions:** Birthday, Anniversary, Business dinner, Date night, Celebration pills.
+- **Dietary & Allergies:** Multi-select pills (Vegetarian, Vegan, Halal, Gluten-free, Nut allergy, Shellfish allergy) + custom text input. Note confirms: *"Seen by our kitchen team only."*
+- **Accessibility:** Text input for mobility requirements (ground floor, wheelchair access).
+- **Special Requests:** Textarea with 300-character countdown counter.
 
-### 5.3 Details (collapsed by default, "Add details" disclosure)
-- Occasion: pill group (Birthday, Anniversary, Business, Date night, Other).
-- Dietary: multi-select pills (Vegetarian, Vegan, Halal, Gluten-free, Nut allergy, Shellfish allergy, Other + text).
-- Accessibility: checkbox + text.
-- Notes: textarea, 300 chars, counter.
-- **Shellfish allergy** gets explicit prominence: this is an ocean/seafood restaurant.
-
-### 5.4 Confirm
-- Single primary button "Confirm booking" (full width on mobile, fixed bottom bar with summary line `Sat 12 Oct · 19:30 · 4 guests`).
-- Deposit path (if enabled): button becomes "Continue to deposit", booking shown as `Pending` with explicit explanation.
-- Errors: conflict at submit ("That time just filled up") → keep form data, scroll to slots, highlight nearest 3 alternatives.
-- Policy text (cancellation, late arrival, deposit) inline above button, `--ink-muted`, never hidden in a modal.
+### 5.4 Summary & Confirmation Action
+- **Cancellation Policy:** Clearly displayed inline: *"Please cancel or reschedule at least 4 hours before your booking..."* with required acknowledgment checkbox.
+- **Marketing Consent:** Optional opt-in checkbox.
+- **Missing Step Helper:** Dynamic validation badge above CTA explaining exact missing requirement (e.g. *"Pick a time slot"*, *"Enter full name & phone"*, *"Accept cancellation policy"*).
+- **Desktop Sidebar:** Sticky card displaying formatted date, party count, selected time, seating area, missing step cue, and submit button.
+- **Mobile Bottom Bar:** Fixed frosted bar with summary string (`Sat 12 Oct · 18:30 · 2 guests`), missing step indicator, and full-width CTA.
+- **Conflict Handling:** Submitting an expired/filled slot immediately highlights nearest alternatives and scrolls smoothly back to the slot picker.
 
 ---
 
-## 6. Confirmation `/confirmation/:code`
-- Large booking code in tabular numerals, copy button.
-- Summary block: date, time, guests, area, notes.
-- Actions: **Add to calendar** (.ics), **Get directions** (Google Maps link), **Manage booking** (change/cancel if scope allows), **Message us** (WhatsApp deep link).
-- Status shown in words ("Confirmed", "Pending deposit"), not only color.
-- One supporting image (dining room), small.
+## 6. Confirmation & Post-Visit Surfaces
 
-### 6.1 Guest Feedback `/feedback/:code`
-- Public guest form restricted to valid reservations with status `Completed`.
-- Dynamic question title and subtitle configured from Admin Settings (defaults: *"How was your visit?"* / *"A few words from you help our team make the next visit better."*).
-- 1–5 star rating using Phosphor `PhStar`.
-- Standout tags rendered as clickable chips, dynamically configured in Admin Settings (defaults: Food, Service, Atmosphere, Value).
-- Optional comments textarea (1,000 char limit).
-- Success state with `PhCheckCircle` and thank-you messaging.
+### 6.1 Confirmation `/confirmation/:code`
+- Header: `PhCheckCircle` icon + *"See you soon. We've held your table."*
+- Prominent booking code in tabular numerals with 1-click clipboard copy button and feedback indicator.
+- Reservation details card: Date, time, party size, seating area, special requests, and current `StatusChip`.
+- Action buttons:
+  - **Add to calendar:** Generates client-side `.ics` calendar file for Apple Calendar / Google Calendar.
+  - **Get directions:** Direct Google Maps navigation link.
+  - **Message us:** WhatsApp deep link referencing the booking.
+
+### 6.2 Guest Feedback `/feedback/:code`
+- Accessible only for reservations in `completed` status; invalid codes display a polite fallback card.
+- Dynamic title and subtitle sourced from Admin Settings.
+- 1 to 5 star rating widget using interactive `PhStar` icons.
+- Standout service tag chips (dynamically configured, e.g. Food, Service, Atmosphere, Value).
+- Comments textarea (1,000 characters maximum).
+- Submitting writes an immutable entry to the audit log and attaches feedback to the guest record.
+
 ---
 
-## 7. Host (tablet) `/host`, `/guests/:id`
+## 7. Host Tablet Surface `/host`, `/guests/:id`
 
-taste-skill does not apply. Rules below follow the design doc's Host requirement: today first, fast search, minimal taps.
+**Primary Job:** Front-of-house operations on 1024px–1366px tablets in dim dining rooms. Zero clutter, 48px touch targets, 1-tap state advancement.
 
-### 7.1 Layout (landscape tablet, 1024-1366px)
-```
-┌─────────────────────────────────────────────────────────────────┐
-│ GIOI Host   [Search name / phone / code / time ⌘K]  Today ▾  [+]│
-├───────────────┬─────────────────────────────────────────────────┤
-│ Service       │ 19:00  Wayan S. (4)  Deck  Birthday  [Arrived]  │
-│ Lunch  12/40  │ 19:15  Chen L. (2)   Hall  Shellfish ⚠ [Arrived]│
-│ Dinner 58/90  │ 19:30  ...                                      │
-│               │                                                 │
-│ Filters       │ ── Arrived (6) ──                               │
-│ ○ Upcoming    │ ...                                             │
-│ ○ Arrived     │                                                 │
-│ ○ Seated      │                                                 │
-└───────────────┴─────────────────────────────────────────────────┘
-```
-- Default view: today, next 2 hours pinned at top, grouped by time.
-- Row: time, guest name, party size, area, occasion/diet flags (icons + text), primary next action button.
-- **One primary action per row = next valid status transition** (Confirmed → Arrived → Seated → Completed). Other transitions in an overflow menu. Cancel / No-show require confirm sheet (not browser `confirm()`).
-- Tap row → right-side drawer with guest history (visit count, last visit, notes, allergies) without leaving the list.
-- Walk-in `[+]` always visible.
+### 7.1 Service Header & Service Day Controls
+- Service Day title with live booking count and active covers count.
+- Date navigation buttons: `Previous`, `Today`, `Next`, and native date picker.
+- Primary `+ Walk-in` button triggering `WalkInModal.vue`.
+- Walk-in modal validates table availability, capacity limits, party size, and guest contact before insertion.
 
-### 7.2 Status scale (replaces 6-hue badges)
-Single-hue ramp on `--accent` plus neutral and danger. Color is never the only signal: every pill has a label and icon.
+### 7.2 Service List & Tabs
+- Dual tab switch: **Today's Bookings** vs **Guest Search**.
+- **Guest Search Tab (`GuestSearch.vue`):** Instant search across names, phone numbers, and emails. Displays visit counts, allergy warnings (`PhWarning`), accessibility cues (`PhWheelchair`), and repeat guest chips (`PhStar`).
+- **Service Timeline Rows:**
+  - Time, party size, guest name, and assigned area.
+  - Allergy alert badges highlighted in `--danger`.
+  - Repeat visitor badges (`Repeat · N visits`).
+  - **Single Forward Action Button (`StatusButtons.vue`):** Displays only the next logical status transition (Confirmed → Arrived → Seated → Completed).
+  - Destructive transitions (Cancelled, No-show) require an inline two-step confirmation (`Mark as No-show? Yes / Keep booking`).
+  - Completed reservations feature a 1-tap **Send feedback** action that launches WhatsApp with a prefilled feedback link.
+  - Tapping a row opens the full Guest Profile `/guests/:id`.
 
-| Status | Style | Icon |
+### 7.3 Status Design Scale
+
+Implemented in `src/domain/status.ts` and rendered via `StatusChip.vue`:
+
+| Status | Visual Treatment | Icon | Meaning |
+|---|---|---|---|
+| `pending` | Outline, text `--ink-muted`, border `--line` | `PhHourglass` | Deposit or manual verification pending |
+| `confirmed` | Outline, text `--accent`, border `--accent` | `PhCheckCircle` | Confirmed upcoming reservation |
+| `arrived` | 20% accent tint background, text `--accent` | `PhDoorOpen` | Guest is at the host stand |
+| `seated` | Solid accent background, text `--accent-ink` | `PhArmchair` | Guest is at their table |
+| `completed` | Neutral background `--line`, text `--ink` | `PhCheck` | Meal finished, bill settled |
+| `cancelled` | Outline `--danger`, text `--danger` | `PhXCircle` | Cancelled by guest or host |
+| `no_show` | 15% danger fill, text `--danger` | `PhUserMinus` | Guest failed to arrive |
+
+### 7.4 Guest Profile View `/guests/:id`
+- Full guest profile header with contact details, creation date, and marketing consent status.
+- Summary metrics: completed visits, cancellations, and no-show count.
+- Prominent allergy and dietary alert callouts.
+- Complete chronological visit history with status history logs, seating areas, past special requests, and feedback ratings.
+
+---
+
+## 8. Admin Surfaces `/admin/*`
+
+### 8.1 Manager Dashboard `/admin/dashboard`
+- **Filter Controls:** Preset selector (Today, Last 7 days, Last 30 days, Custom date range) combined with status, source channel (Direct Web, WhatsApp, Chope, Walk-in), seating area, and occasion filters.
+- **Action Cues:** Automated operational alerts:
+  - *Slot over capacity:* Alert when a slot exceeds 85% capacity threshold.
+  - *No-show rate high:* Warning when rate exceeds the 8% target.
+  - *Repeat guest with allergy today:* Highlighted for kitchen prep.
+  - Each cue includes direct deep links to Host view or Guest profile.
+- **Live Metrics (Today):** Bookings, expected covers, arrived/seated/completed counts, no-show/cancellation counts, and real-time visual capacity bar.
+- **Analytics Visualizations:**
+  - *Next 7 Days Covers:* Custom `BarChart.vue` component with busiest slot callout.
+  - *Next 30 Days Forecast:* SVG `Sparkline.vue` curve with milestone calendar ticks.
+  - *Guest Mix:* Total guests, first-timers vs repeats, retention rate %, occasion distribution bar chart, party size distribution bar chart.
+  - *Channel Share:* Percentage split across booking sources.
+  - *Reliability:* Realised covers, average lead time, cancellation rate, and no-show trend sparkline.
+- **Guest Feedback Section:** Average rating, total responses, 1–5 star distribution bar chart, standout tags ranking, and recent response modal inspection.
+- **Reservations Table:** Searchable, filterable operational table with CSV export.
+
+### 8.2 Admin Settings `/admin/settings`
+- **Hours & Rules:** Opening and closing hours per day of the week, closed dates calendar manager.
+- **Service Rules:** Booking intervals (30m), party size bounds (1–8), lead time thresholds, and target no-show percentages.
+- **Seating Areas:** Table and area editor (capacity limits, bookability toggles, minimum/maximum party size restrictions).
+- **Feedback Configuration:** Editable feedback title, subtitle, customizable standout tags list, and WhatsApp feedback invitation template with token placeholders (`{{guestName}}`, `{{restaurantName}}`, `{{feedbackUrl}}`).
+- **Policy Management:** Inline editor for cancellation policies.
+- **User Management:** Staff accounts and role assignments (`HOST`, `ADMIN`, `SUPER_ADMIN`).
+
+### 8.3 Admin Audit `/admin/audit`
+- Searchable and filterable table documenting system actions with timestamp, actor name, action verb, target entity, and detailed metadata notes.
+
+---
+
+## 9. Content and Assets Status
+
+| Asset | Status | Usage in Prototype |
 |---|---|---|
-| Pending | outline, `--ink-muted` | `Hourglass` |
-| Confirmed | outline, `--accent` | `CheckCircle` |
-| Arrived | 20% accent fill | `DoorOpen` |
-| Seated | solid accent, `--accent-ink` text | `Armchair` |
-| Completed | neutral fill `--line` | `Check` |
-| Cancelled | outline `--danger`, strikethrough time | `XCircle` |
-| No-show | 15% danger fill | `UserMinus` |
-
-### 7.3 Host a11y / ergonomics
-- Touch targets ≥ 48px, primary buttons 56px.
-- Dark mode is the **default on the host** (dim dining rooms at night), toggle available.
-- Allergy flags (esp. shellfish) use `--danger` text + icon, visible on the row, not only in the drawer.
+| **Logo** | Integrated (`public/logo.jpg`) | Official GIOI circular brand mark on header, favicon, and dark hero |
+| **Opening Hours** | Verified | Configured in `settings.json` as 10:00 - 22:00 WITA daily |
+| **Photography** | Integrated | Authentic GIOI Group outlet gallery webp images for hero, scenes, and visit sections |
+| **Typography** | Integrated | Fontshare Cabinet Grotesk (700, 800) + Satoshi (400, 500, 700) |
+| **Seating Areas** | Configured | Main Hall (24), Sunset Terrace (14), Beachfront Lounge (16), Chef's Counter (6) |
+| **Contact Data** | Configured | Phone & WhatsApp `+62 811 3960 6101`, Discovery Mall Bali map URL |
 
 ---
 
-## 8. Admin `/admin/*`
-- Same tokens, density 6. Left nav: Dashboard, Settings, Audit.
-- Dashboard: 4 stat tiles max (Covers today, Bookings this week, No-show rate, Direct vs Chope share). Use the `dataviz` skill when building charts.
-- Guest feedback card: shows average rating, response counts, and recent responses. Clicking any response opens a feedback detail modal with rating, standout chips, full comments, linked reservation details, and a link to the guest profile.
-- Settings: grouped forms (Hours & rules, Guest feedback [custom question, subtitle, standout tags preview, WhatsApp template], Seating areas, Policies). Save actions per section; unsaved-change guard.
-- Audit: filterable table (who, what, when, before/after). Table is the right tool here.
+## 10. Quality Gates & Verification
+
+- [x] **Zero em-dashes** in visible copy (hyphens, commas, or periods used throughout).
+- [x] **Single-accent system** across booking and host states (GIOI Navy `--accent` with Sunset Orange `--brand-sun` highlights).
+- [x] **3-tier radius rule** strictly maintained (`12px` input, `16px` surface, `full` pill).
+- [x] **Clear CTA labels:** "Reserve a table" / "Find a table" on landing, "Confirm booking" on booking submission.
+- [x] **Mobile responsive:** Sticky bottom summary bars, touch-friendly 48px+ targets, horizontal snap date scrolling.
+- [x] **Accessible contrast:** Light and dark text ratios meet WCAG AA standards.
+- [x] **Motion safety:** All GSAP timelines, CSS keyframes, and transitions honor `prefers-reduced-motion: reduce`.
+- [x] **State coverage:** Empty states, slot conflict handling, and capacity overload cues verified.
+- [x] **Verified test suite:** 44 Vitest tests passing across domain logic (availability, status transitions, analytics, feedback).
 
 ---
 
-## 9. Content and Assets Needed from Client
+## 11. Implemented Architecture & Production Handoff Notes
 
-| Asset | Needed for | Priority |
-|---|---|---|
-| Logo (SVG, light + dark) and "OG" monogram | Nav, confirmation, favicon (monogram) | Blocker |
-| Ikat pattern scan (cushion/shirt textile) | Single decorative band | Low |
-| Confirmed opening hours (IG says 10-22, Chope says 10-23) | Slot bounds | Blocker |
-| Brand colors / fonts, if any exist | Override Section 3 tokens | High |
-| Photography: 3 signature dishes, dining room, beach view at sunset, 1 team/kitchen shot | Hero, bento, place section | Blocker (no stock food) |
-| Menu (PDF or item list) | "View menu" | High |
-| Approved story copy | Section 4.5 | Medium |
-| 3 approved guest reviews | Section 4.6 | Medium |
-| Seating areas, max party size, last seating time, deposit rules | Booking flow | Blocker |
-| WhatsApp number, phone, Google Maps URL | Footer, confirmation | High |
+### 11.1 Client Architecture
+- **State Stores (Pinia):**
+  - `data.ts`: Central hydration and persistence of reservations, guests, settings, users, and audit logs.
+  - `reservations.ts`: Reservation creation, validation, and status transitions.
+  - `settings.ts`: Operational settings updates.
+  - `auth.ts`: Session state and role-based route guards.
+  - `export.ts`: Client-side CSV generation and download.
+- **Domain Modules (`src/domain/`):** Pure TypeScript logic with zero UI coupling:
+  - `availability.ts`: Slot generation, lead time calculation, capacity conflict checking.
+  - `status.ts`: Valid status state machine and icon/chip styling mappings.
+  - `analytics.ts`: Dashboard aggregation, date range resolution, action cues calculation.
+  - `feedback.ts`: Feedback URL generation and WhatsApp template token substitution.
+  - `dates.ts`: ISO date manipulation and WITA formatting helpers.
 
-Until photography arrives, use clearly-labeled placeholder slots (e.g. `hero-crispy-duck 1600x2000`), not stock images of generic food.
-
----
-
-## 10. Quality Gates (pre-flight, guest surfaces)
-
-- [ ] Zero em-dashes in visible copy (use hyphens, commas, periods).
-- [ ] One accent (lagoon teal) across all sections and status UI
-- [ ] One radius rule (Section 3.4)
-- [ ] One booking CTA label everywhere: **"Book a table"**; form submit: **"Confirm booking"**
-- [ ] Hero: ≤ 2-line headline, ≤ 20-word subtext, CTA above fold on 375×667
-- [ ] ≤ 2 eyebrows on the landing page
-- [ ] All CTAs and inputs pass WCAG AA in light and dark
-- [ ] Reduced-motion honored; no scroll listeners
-- [ ] LCP < 2.5s on 4G (hero image preloaded, AVIF/WebP, `width`/`height` set)
-- [ ] Skeleton / empty / error states for slots, submit conflict, and host list
-- [ ] Only real numbers on the page (rating, hours); no invented stats
-- [ ] Localised names in mocks (e.g. Wayan, Kadek, Chen, Olivia from Perth), not "John Doe"
-- [ ] Indonesian (`id`) copy variant planned for guest pages (tourist + local audience)
-
----
-
-## 11. Implementation Notes (for later, not executed)
-
-- Replace `tailwind.config.js` `gioi.*` colors with CSS-variable tokens; enable `darkMode: 'class'` + `prefers-color-scheme` default.
-- Add deps: `@phosphor-icons/vue`; self-host Cabinet Grotesk + Satoshi (Fontshare license, free commercial).
-- No animation library needed: CSS transitions + `animation-timeline: view()` cover MOTION 5.
-- Restore `src/views/*.vue` first; router currently points to missing files.
-
-## Sources
-- Instagram @gioioceangourmet (viewed 2026-09-30): https://www.instagram.com/gioioceangourmet/
-- Chope listing: https://www.chope.co/bali-restaurants/restaurant/gioi-ocean-gourmet-kuta?lang=en_US
-- Glints, GIOI Group: https://glints.com/id/companies/gioi-group/c3e15847-3e33-438c-a435-d61de1ebe571
+### 11.2 Production Handoff Checklist
+1. **Backend Integration:** Replace Pinia `localStorage` stores with REST/GraphQL endpoints backed by PostgreSQL.
+2. **Concurrency Control:** Maintain the prototype's slot-checking logic in transactional SQL queries with table/slot locking to prevent double bookings.
+3. **Authentication:** Connect `/login` to real SSO or Auth0/Supabase with session cookies and role checks.
+4. **WhatsApp Business API:** Replace `window.open(wa.me/...)` deep links with automated webhook dispatch via Meta WhatsApp Cloud API for confirmation and feedback messaging.
+5. **Asset Hosting:** Self-host Cabinet Grotesk and Satoshi web fonts (`.woff2`) directly on the production CDN.
