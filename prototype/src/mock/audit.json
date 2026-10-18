@@ -1,1 +1,118 @@
-[]
+[
+  {
+    "id": "aud_001",
+    "at": "2026-09-30T12:55:00.000Z",
+    "actorId": "u-host",
+    "actorName": "Putu Sari",
+    "action": "reservation.status_changed",
+    "entityType": "reservation_status",
+    "entityId": "r_today_149",
+    "changes": {
+      "status": {
+        "from": "seated",
+        "to": "completed"
+      }
+    },
+    "note": "Completed dining service for table."
+  },
+  {
+    "id": "aud_002",
+    "at": "2026-09-30T12:56:00.000Z",
+    "actorId": "u-host",
+    "actorName": "Putu Sari",
+    "action": "feedback_link.sent",
+    "entityType": "feedback_link",
+    "entityId": "r_today_149",
+    "note": "Sent WhatsApp feedback link to Cokorda Kusuma"
+  },
+  {
+    "id": "aud_003",
+    "at": "2026-09-30T13:03:00.000Z",
+    "actorId": "u-host",
+    "actorName": "Putu Sari",
+    "action": "reservation.status_changed",
+    "entityType": "reservation_status",
+    "entityId": "r_today_152",
+    "changes": {
+      "status": {
+        "from": "arrived",
+        "to": "seated"
+      }
+    },
+    "note": "Seated at Beachfront Lounge table 12."
+  },
+  {
+    "id": "aud_004",
+    "at": "2026-09-30T13:30:00.000Z",
+    "actorId": "u-host",
+    "actorName": "Putu Sari",
+    "action": "reservation.status_changed",
+    "entityType": "reservation_status",
+    "entityId": "r_today_153",
+    "changes": {
+      "status": {
+        "from": "confirmed",
+        "to": "arrived"
+      }
+    },
+    "note": "Guest checked in at host stand."
+  },
+  {
+    "id": "aud_005",
+    "at": "2026-09-30T13:05:00.000Z",
+    "actorId": "u-host",
+    "actorName": "Putu Sari",
+    "action": "reservation.status_changed",
+    "entityType": "reservation_status",
+    "entityId": "r_today_151",
+    "changes": {
+      "status": {
+        "from": "confirmed",
+        "to": "no_show"
+      }
+    },
+    "note": "Marked no-show after 30 minutes grace period expired."
+  },
+  {
+    "id": "aud_006",
+    "at": "2026-09-30T10:15:00.000Z",
+    "actorId": "u-admin",
+    "actorName": "Yodha Kautsar",
+    "action": "settings.updated",
+    "entityType": "settings",
+    "entityId": "settings",
+    "changes": {
+      "overCapacityAlertPercent": {
+        "from": 90,
+        "to": 85
+      }
+    },
+    "note": "Adjusted over-capacity alert threshold for sunset peak season."
+  },
+  {
+    "id": "aud_007",
+    "at": "2026-09-29T16:00:00.000Z",
+    "actorId": "u-admin",
+    "actorName": "Yodha Kautsar",
+    "action": "seating_area.updated",
+    "entityType": "seating_area",
+    "entityId": "terrace",
+    "changes": {
+      "capacity": {
+        "from": 12,
+        "to": 14
+      }
+    },
+    "note": "Added 2 terrace covers for sunset dining."
+  },
+  {
+    "id": "aud_008",
+    "at": "2026-09-28T11:00:00.000Z",
+    "actorId": "u-admin",
+    "actorName": "Yodha Kautsar",
+    "action": "user.updated",
+    "entityType": "user",
+    "entityId": "u-host",
+    "note": "Updated host access profile."
+  }
+]

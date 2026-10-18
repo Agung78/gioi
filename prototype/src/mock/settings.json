@@ -6,19 +6,40 @@
     "address": "Ground Floor Beach Front, Discovery Mall Bali, Jl. Kartika Plaza, Kuta, Badung, Bali 80361, Indonesia",
     "phone": "+62 811 3960 6101",
     "whatsapp": "+62 811 3960 6101",
-    "email": "",
+    "email": "ocean.kuta@gioigroup.com",
     "mapsUrl": "https://maps.google.com/?q=GIOI+Ocean+Gourmet+Kuta",
     "hoursSummary": "Daily 10:00 to 22:00 WITA",
     "heroEmoji": ""
   },
   "openingHours": {
-    "mon": { "open": "10:00", "close": "22:00" },
-    "tue": { "open": "10:00", "close": "22:00" },
-    "wed": { "open": "10:00", "close": "22:00" },
-    "thu": { "open": "10:00", "close": "22:00" },
-    "fri": { "open": "10:00", "close": "22:00" },
-    "sat": { "open": "10:00", "close": "22:00" },
-    "sun": { "open": "10:00", "close": "22:00" }
+    "mon": {
+      "open": "10:00",
+      "close": "22:00"
+    },
+    "tue": {
+      "open": "10:00",
+      "close": "22:00"
+    },
+    "wed": {
+      "open": "10:00",
+      "close": "22:00"
+    },
+    "thu": {
+      "open": "10:00",
+      "close": "22:00"
+    },
+    "fri": {
+      "open": "10:00",
+      "close": "22:00"
+    },
+    "sat": {
+      "open": "10:00",
+      "close": "22:00"
+    },
+    "sun": {
+      "open": "10:00",
+      "close": "22:00"
+    }
   },
   "closedDates": [
     "2026-12-25",
@@ -43,7 +64,7 @@
     {
       "id": "terrace",
       "name": "Sunset Terrace",
-      "capacity": 12,
+      "capacity": 14,
       "bookable": true,
       "minParty": 2
     },
@@ -53,11 +74,27 @@
       "capacity": 6,
       "bookable": true,
       "maxParty": 4
+    },
+    {
+      "id": "beachfront",
+      "name": "Beachfront Lounge",
+      "capacity": 16,
+      "bookable": true,
+      "minParty": 2
     }
   ],
   "cancellationPolicy": "Please cancel or reschedule at least 4 hours before your booking. Late cancellations and no-shows may be charged a 200,000 IDR per-person fee.",
-  "feedbackMessageTemplate": "Hi {{guestName}}, thank you for dining at {{restaurantName}}. We would love your feedback: {{feedbackUrl}}",
-  "feedbackTitle": "How was your visit?",
-  "feedbackSubtitle": "A few words from you help our team make the next visit better.",
-  "feedbackTags": ["Food", "Service", "Atmosphere", "Value"]
+  "feedbackTitle": "How was your ocean dining experience?",
+  "feedbackSubtitle": "Your thoughts help our kitchen and floor team make every Bali sunset visit memorable.",
+  "feedbackTags": [
+    "Seafood freshness",
+    "Sunset view",
+    "Attentive service",
+    "Cocktails & wine",
+    "Atmosphere",
+    "Pacing & timing",
+    "Allergy care",
+    "Value"
+  ],
+  "feedbackMessageTemplate": "Hi {{guestName}}, thank you for dining with us at {{restaurantName}}. We'd love to hear about your experience: {{feedbackUrl}}"
 }

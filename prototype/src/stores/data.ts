@@ -104,7 +104,7 @@ export const useDataStore = defineStore('data', () => {
     }
 
     const persistedAudit = loadJSON<AuditEvent[] | null>(AUDIT_KEY, null)
-    audit.value = persistedAudit ?? clone(seedAudit as AuditEvent[])
+    audit.value = persistedAudit ?? (seedAudit as AuditEvent[]).map((e) => ({ ...e, at: shiftTimestamp(e.at) }))
     const persistedFeedback = loadJSON<FeedbackResponse[] | null>(FEEDBACK_KEY, null)
     feedbackResponses.value = persistedFeedback
       ?? (seedFeedback as FeedbackResponse[]).map((f) => ({ ...f, submittedAt: shiftTimestamp(f.submittedAt) }))
