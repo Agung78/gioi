@@ -6,8 +6,11 @@ import { useReservationsStore } from '../stores/reservations'
 import { getDayAvailability, generateIntervals, hoursFor, isOpenOn, checkAvailability } from '../domain/availability'
 import { addDays, todayISO } from '../domain/dates'
 import DatePicker from '../components/DatePicker.vue'
-import { PhCaretDown } from '@phosphor-icons/vue'
+import { PhArrowLeft, PhCaretDown, PhMinus, PhPlus, PhMoon, PhSun } from '@phosphor-icons/vue'
 import AvailabilityGrid from '../components/AvailabilityGrid.vue'
+import { useTheme } from '../composables/useTheme'
+
+const { isDark, toggleTheme } = useTheme()
 
 const data = useDataStore()
 const reservations = useReservationsStore()
@@ -86,6 +89,22 @@ const canSubmit = computed(() => {
   return r?.ok === true
 })
 
+const missingStepPrompt = computed(() => {
+  if (!time.value) return 'Pick a time slot'
+  if (!fullName.value.trim() || !phone.value.trim()) return 'Enter full name & phone'
+  if (!acceptedPolicy.value) return 'Accept cancellation policy'
+  return ''
+})
+
+const activeDetailsCount = computed(
+  () => dietary.value.length + (occasion.value ? 1 : 0) + (guestNotes.value.trim() ? 1 : 0),
+)
+
+const formattedDate = computed(() =>
+  new Date(date.value + 'T00:00:00').toLocaleDateString(undefined, { weekday: 'short', day: 'numeric', month: 'short' }),
+)
+const seatingAreaName = computed(() => bookableAreas.value.find((a) => a.id === seatingAreaId.value)?.name)
+
 async function submit() {
   error.value = null
   if (!time.value) return
@@ -139,7 +158,30 @@ const partyOptions = computed(() => {
 
 <template>
   <div class="mx-auto max-w-5xl px-4 pb-32 pt-8 md:px-8 lg:pb-16">
-    <RouterLink to="/" class="inline-flex min-h-11 items-center text-sm font-medium text-accent underline underline-offset-4">Back to GIOI</RouterLink>
+    <div class="flex items-center justify-between">
+      <RouterLink to="/" class="btn-ghost !min-h-10 !px-3 -ml-3 gap-2 text-sm text-ink">
+        <PhArrowLeft :size="16" aria-hidden="true" />
+        Back to GIOI
+      </RouterLink>
+      <button
+        type="button"
+        class="btn-ghost grid h-10 w-10 place-items-center rounded-full p-0 text-ink"
+        :aria-label="isDark ? 'Switch to light mode' : 'Switch to dark mode'"
+        :title="isDark ? 'Switch to light mode' : 'Switch to dark mode'"
+        @click="toggleTheme"
+      >
+        <component :is="isDark ? PhSun : PhMoon" :size="20" aria-hidden="true" />
+      </button>
+    </div>
+    <button
+      type="button"
+      class="fixed bottom-24 right-5 z-30 grid h-12 w-12 place-items-center rounded-full bg-raised text-ink shadow-soft ring-1 ring-line transition-all duration-200 hover:scale-110 active:scale-95 focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent lg:bottom-6 lg:right-6"
+      :aria-label="isDark ? 'Switch to light mode' : 'Switch to dark mode'"
+      :title="isDark ? 'Switch to light mode' : 'Switch to dark mode'"
+      @click="toggleTheme"
+    >
+      <component :is="isDark ? PhSun : PhMoon" :size="22" class="transition-transform duration-300 hover:rotate-12" aria-hidden="true" />
+    </button>
     <h1 class="mt-3 text-3xl font-extrabold md:text-4xl">Book a table</h1>
 
     <div class="mt-8 grid gap-8 lg:grid-cols-[1fr_320px]">
@@ -170,10 +212,10 @@ const partyOptions = computed(() => {
             <span class="label" id="guests-label">Guests</span>
             <div class="inline-flex items-center gap-4" role="group" aria-labelledby="guests-label">
               <button type="button" class="pill h-12 w-12 px-0 text-xl" aria-label="Fewer guests"
-                :disabled="partySize <= partyOptions[0]" @click="partySize--">-</button>
+                :disabled="partySize <= partyOptions[0]" @click="partySize--"><PhMinus :size="16" aria-hidden="true" /></button>
               <span class="w-8 text-center text-xl font-bold" aria-live="polite">{{ partySize }}</span>
               <button type="button" class="pill h-12 w-12 px-0 text-xl" aria-label="More guests"
-                :disabled="partySize >= partyOptions[partyOptions.length - 1]" @click="partySize++">+</button>
+                :disabled="partySize >= partyOptions[partyOptions.length - 1]" @click="partySize++"><PhPlus :size="16" aria-hidden="true" /></button>
             </div>
             <p v-if="partySize >= partyOptions[partyOptions.length - 1]" class="mt-2 text-sm text-muted">
               Groups over {{ partySize }}? <a class="font-medium text-accent underline underline-offset-4"
@@ -226,7 +268,8 @@ const partyOptions = computed(() => {
         <section class="space-y-4">
           <button type="button" class="flex min-h-11 w-full items-center justify-between text-left" :aria-expanded="showDetails"
             @click="showDetails = !showDetails">
-            <h2 class="text-xl font-bold">3. Details <span class="text-base font-normal text-muted">(optional)</span>
+            <h2 class="flex items-center gap-2 text-xl font-bold">3. Details <span class="text-base font-normal text-muted">(optional)</span>
+              <span v-if="!showDetails && activeDetailsCount" class="chip bg-accent/15 text-accent text-xs">{{ activeDetailsCount }} added</span>
             </h2>
             <PhCaretDown :size="20" class="transition-transform" :class="showDetails ? 'rotate-180' : ''"
               aria-hidden="true" />
@@ -244,7 +287,7 @@ const partyOptions = computed(() => {
               <span class="label">Dietary and allergies</span>
               <div class="flex flex-wrap gap-2">
                 <button v-for="d in DIET" :key="d" type="button" class="pill"
-                  :class="[dietary.includes(d) ? 'pill-on' : '', d === 'Shellfish allergy' && !dietary.includes(d) ? 'border-danger/60 text-danger' : '']"
+                  :class="dietary.includes(d) ? 'pill-on' : ''"
                   :aria-pressed="dietary.includes(d)" @click="toggleDiet(d)">{{ d }}</button>
               </div>
               <input id="allergies" v-model="allergiesText" aria-label="Other dietary needs" class="field mt-3"
@@ -276,25 +319,37 @@ const partyOptions = computed(() => {
             <span>Send me occasional news and events. (Optional)</span>
           </label>
           <div v-if="error" class="alert-danger" role="alert">{{ error }}</div>
-          <button class="btn-primary hidden min-h-14 w-full text-base lg:inline-flex"
-            :disabled="!canSubmit || submitting" type="submit">
-            {{ submitting ? 'Confirming...' : 'Confirm booking' }}
-          </button>
         </section>
       </form>
 
       <aside class="hidden lg:block">
         <div class="card sticky top-24">
-          <p class="label text-muted">Your booking</p>
-          <p class="text-lg font-bold">{{ summary }}</p>
-          <p v-if="seatingAreaId" class="mt-1 text-sm text-muted">{{bookableAreas.find((a) => a.id ===
-            seatingAreaId)?.name }}</p>
+          <h2 class="text-lg font-bold">Your booking</h2>
+          <dl class="mt-4 space-y-3 text-sm">
+            <div class="flex items-baseline justify-between gap-3">
+              <dt class="text-muted">Date &amp; party</dt>
+              <dd class="text-right font-semibold">{{ formattedDate }} · {{ partySize }} {{ partySize === 1 ? 'guest' : 'guests' }}</dd>
+            </div>
+            <div class="flex items-baseline justify-between gap-3">
+              <dt class="text-muted">Time</dt>
+              <dd class="text-right" :class="time ? 'font-bold text-accent' : 'text-muted'">{{ time ?? 'Select time' }}</dd>
+            </div>
+            <div class="flex items-baseline justify-between gap-3">
+              <dt class="text-muted">Seating</dt>
+              <dd class="text-right font-semibold">{{ seatingAreaName ?? 'Any available table' }}</dd>
+            </div>
+          </dl>
+          <p v-if="!canSubmit && missingStepPrompt" class="mt-4 rounded-surface bg-accent/10 px-3 py-2 text-sm font-medium text-ink" role="status">
+            {{ missingStepPrompt }}
+          </p>
+          <button class="btn-primary min-h-12 w-full text-base mt-5" form="book-form" :disabled="!canSubmit || submitting" type="submit">{{ submitting ? 'Confirming...' : 'Confirm booking' }}</button>
         </div>
       </aside>
     </div>
 
     <div class="fixed inset-x-0 bottom-0 z-20 border-t border-line bg-surface/95 p-4 pb-[max(1rem,env(safe-area-inset-bottom))] backdrop-blur-md lg:hidden">
       <p class="mb-2 text-center text-sm font-medium">{{ summary }}</p>
+      <p v-if="!canSubmit && missingStepPrompt" class="mb-2 text-center text-xs font-medium text-accent" role="status">{{ missingStepPrompt }}</p>
       <button class="btn-primary min-h-14 w-full text-base" form="book-form" :disabled="!canSubmit || submitting"
         type="submit">
         {{ submitting ? 'Confirming...' : 'Confirm booking' }}

@@ -1,171 +1,196 @@
 [
   {
     "id": "fb001",
-    "reservationId": "r110",
-    "guestId": "g006",
+    "reservationId": "r2",
+    "guestId": "g038",
     "rating": 5,
-    "comments": "Wonderful tasting menu — every course felt considered. Staff remembered our anniversary without being told.",
+    "comments": "The seafood platter at sunset was extraordinary. Watching the waves while dining was an unforgettable Bali experience.",
     "serviceTags": [
-      "Food",
-      "Service",
-      "Ambience"
+      "Seafood freshness",
+      "Sunset view",
+      "Attentive service"
     ],
-    "submittedAt": "2026-09-28T22:30:00.000Z"
+    "submittedAt": "2026-08-31T20:25:00.000Z"
   },
   {
     "id": "fb002",
-    "reservationId": "r111",
-    "guestId": "g034",
-    "rating": 4,
-    "comments": "Great food, but we waited about 15 minutes past our booking time for the table.",
+    "reservationId": "r3",
+    "guestId": "g021",
+    "rating": 5,
+    "comments": "Staff handled my shellfish allergy with immense care. The kitchen even sent a personalized amuse-bouche.",
     "serviceTags": [
-      "Food",
-      "Wait time"
+      "Allergy care",
+      "Attentive service"
     ],
-    "submittedAt": "2026-09-28T22:30:00.000Z"
+    "submittedAt": "2026-08-31T15:55:00.000Z"
   },
   {
     "id": "fb003",
-    "reservationId": "r112",
-    "guestId": "g022",
-    "rating": 5,
-    "comments": "Best counter seat in town. Watching the kitchen work was half the experience.",
+    "reservationId": "r4",
+    "guestId": "g003",
+    "rating": 4,
+    "comments": "Great grilled fish and cocktails, though our table on the terrace was delayed about 10 minutes past our booking time.",
     "serviceTags": [
-      "Counter seat",
-      "Food"
+      "Seafood freshness",
+      "Cocktails & wine"
     ],
-    "submittedAt": "2026-09-28T22:30:00.000Z"
+    "submittedAt": "2026-08-31T23:55:00.000Z"
   },
   {
     "id": "fb004",
-    "reservationId": "r105",
-    "guestId": "g002",
-    "rating": 3,
-    "comments": "Dishes were good but the dining room was loud for a quiet dinner.",
+    "reservationId": "r6",
+    "guestId": "g004",
+    "rating": 5,
+    "comments": "Best coconut prawns and sambal in Kuta. Coming back before our flight home.",
     "serviceTags": [
-      "Noise",
-      "Food"
+      "Seafood freshness",
+      "Value"
     ],
-    "submittedAt": "2026-09-27T22:30:00.000Z"
+    "submittedAt": "2026-09-01T16:25:00.000Z"
   },
   {
     "id": "fb005",
-    "reservationId": "r106",
-    "guestId": "g025",
+    "reservationId": "r7",
+    "guestId": "g020",
     "rating": 5,
-    "comments": "Handled my dairy allergy flawlessly and the alternative dessert was a highlight.",
+    "comments": "Very attentive service for our 10th anniversary. The complimentary dessert and personalized greeting card were wonderful.",
     "serviceTags": [
-      "Allergy care",
-      "Service"
+      "Attentive service",
+      "Sunset view",
+      "Atmosphere"
     ],
-    "submittedAt": "2026-09-27T15:30:00.000Z"
+    "submittedAt": "2026-09-02T00:25:00.000Z"
   },
   {
     "id": "fb006",
-    "reservationId": "r108",
-    "guestId": "g040",
+    "reservationId": "r8",
+    "guestId": "g002",
     "rating": 4,
-    "comments": "Lovely evening. Pacing between courses was a touch slow near the end.",
+    "comments": "Atmosphere is stunning right on the water. Music volume was slightly loud as the evening progressed.",
     "serviceTags": [
-      "Pacing",
-      "Ambience"
+      "Sunset view",
+      "Atmosphere"
     ],
-    "submittedAt": "2026-09-27T22:30:00.000Z"
+    "submittedAt": "2026-09-01T21:55:00.000Z"
   },
   {
     "id": "fb007",
-    "reservationId": "r99",
-    "guestId": "g033",
+    "reservationId": "r11",
+    "guestId": "g016",
     "rating": 5,
-    "comments": "Perfect birthday celebration — thank you for the candle and the handwritten card.",
+    "comments": "Chef’s counter seat was half the experience! Loved watching the open-fire cooking and chatting with the team.",
     "serviceTags": [
-      "Service",
-      "Celebration"
+      "Atmosphere",
+      "Pacing & timing"
     ],
-    "submittedAt": "2026-09-25T15:30:00.000Z"
+    "submittedAt": "2026-09-02T23:25:00.000Z"
   },
   {
     "id": "fb008",
-    "reservationId": "r100",
-    "guestId": "g001",
-    "rating": 2,
-    "comments": "Our reservation was not ready on arrival and no one apologised until we asked.",
+    "reservationId": "r12",
+    "guestId": "g037",
+    "rating": 5,
+    "comments": "We ordered the tasting menu with Australian wine pairing. Flawless pacing from start to finish.",
     "serviceTags": [
-      "Wait time",
-      "Service"
+      "Cocktails & wine",
+      "Pacing & timing",
+      "Seafood freshness"
     ],
-    "submittedAt": "2026-09-25T22:30:00.000Z"
+    "submittedAt": "2026-09-03T22:55:00.000Z"
   },
   {
     "id": "fb009",
-    "reservationId": "r101",
-    "guestId": "g026",
-    "rating": 4,
-    "comments": "Excellent value for the quality. Would love a longer wine list.",
+    "reservationId": "r14",
+    "guestId": "g035",
+    "rating": 3,
+    "comments": "Food was delicious, but service felt a bit rushed during the 18:00 sunset peak rush.",
     "serviceTags": [
-      "Value",
-      "Drinks"
+      "Pacing & timing"
     ],
-    "submittedAt": "2026-09-25T22:30:00.000Z"
+    "submittedAt": "2026-09-04T15:55:00.000Z"
   },
   {
     "id": "fb010",
-    "reservationId": "r93",
-    "guestId": "g010",
+    "reservationId": "r15",
+    "guestId": "g024",
     "rating": 5,
-    "comments": "Warm, attentive and unhurried. We will be back with friends.",
+    "comments": "The gluten-free options are properly considered, not an afterthought. Appreciated the separate preparation.",
     "serviceTags": [
-      "Service",
-      "Ambience"
+      "Allergy care",
+      "Attentive service"
     ],
-    "submittedAt": "2026-09-24T22:30:00.000Z"
+    "submittedAt": "2026-09-04T16:25:00.000Z"
   },
   {
     "id": "fb011",
-    "reservationId": "r94",
-    "guestId": "g023",
+    "reservationId": "r16",
+    "guestId": "g044",
     "rating": 4,
-    "comments": "Beautiful plating and balanced flavours. Terrace was a little warm.",
+    "comments": "Crispy pork belly and grilled barramundi were top tier. Cocktails took a few minutes longer than expected.",
     "serviceTags": [
-      "Food",
-      "Ambience"
+      "Seafood freshness",
+      "Cocktails & wine"
     ],
-    "submittedAt": "2026-09-24T22:30:00.000Z"
+    "submittedAt": "2026-09-04T15:55:00.000Z"
   },
   {
     "id": "fb012",
-    "reservationId": "r95",
-    "guestId": "g006",
+    "reservationId": "r17",
+    "guestId": "g004",
     "rating": 5,
-    "comments": "Booked on a whim through the website and it was seamless from start to finish.",
+    "comments": "Spectacular sunset vantage point. Best restaurant view in Discovery Mall by far.",
     "serviceTags": [
-      "Booking",
-      "Service"
+      "Sunset view",
+      "Atmosphere"
     ],
-    "submittedAt": "2026-09-24T22:30:00.000Z"
+    "submittedAt": "2026-09-04T21:25:00.000Z"
   },
   {
     "id": "fb013",
-    "reservationId": "r96",
-    "guestId": "g017",
-    "rating": 3,
-    "comments": "Food was fine; portions felt small for the price.",
+    "reservationId": "r19",
+    "guestId": "g036",
+    "rating": 5,
+    "comments": "Staff remembered our names and our table preference from our visit last year. Remarkable hospitality.",
     "serviceTags": [
-      "Value",
-      "Food"
+      "Attentive service",
+      "Atmosphere"
     ],
-    "submittedAt": "2026-09-24T22:30:00.000Z"
+    "submittedAt": "2026-09-05T21:55:00.000Z"
   },
   {
     "id": "fb014",
-    "reservationId": "r97",
-    "guestId": "g039",
-    "rating": 5,
-    "comments": "Chef came out to explain the final course. Memorable.",
+    "reservationId": "r21",
+    "guestId": "g003",
+    "rating": 4,
+    "comments": "Delicious seafood and friendly Balinese warmth throughout the evening.",
     "serviceTags": [
-      "Food",
-      "Service"
+      "Seafood freshness",
+      "Value"
     ],
-    "submittedAt": "2026-09-24T15:30:00.000Z"
+    "submittedAt": "2026-09-05T17:25:00.000Z"
+  },
+  {
+    "id": "fb015",
+    "reservationId": "r22",
+    "guestId": "g005",
+    "rating": 5,
+    "comments": "Our family of 6 had a fantastic beachfront lunch. Kids loved the coconut satay.",
+    "serviceTags": [
+      "Value",
+      "Attentive service"
+    ],
+    "submittedAt": "2026-09-05T15:55:00.000Z"
+  },
+  {
+    "id": "fb016",
+    "reservationId": "r23",
+    "guestId": "g015",
+    "rating": 5,
+    "comments": "Signature cocktails are inventive and fresh. The chili-passionfruit margarita is a must try.",
+    "serviceTags": [
+      "Cocktails & wine",
+      "Atmosphere"
+    ],
+    "submittedAt": "2026-09-06T17:25:00.000Z"
   }
 ]

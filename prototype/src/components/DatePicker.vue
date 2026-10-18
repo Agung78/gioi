@@ -69,18 +69,18 @@ onBeforeUnmount(() => { document.removeEventListener('pointerdown', away); docum
           <template v-for="(iso, i) in cells" :key="i">
             <span v-if="!iso" />
             <button v-else type="button" :disabled="!!off(iso)" :aria-pressed="iso === modelValue"
-              class="relative mx-auto grid h-9 w-9 place-items-center rounded-full transition focus:outline-none focus-visible:ring-2 focus-visible:ring-sun"
+              class="relative mx-auto grid h-9 w-9 place-items-center rounded-full transition focus:outline-none focus-visible:ring-2 focus-visible:ring-accent"
               :class="iso === modelValue
-                ? 'bg-sun font-bold text-navy'
+                ? 'bg-accent font-bold text-accent-ink'
                 : off(iso) ? 'cursor-not-allowed text-muted/40 line-through decoration-muted/30' : 'hover:bg-line/60'"
               @click="pick(iso)">
               {{ Number(iso.slice(8)) }}
-              <span v-if="iso === today && iso !== modelValue" class="absolute bottom-1 h-1 w-1 rounded-full bg-sun" />
+              <span v-if="iso === today && iso !== modelValue" class="absolute bottom-1 h-1 w-1 rounded-full bg-accent" />
             </button>
           </template>
         </div>
         <div class="mt-3 flex justify-end border-t border-line pt-3">
-          <button type="button" class="text-sm font-semibold text-sun hover:underline disabled:opacity-40"
+          <button type="button" class="text-sm text-accent font-semibold hover:underline disabled:opacity-40"
             :disabled="!!off(today)" @click="pick(today)">Today</button>
         </div>
       </div>

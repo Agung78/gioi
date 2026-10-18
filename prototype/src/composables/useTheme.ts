@@ -7,11 +7,19 @@ const theme = ref<string | null>((() => { try { return localStorage.getItem('gio
 const mq = matchMedia('(prefers-color-scheme: dark)')
 const osDark = ref(mq.matches)
 mq.addEventListener('change', (e) => { osDark.value = e.matches })
+let transitionTimer: number | undefined
 
 export function useTheme() {
   const route = useRoute()
   const isDark = computed(() => (theme.value ?? (route.meta?.public ? (osDark.value ? 'dark' : 'light') : 'dark')) === 'dark')
   function toggleTheme() {
+    if (typeof document !== 'undefined') {
+      document.documentElement.classList.add('theme-transitioning')
+      clearTimeout(transitionTimer)
+      transitionTimer = setTimeout(() => {
+        document.documentElement.classList.remove('theme-transitioning')
+      }, 300)
+    }
     theme.value = isDark.value ? 'light' : 'dark'
     try { localStorage.setItem('gioi-theme', theme.value) } catch { /* private mode */ }
   }
