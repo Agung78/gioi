@@ -108,3 +108,13 @@
 .modal-leave-active .modal-panel { transition: transform 150ms ease-in; }
 .modal-enter-from, .modal-leave-to { opacity: 0; }
 .modal-enter-from .modal-panel, .modal-leave-to .modal-panel { transform: translateY(12px) scale(0.97); }
+
+/* tab panel fade (HostView) */
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 120ms ease;
+}
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}

@@ -48,16 +48,19 @@ function updateDay(day: string, key: 'open' | 'close', val: string) {
   draft.value.openingHours[day as keyof typeof draft.value.openingHours] = { ...current, [key]: val }
 }
 
+const newClosedDate = ref('')
+const closedDateError = ref<string | null>(null)
 function addClosedDate() {
-  const date = prompt('Closed date (YYYY-MM-DD):')
-  if (!date) return
+  const date = newClosedDate.value
   if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
-    alert('Invalid date format. Use YYYY-MM-DD.')
+    closedDateError.value = 'Pick a valid date.'
     return
   }
+  closedDateError.value = null
   if (!draft.value.closedDates.includes(date)) {
     draft.value.closedDates = [...draft.value.closedDates, date].sort()
   }
+  newClosedDate.value = ''
 }
 function removeClosedDate(date: string) {
   draft.value.closedDates = draft.value.closedDates.filter((d) => d !== date)
@@ -96,14 +99,14 @@ const totalCapacity = computed(() => draft.value.seatingAreas.filter((a) => a.bo
   <div class="mx-auto max-w-5xl px-4 py-8">
     <header class="mb-6 flex items-baseline justify-between gap-3">
       <div>
-        <p class="text-xs uppercase tracking-wide text-gioi-moss/70">Super Admin</p>
-        <h1 class="font-display text-3xl font-semibold text-gioi-moss">Settings</h1>
+        <p class="text-xs uppercase tracking-wide text-muted">Super Admin</p>
+        <h1 class="font-display text-3xl font-semibold text-ink">Settings</h1>
       </div>
-      <p v-if="saved" class="text-sm text-gioi-moss">{{ saved }}</p>
+      <p v-if="saved" class="text-sm text-ink">{{ saved }}</p>
     </header>
 
     <section class="card mb-6">
-      <h2 class="font-display text-xl font-semibold text-gioi-moss">Restaurant</h2>
+      <h2 class="font-display text-xl font-semibold text-ink">Restaurant</h2>
       <div class="mt-4 grid gap-4 sm:grid-cols-2">
         <div>
           <label class="label">Name</label>
@@ -144,10 +147,10 @@ const totalCapacity = computed(() => draft.value.seatingAreas.filter((a) => a.bo
     </section>
 
     <section class="card mb-6">
-      <h2 class="font-display text-xl font-semibold text-gioi-moss">Opening hours & rules</h2>
+      <h2 class="font-display text-xl font-semibold text-ink">Opening hours & rules</h2>
       <div class="mt-4 grid gap-3 sm:grid-cols-2">
         <div v-for="day in DAYS_OF_WEEK" :key="day" class="grid grid-cols-[64px_minmax(0,1fr)_minmax(0,1fr)] items-center gap-2 text-sm">
-          <span class="font-medium text-gioi-moss">{{ dayLabel[day] }}</span>
+          <span class="font-medium text-ink">{{ dayLabel[day] }}</span>
           <input
             type="time"
             :value="draft.openingHours[day].open"
@@ -195,12 +198,14 @@ const totalCapacity = computed(() => draft.value.seatingAreas.filter((a) => a.bo
       <div class="mt-6">
         <p class="label">Closed dates</p>
         <div class="mt-2 flex flex-wrap items-center gap-2">
-          <span v-for="d in draft.closedDates" :key="d" class="chip bg-gioi-sand text-gioi-moss">
+          <span v-for="d in draft.closedDates" :key="d" class="chip bg-line/50 text-ink">
             {{ d }}
-            <button type="button" class="-my-2 -mr-2 grid h-11 w-11 place-items-center text-gioi-moss/70 hover:text-gioi-ink" :aria-label="`Remove ${d}`" @click="removeClosedDate(d)">×</button>
+            <button type="button" class="-my-2 -mr-2 grid h-11 w-11 place-items-center text-muted hover:text-ink" :aria-label="`Remove ${d}`" @click="removeClosedDate(d)">×</button>
           </span>
+          <input v-model="newClosedDate" type="date" class="field !w-auto !py-1 !px-2.5 text-sm" aria-label="Closed date" @keydown.enter.prevent="addClosedDate" />
           <button class="btn-ghost" type="button" @click="addClosedDate">+ Add</button>
         </div>
+        <p v-if="closedDateError" class="mt-1 text-xs text-danger">{{ closedDateError }}</p>
       </div>
       <div class="mt-4 flex justify-end">
         <button class="btn-primary" type="button" @click="saveSettings">Save hours &amp; rules</button>
@@ -208,8 +213,8 @@ const totalCapacity = computed(() => draft.value.seatingAreas.filter((a) => a.bo
     </section>
 
     <section class="card mb-6">
-      <h2 class="font-display text-xl font-semibold text-gioi-moss">Guest feedback</h2>
-      <p class="mt-1 text-sm text-gioi-moss/70">GIOI owns this native feedback form. Configure the WhatsApp message template; responses are stored in this prototype and reviewed in the Admin dashboard.</p>
+      <h2 class="font-display text-xl font-semibold text-ink">Guest feedback</h2>
+      <p class="mt-1 text-sm text-muted">GIOI owns this native feedback form. Configure the WhatsApp message template; responses are stored in this prototype and reviewed in the Admin dashboard.</p>
       <div class="mt-4 grid gap-4">
         <div>
           <label class="label">Feedback question / title</label>
@@ -232,8 +237,8 @@ const totalCapacity = computed(() => draft.value.seatingAreas.filter((a) => a.bo
       <div class="mt-4 flex justify-end"><button class="btn-primary" type="button" @click="saveSettings">Save feedback settings</button></div>
     </section>
     <section class="card mb-6">
-      <h2 class="font-display text-xl font-semibold text-gioi-moss">Seating areas</h2>
-      <p class="text-sm text-gioi-moss/70">Total bookable capacity: {{ totalCapacity }} covers</p>
+      <h2 class="font-display text-xl font-semibold text-ink">Seating areas</h2>
+      <p class="text-sm text-muted">Total bookable capacity: {{ totalCapacity }} covers</p>
       <div class="mt-4 space-y-3">
         <div v-for="(area, idx) in draft.seatingAreas" :key="area.id" class="grid items-end gap-3 sm:grid-cols-[2fr_1fr_1fr_1fr_auto]">
           <div>
@@ -290,7 +295,7 @@ const totalCapacity = computed(() => draft.value.seatingAreas.filter((a) => a.bo
     </section>
 
     <section class="card mb-6">
-      <h2 class="font-display text-xl font-semibold text-gioi-moss">Users</h2>
+      <h2 class="font-display text-xl font-semibold text-ink">Users</h2>
       <div class="mt-4 space-y-3">
         <div v-for="(u, idx) in users" :key="u.id" class="grid items-end gap-3 sm:grid-cols-[2fr_1fr_1fr_auto]">
           <div>
@@ -324,8 +329,8 @@ const totalCapacity = computed(() => draft.value.seatingAreas.filter((a) => a.bo
     </section>
 
     <section class="card">
-      <h2 class="font-display text-xl font-semibold text-gioi-moss">Data export</h2>
-      <p class="mt-1 text-sm text-gioi-moss/70">Download every reservation as CSV. The file includes guest contact details and allergy/accessibility notes — handle accordingly.</p>
+      <h2 class="font-display text-xl font-semibold text-ink">Data export</h2>
+      <p class="mt-1 text-sm text-muted">Download every reservation as CSV. The file includes guest contact details and allergy/accessibility notes — handle accordingly.</p>
       <button class="btn-primary mt-4" type="button" @click="exportReservations">Download reservations CSV</button>
     </section>
   </div>

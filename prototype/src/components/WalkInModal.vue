@@ -110,7 +110,7 @@ async function submit() {
   <div v-if="open" class="modal-backdrop fixed inset-0 z-40 grid place-items-center overflow-y-auto bg-ink/50 p-4" @click.self="emit('close')">
     <div class="modal-panel card max-h-[calc(100dvh-2rem)] w-full max-w-lg overflow-y-auto">
       <div class="flex items-center justify-between">
-        <h2 class="font-display text-xl font-semibold text-gioi-moss">Add walk-in</h2>
+        <h2 class="font-display text-xl font-semibold text-ink">Add walk-in</h2>
         <button class="btn-ghost" type="button" @click="emit('close')">Close</button>
       </div>
       <form class="mt-4 space-y-3" @submit.prevent="submit">

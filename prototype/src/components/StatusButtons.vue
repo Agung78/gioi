@@ -22,18 +22,18 @@ function go(to: ReservationStatus) {
   <div class="flex flex-wrap items-center gap-2">
     <template v-if="confirming">
       <span class="text-sm font-medium">Mark as {{ statusLabel(confirming) }}?</span>
-      <button type="button" class="btn-danger min-h-12" @click="go(confirming)">Yes, {{ statusLabel(confirming) }}</button>
-      <button type="button" class="btn-secondary min-h-12" @click="confirming = null">Keep booking</button>
+      <button type="button" class="btn-danger min-h-10 px-4 text-sm" @click="go(confirming)">Yes, {{ statusLabel(confirming) }}</button>
+      <button type="button" class="btn-secondary min-h-10 px-4 text-sm" @click="confirming = null">Keep booking</button>
     </template>
     <template v-else>
-      <button v-if="primary" type="button" class="btn-primary min-h-14 px-8 text-base" @click="go(primary)">
+      <button v-if="primary" type="button" class="btn-primary min-h-10 px-5 text-sm font-semibold" @click="go(primary)">
         {{ statusLabel(primary) }}
       </button>
       <button
         v-for="d in destructive"
         :key="d"
         type="button"
-        class="btn-secondary min-h-12 text-danger"
+        class="btn-secondary min-h-10 px-4 text-sm text-danger"
         @click="confirming = d"
       >
         {{ statusLabel(d) }}

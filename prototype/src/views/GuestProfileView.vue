@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useRoute, RouterLink } from 'vue-router'
+import { PhArrowLeft } from '@phosphor-icons/vue'
 import { useDataStore } from '../stores/data'
 import { statusLabel } from '../domain/status'
 import StatusChip from '../components/StatusChip.vue'
@@ -33,25 +34,25 @@ function feedbackOf(reservationId: string) {
 
 <template>
   <div class="mx-auto max-w-4xl px-4 py-8">
-    <p class="text-sm"><RouterLink to="/host" class="inline-flex min-h-11 items-center text-gioi-moss underline">← Back to host</RouterLink></p>
+    <p class="text-sm"><RouterLink to="/host" class="btn-ghost inline-flex min-h-11 items-center gap-1.5 !px-3 font-medium text-ink"><PhArrowLeft :size="18" aria-hidden="true" /> Back to host</RouterLink></p>
     <div v-if="!guest" class="card mt-4">
-      <p class="text-gioi-moss/80">Guest not found.</p>
+      <p class="text-muted">Guest not found.</p>
     </div>
     <div v-else>
       <header class="card mt-4 flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h1 class="font-display text-3xl font-semibold text-gioi-moss">{{ guest.fullName }}</h1>
-          <p class="mt-1 text-sm text-gioi-moss/70">
+          <h1 class="font-display text-3xl font-semibold text-ink">{{ guest.fullName }}</h1>
+          <p class="mt-1 text-sm text-muted">
             {{ guest.phone }}<span v-if="guest.email"> · {{ guest.email }}</span><span v-if="guest.country"> · {{ guest.country }}</span>
           </p>
-          <p class="mt-1 text-xs text-gioi-moss/60">
+          <p class="mt-1 text-xs text-muted">
             Guest since {{ new Date(guest.createdAt).toLocaleDateString() }} ·
             Marketing consent: <strong>{{ guest.marketingConsent ? 'yes' : 'no' }}</strong>
           </p>
         </div>
         <div class="text-right text-sm">
-          <p class="font-semibold text-gioi-moss">{{ completedCount }} visits</p>
-          <p class="text-gioi-moss/70">{{ cancelledCount }} cancelled · {{ noShowCount }} no-show</p>
+          <p class="font-semibold text-ink">{{ completedCount }} visits</p>
+          <p class="text-muted">{{ cancelledCount }} cancelled · {{ noShowCount }} no-show</p>
         </div>
       </header>
 
@@ -75,17 +76,17 @@ function feedbackOf(reservationId: string) {
       </section>
 
       <section class="card mt-4">
-        <h2 class="font-display text-xl font-semibold text-gioi-moss">Visit history</h2>
-        <div v-if="visits.length === 0" class="mt-4 text-sm text-gioi-moss/60">No reservations yet.</div>
-        <ul v-else class="mt-4 divide-y divide-gioi-sand/40">
+        <h2 class="font-display text-xl font-semibold text-ink">Visit history</h2>
+        <div v-if="visits.length === 0" class="mt-4 text-sm text-muted">No reservations yet.</div>
+        <ul v-else class="mt-4 divide-y divide-line">
           <li v-for="r in visits" :key="r.id" class="py-3">
             <div class="flex flex-wrap items-baseline justify-between gap-2">
               <div>
-                <p class="font-medium text-gioi-ink">
+                <p class="font-medium text-ink">
                   {{ new Date(r.date + 'T00:00:00').toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' }) }}
-                  · {{ r.time }} · {{ r.partySize }} guests
+                  · {{ r.time }} · {{ r.partySize }} guest{{ r.partySize === 1 ? '' : 's' }}
                 </p>
-                <p class="text-xs text-gioi-moss/70">
+                <p class="text-xs text-muted">
                   {{ areaOf(r.seatingAreaId)?.name }} · {{ r.source }} · {{ r.bookingCode }}
                   <span v-if="r.occasion"> · {{ r.occasion }}</span>
                 </p>
@@ -93,16 +94,16 @@ function feedbackOf(reservationId: string) {
               <StatusChip :status="r.status" />
             </div>
             <div v-if="feedbackOf(r.id)" class="mt-2 rounded bg-line/40 p-2.5 text-xs">
-              <div class="flex items-center justify-between font-medium text-gioi-moss">
+              <div class="flex items-center justify-between font-medium text-ink">
                 <span>Guest feedback: {{ feedbackOf(r.id)!.rating }}/5</span>
-                <span class="text-gioi-moss/60">{{ new Date(feedbackOf(r.id)!.submittedAt).toLocaleDateString() }}</span>
+                <span class="text-muted">{{ new Date(feedbackOf(r.id)!.submittedAt).toLocaleDateString() }}</span>
               </div>
-              <p v-if="feedbackOf(r.id)!.comments" class="mt-1 text-gioi-ink">{{ feedbackOf(r.id)!.comments }}</p>
-              <p v-if="feedbackOf(r.id)!.serviceTags.length" class="mt-0.5 text-gioi-moss/70">
+              <p v-if="feedbackOf(r.id)!.comments" class="mt-1 text-ink">{{ feedbackOf(r.id)!.comments }}</p>
+              <p v-if="feedbackOf(r.id)!.serviceTags.length" class="mt-0.5 text-muted">
                 Stood out: {{ feedbackOf(r.id)!.serviceTags.join(' · ') }}
               </p>
             </div>
-            <details v-if="statusHistory(r.id).length" class="mt-1 text-xs text-gioi-moss/70">
+            <details v-if="statusHistory(r.id).length" class="mt-1 text-xs text-muted">
               <summary class="cursor-pointer">Status history ({{ statusHistory(r.id).length }})</summary>
               <ul class="ml-4 mt-1 space-y-0.5">
                 <li v-for="ev in statusHistory(r.id)" :key="ev.id">
