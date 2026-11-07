@@ -153,7 +153,7 @@ definePageMeta({ middleware: ['auth', 'admin'] })
 					<option v-for="occasion in occasions" :key="occasion" :value="occasion">{{ occasion }}</option>
 				</select>
 			</label>
-			<p v-if="analyticsError" class="text-sm text-red-500 md:col-span-3 lg:col-span-6" role="alert">Invalid date range. Pick a start before the end (max 1 year).</p>
+			<p v-if="analyticsError" class="text-sm text-red-500 md:col-span-3 lg:col-span-6" role="alert">{{ analyticsError.data?.message ?? analyticsError.message }}</p>
 			<p class="text-xs text-muted md:col-span-3 lg:col-span-6">
 				Filters apply to period analytics ({{ periodLabel }}: guest mix, channels, reliability) and the reservations table. Status only narrows the table. Today live, Next 7 days and Next 30 days are always live.
 			</p>

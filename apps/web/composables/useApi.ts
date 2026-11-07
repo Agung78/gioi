@@ -388,6 +388,10 @@ export async function saveUsers(rows: Array<{ userId: string; venueId: string; r
 	await apiFetch('/admin/users', { method: 'PUT', body: rows })
 }
 
+export async function createUser(body: { venueId: string; name: string; login: string; password: string; role: string }): Promise<StaffUserRow> {
+	return apiFetch<StaffUserRow>('/admin/users', { method: 'POST', body })
+}
+
 export async function downloadExportCSV(venueId: string): Promise<string> {
 	return apiFetch<string>(`/admin/venues/${venueId}/export.csv`, { method: 'GET' })
 }
