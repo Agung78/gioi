@@ -36,6 +36,7 @@ const { data: analytics, error: analyticsError } = await useFetch<AdminAnalytics
 })
 
 const dashboard = computed(() => analytics.value?.dashboard ?? null)
+const analyticsErrorMessage = computed(() => (analyticsError.value?.data as { message?: string } | null)?.message ?? analyticsError.value?.message)
 const settings = computed(() => analytics.value?.settings)
 const guests = computed(() => analytics.value?.guests ?? [])
 const feedback = computed(() => analytics.value?.feedback ?? [])
@@ -153,7 +154,7 @@ definePageMeta({ middleware: ['auth', 'admin'] })
 					<option v-for="occasion in occasions" :key="occasion" :value="occasion">{{ occasion }}</option>
 				</select>
 			</label>
-			<p v-if="analyticsError" class="text-sm text-red-500 md:col-span-3 lg:col-span-6" role="alert">{{ analyticsError.data?.message ?? analyticsError.message }}</p>
+			<p v-if="analyticsError" class="text-sm text-red-500 md:col-span-3 lg:col-span-6" role="alert">{{ analyticsErrorMessage }}</p>
 			<p class="text-xs text-muted md:col-span-3 lg:col-span-6">
 				Filters apply to period analytics ({{ periodLabel }}: guest mix, channels, reliability) and the reservations table. Status only narrows the table. Today live, Next 7 days and Next 30 days are always live.
 			</p>
