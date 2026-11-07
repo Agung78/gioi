@@ -20,16 +20,8 @@
           </NuxtLink>
         </nav>
         <div class="flex items-center gap-2">
-          <button
-            class="btn-ghost min-h-12 px-3"
-            type="button"
-            :aria-label="isDark ? 'Switch to light mode' : 'Switch to dark mode'"
-            @click="toggleTheme"
-          >
-            <component :is="isDark ? PhSun : PhMoon" :size="22" aria-hidden="true" />
-          </button>
           <span v-if="auth.user" class="chip hidden bg-line/60 text-ink md:inline-flex">{{ auth.user.name }} · {{ auth.user.role }}</span>
-          <button v-if="auth.user" class="btn-secondary min-h-12" type="button" @click="auth.logout()">Sign out</button>
+          <button v-if="auth.user" class="btn-secondary min-h-12" type="button" @click="signOut">Sign out</button>
         </div>
       </div>
       <nav v-if="navLinks.length > 1" class="mx-auto flex max-w-6xl gap-1 overflow-x-auto border-t border-line px-4 py-1.5 sm:hidden" aria-label="Primary">
@@ -48,6 +40,16 @@
     <main class="flex-1">
       <NuxtPage />
     </main>
+    <button
+      type="button"
+      :class="onBooking ? 'bottom-40 right-4 lg:bottom-6 lg:right-6' : 'bottom-6 right-6'"
+      class="fixed z-50 grid h-12 w-12 place-items-center rounded-full bg-raised text-ink shadow-soft ring-1 ring-line transition-all duration-200 hover:scale-110 active:scale-95 focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent"
+      :aria-label="isDark ? 'Switch to light mode' : 'Switch to dark mode'"
+      :title="isDark ? 'Switch to light mode' : 'Switch to dark mode'"
+      @click="toggleTheme"
+    >
+      <component :is="isDark ? PhSun : PhMoon" :size="22" class="transition-transform duration-300 hover:rotate-12" aria-hidden="true" />
+    </button>
   </div>
 </template>
 
@@ -56,11 +58,18 @@ import { computed } from 'vue'
 import { useRoute } from '#app'
 import { PhMoon, PhSun } from '@phosphor-icons/vue'
 import { useAuthStore } from '@/stores/auth'
-import { useTheme } from '@/composables/useTheme'
+import { applyTheme, useTheme } from '@/composables/useTheme'
 
 const route = useRoute()
 const auth = useAuthStore()
 const { isDark, toggleTheme } = useTheme()
+if (import.meta.client) applyTheme(isDark)
+
+const onBooking = computed(() => route.path.endsWith('/book'))
+async function signOut() {
+  await auth.logout()
+  await navigateTo('/login')
+}
 
 const isPublic = computed(() => route.meta?.public === true)
 const navLinks = computed(() => {
@@ -68,7 +77,7 @@ const navLinks = computed(() => {
   if (auth.user.role === 'SUPER_ADMIN') {
     return [
       { to: '/host', label: 'Host' },
-      { to: '/admin/dashboard', label: 'Dashboard' },
+      { to: '/admin', label: 'Dashboard' },
       { to: '/admin/settings', label: 'Settings' },
       { to: '/admin/audit', label: 'Audit' },
     ]

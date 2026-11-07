@@ -16,7 +16,7 @@ const { data: guest, pending, error } = await useFetch<StaffGuest>(`/api/staff/g
 
 const visits = computed(() => {
 	if (!guest.value) return []
-	return [...guest.value.reservations].sort((a, b) => (b.date + b.time).localeCompare(a.date + b.time))
+	return [...guest.value.reservations].sort((a, b) => (b.date + b.time).localeCompare(a.date + a.time))
 })
 const completedCount = computed(() =>
 	visits.value.filter((r) => ['completed', 'arrived', 'seated'].includes(r.status)).length,

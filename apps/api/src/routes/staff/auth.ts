@@ -2,6 +2,7 @@ import type { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify'
 import type { PrismaClient } from '@prisma/client'
 import { verify } from '@node-rs/argon2'
 import { unauthorized } from '../../lib/errors'
+import { sha256Hex } from '../../lib/crypto'
 import { createSession, setSessionCookie, clearSessionCookie, validateSession } from '../../lib/auth'
 
 export function registerStaffAuthRoutes(app: FastifyInstance, prisma: PrismaClient): void {
@@ -41,7 +42,7 @@ export function registerStaffAuthRoutes(app: FastifyInstance, prisma: PrismaClie
 		const token = request.cookies['gioi_session']
 		if (token) {
 			try {
-				await prisma.session.delete({ where: { tokenHash: token } })
+				await prisma.session.delete({ where: { tokenHash: sha256Hex(token) } })
 			} catch {
 				// ignore
 			}

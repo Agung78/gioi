@@ -3,10 +3,12 @@ import { computed, ref } from 'vue'
 import { useRoute } from '#app'
 import { PhCheckCircle, PhCopy, PhCalendarPlus, PhMapPin, PhWhatsappLogo } from '@phosphor-icons/vue'
 import StatusChip from '@/components/StatusChip.vue'
-import { getReservation } from '@/composables/useGuestApi'
+import { useVenue } from '@/composables/useVenue'
 import type { ReservationPublic } from '@/types/venue'
 
 const route = useRoute()
+const venueSlug = String(route.params.venue)
+const { venue: info } = useVenue()
 const code = computed(() => String(route.params.code))
 
 const { data: reservation, pending, error } = await useFetch<ReservationPublic>(`/api/public/reservations/${code.value}`, {
@@ -35,7 +37,7 @@ const icsHref = computed(() => {
   const [h, m] = r.time.split(':').map(Number)
   const end = `${r.date.replace(/-/g, '')}T${String(Math.floor((h * 60 + m + 90) / 60) % 24).padStart(2, '0')}${String((m + 30) % 60).padStart(2, '0')}00`
   const ics = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'BEGIN:VEVENT', `UID:${r.bookingCode}@gioi`, `DTSTART:${start}`, `DTEND:${end}`,
-    `SUMMARY:GIOI Ocean Gourmet`, `LOCATION:Discovery Mall Bali`, 'END:VEVENT', 'END:VCALENDAR'].join('\r\n')
+    `SUMMARY:${info.value?.name ?? 'GIOI'}`, `LOCATION:${info.value?.address ?? ''}`, 'END:VEVENT', 'END:VCALENDAR'].join('\r\n')
   return `data:text/calendar;charset=utf-8,${encodeURIComponent(ics)}`
 })
 </script>
@@ -47,7 +49,7 @@ const icsHref = computed(() => {
   <div v-else-if="error || !reservation" class="mx-auto max-w-2xl px-4 py-12">
     <div class="card text-center">
       <p class="text-muted">We couldn't find that booking code.</p>
-      <NuxtLink to="/" class="btn-primary mt-4">Back to home</NuxtLink>
+      <NuxtLink :to="`/${venueSlug}`" class="btn-primary mt-4">Back to home</NuxtLink>
     </div>
   </div>
   <div v-else class="mx-auto max-w-2xl px-4 py-12 md:py-16">
@@ -74,10 +76,10 @@ const icsHref = computed(() => {
 
       <div class="mt-6 flex flex-wrap gap-3">
         <a :href="icsHref" :download="`gioi-${reservation.bookingCode}.ics`" class="btn-primary"><PhCalendarPlus :size="20" aria-hidden="true" /> Add to calendar</a>
-        <a class="btn-secondary" target="_blank" rel="noopener"><PhMapPin :size="20" aria-hidden="true" /> Get directions</a>
-        <a class="btn-secondary"><PhWhatsappLogo :size="20" aria-hidden="true" /> Message us</a>
+        <a :href="info?.mapsUrl" target="_blank" rel="noopener" class="btn-secondary"><PhMapPin :size="20" aria-hidden="true" /> Get directions</a>
+        <a :href="`https://wa.me/${info?.whatsapp.replace(/\D/g, '')}`" class="btn-secondary"><PhWhatsappLogo :size="20" aria-hidden="true" /> Message us</a>
       </div>
-      <NuxtLink to="/" class="mt-8 inline-block text-sm font-medium text-accent underline underline-offset-4">Back to home</NuxtLink>
+      <NuxtLink :to="`/${venueSlug}`" class="mt-8 inline-block text-sm font-medium text-accent underline underline-offset-4">Back to home</NuxtLink>
     </div>
   </div>
 </template>

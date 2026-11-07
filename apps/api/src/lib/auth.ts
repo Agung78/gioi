@@ -26,9 +26,11 @@ export async function createSession(
 ): Promise<string> {
 	const token = crypto.randomUUID().replace(/-/g, '')
 	const expiresAt = new Date(Date.now() + SESSION_TTL_MS)
-	await prisma.session.create({
-		data: { tokenHash: sha256Hex(token), userId, expiresAt },
-	})
+	// Single active session per user: a new login revokes every earlier token.
+	await prisma.$transaction([
+		prisma.session.deleteMany({ where: { userId } }),
+		prisma.session.create({ data: { tokenHash: sha256Hex(token), userId, expiresAt } }),
+	])
 	return token
 }
 

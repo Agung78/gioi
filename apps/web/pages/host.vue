@@ -11,6 +11,7 @@ import {
 	fetchDay,
 	changeReservationStatus,
 	fetchGuests,
+	fetchGuest,
 	type DayView,
 	type StaffReservation,
 	type StaffGuest,
@@ -77,6 +78,15 @@ async function changeStatus(r: StaffReservation, to: ReservationStatus) {
 
 function openGuest(r: StaffReservation) {
 	router.push({ name: 'guest', params: { id: r.guestId } })
+}
+async function openGuestById(id: string) {
+	if (!id) return
+	try {
+		const g = await fetchGuest(id)
+		router.push({ name: 'guest', params: { id: g.id } })
+	} catch {
+		lastError.value = 'Guest not found.'
+	}
 }
 
 function guestOf(r: StaffReservation) {
@@ -187,17 +197,18 @@ definePageMeta({ middleware: 'auth' })
 			</button>
 		</nav>
 
-		<template v-if="tab === 'search'">
-		<section key="search" class="card">
+	<Transition name="fade" mode="out-in">
+		<template v-if="tab === 'search'" key="search">
+		<section class="card">
 			<h2 class="font-display text-xl font-bold">Find a guest</h2>
 			<p class="mt-1 text-sm text-muted">Search by name, phone, or email to see their visit history and notes.</p>
 			<div class="mt-4">
-				<GuestSearch :guests="guests" @open="(id) => openGuest(((reservations as unknown as any[]).find((r: any) => r.guestId === id)))" />
+				<GuestSearch :guests="guests" @open="openGuestById" />
 			</div>
 		</section>
 		</template>
-		<template v-else>
-		<section key="today">
+		<template v-else key="today">
+		<section>
 			<div v-if="todays.length === 0" class="card text-center">
 				<p class="text-muted">No bookings for this day.</p>
 			</div>
@@ -260,6 +271,7 @@ definePageMeta({ middleware: 'auth' })
 			</div>
 		</section>
 		</template>
+	</Transition>
 
 
 		<WalkInModal :open="showWalkIn" @close="showWalkIn = false" @created="lastError = null" />

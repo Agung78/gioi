@@ -6,6 +6,7 @@ import { submitFeedback } from '@/composables/useGuestApi'
 import type { FeedbackBody } from '@/types/venue'
 
 const route = useRoute()
+const venueSlug = String(route.params.venue)
 const code = String(route.params.code)
 
 const rating = ref(0)
@@ -34,7 +35,7 @@ async function submit() {
 
 <template>
   <div class="mx-auto max-w-2xl px-4 py-12 md:py-16">
-    <div v-if="!submitted" class="card">
+    <form v-if="!submitted" class="card" @submit.prevent="submit">
       <p class="text-sm font-medium text-accent">GIOI Ocean Gourmet</p>
       <h1 class="mt-2 text-3xl font-extrabold">{{ headline }}</h1>
       <p class="mt-2 text-muted">{{ subtitle }}</p>
@@ -50,13 +51,13 @@ async function submit() {
       </fieldset>
       <label class="label mt-6">Comments<textarea v-model="comments" class="field mt-2" rows="5" maxlength="1000" placeholder="Tell us about your visit (optional)" /></label>
       <p v-if="error" class="mt-3 text-sm text-danger">{{ error }}</p>
-      <button class="btn-primary mt-6 w-full" type="submit" @click="submit">Submit feedback</button>
-    </div>
+      <button class="btn-primary mt-6 w-full" type="submit">Submit feedback</button>
+    </form>
     <div v-else class="card text-center">
       <PhCheckCircle :size="52" weight="fill" class="mx-auto text-accent" aria-hidden="true" />
       <h1 class="mt-4 text-3xl font-extrabold">Thank you.</h1>
       <p class="mt-2 text-muted">Your feedback helps GIOI improve the next visit.</p>
-      <NuxtLink to="/" class="mt-8 inline-block text-sm font-medium text-accent underline underline-offset-4">Back to GIOI</NuxtLink>
+      <NuxtLink :to="`/${venueSlug}`" class="mt-8 inline-block text-sm font-medium text-accent underline underline-offset-4">Back to GIOI</NuxtLink>
     </div>
   </div>
 </template>

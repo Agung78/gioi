@@ -6,6 +6,15 @@ export default {
   theme: {
     extend: {
       colors: {
+        // legacy names, remapped onto tokens so untouched views follow the theme
+        gioi: {
+          cream: t('surface'),
+          sand: t('line'),
+          olive: t('accent-hover'),
+          moss: t('accent'),
+          clay: t('accent'),
+          ink: t('ink'),
+        },
         surface: t('surface'),
         raised: t('surface-raised'),
         ink: t('ink'),

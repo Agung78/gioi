@@ -71,31 +71,44 @@ const feedbackTagsText = ref((draft.value?.feedbackTags ?? []).join(', '))
 watch(() => draft.value?.feedbackTags, (val) => { feedbackTagsText.value = (val ?? []).join(', ') }, { deep: true })
 const feedbackTagsPreview = computed(() => parseTags(feedbackTagsText.value))
 
-async function saveSettings() {
-	if (!draft.value) return
-	draft.value.feedbackTags = feedbackTagsPreview.value
-	const updatable: Record<string, unknown> = {}
+// Run a save, then reload; surface API failures instead of swallowing them.
+async function run(fn: () => Promise<unknown>) {
+	try {
+		await fn()
+		await load()
+		flash()
+	} catch (e) {
+		const msg = (e as { data?: { message?: string } })?.data?.message
+		saved.value = `Save failed${msg ? `: ${msg}` : '.'}`
+	}
+}
+
+// Restaurant info, booking rules and feedback: one save (the prototype's "Save restaurant" /
+// "Save feedback settings"). `name` and `feedbackTags` are not in the API PATCH whitelist, so
+// those inputs stay read-only — the prototype can persist them, production cannot.
+function saveSettings() {
+	const d = draft.value
+	if (!d) return
 	const keys = ['tagline', 'intro', 'address', 'phone', 'whatsapp', 'email', 'mapsUrl',
 		'bookingIntervalMinutes', 'partyMin', 'partyMax', 'diningMinutes', 'leadTimeMinutes',
 		'cutoffMinutes', 'noShowTargetPercent', 'overCapacityAlertPercent', 'cancellationPolicy',
-		'feedbackTitle', 'feedbackSubtitle', 'feedbackMessageTemplate', 'feedbackTags']
-	for (const k of keys) updatable[k] = (draft.value as any)[k]
-	await updateVenue(venueId, updatable)
-	await load()
-	flash()
+		'feedbackTitle', 'feedbackSubtitle', 'feedbackMessageTemplate'] as const
+	const body = Object.fromEntries(keys.map((k) => [k, d[k]]))
+	return run(async () => {
+		await updateVenue(venueId, body)
+	})
 }
 
-async function saveAreas() {
-	await saveSeatingAreas(venueId, areas.value)
-	await load()
-	flash()
+// Opening hours & closed dates: one save (the prototype's "Save hours & rules").
+async function saveHours() {
+	return run(async () => {
+		await saveOpeningHours(venueId, opening.value)
+		await saveClosedDates(venueId, closed.value.map((c) => ({ date: c.date, reason: c.reason ?? null })))
+	})
 }
 
-async function saveUsersApi() {
-	await saveUsers(users.value.map((u) => ({ userId: u.id, venueId: u.venueId, role: u.role })))
-	await load()
-	flash()
-}
+const saveAreas = () => run(() => saveSeatingAreas(venueId, areas.value))
+const saveUsersApi = () => run(() => saveUsers(users.value.map((u) => ({ userId: u.id, venueId: u.venueId, role: u.role }))))
 
 const newClosedDate = ref('')
 const closedDateError = ref<string | null>(null)
@@ -112,24 +125,16 @@ function removeClosedDate(date: string) {
 	closed.value = closed.value.filter((d) => d.date !== date)
 }
 
-async function saveClosed() {
-	await saveClosedDates(venueId, closed.value.map((d) => ({ date: d.date, reason: d.reason ?? null })))
-	await load()
-	flash()
-}
-
 function updateDay(day: string, key: 'open' | 'close', val: string) {
-	const cur = opening.value.find((o) => o.weekday === DAYS_OF_WEEK.indexOf(day as DayOfWeek))
-	if (cur) {
-		const [h, m] = val.split(':').map(Number)
-		cur[key === 'open' ? 'openMinute' : 'closeMinute'] = h * 60 + m
+	const weekday = DAYS_OF_WEEK.indexOf(day as DayOfWeek)
+	const [h, m] = val.split(':').map(Number)
+	if (Number.isNaN(h)) return
+	let cur = opening.value.find((o) => o.weekday === weekday)
+	if (!cur) {
+		cur = { weekday, openMinute: 0, closeMinute: 0 }
+		opening.value = [...opening.value, cur]
 	}
-}
-
-async function saveHours() {
-	await saveOpeningHours(venueId, opening.value)
-	await load()
-	flash()
+	cur[key === 'open' ? 'openMinute' : 'closeMinute'] = h * 60 + m
 }
 
 function updateArea(idx: number, patch: Partial<SeatingArea>) {
@@ -188,7 +193,7 @@ definePageMeta({ middleware: 'auth' })
 				<div class="mt-4 grid gap-4 sm:grid-cols-2">
 					<div>
 						<label class="label">Name</label>
-						<input v-model="draft!.name" class="field" />
+						<input v-model="draft!.name" class="field" disabled />
 					</div>
 					<div>
 						<label class="label">Tagline</label>
@@ -294,7 +299,7 @@ definePageMeta({ middleware: 'auth' })
 					</div>
 					<div>
 						<label class="label">What stood out? tags (comma-separated)</label>
-						<input v-model="feedbackTagsText" type="text" class="field" placeholder="Food, Service, Atmosphere, Value" />
+						<input v-model="feedbackTagsText" type="text" class="field" placeholder="Food, Service, Atmosphere, Value" disabled />
 						<div class="mt-2 flex flex-wrap gap-2"><span v-for="tag in feedbackTagsPreview" :key="tag" class="chip bg-line/50">{{ tag }}</span></div>
 					</div>
 					<div>

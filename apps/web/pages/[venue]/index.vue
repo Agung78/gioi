@@ -1,12 +1,12 @@
 <script setup lang="ts">
+definePageMeta({ public: true })
 import { onBeforeUnmount, onMounted, ref } from 'vue'
 import { useRouter } from '#app'
-import { PhMapPin, PhClock, PhWhatsappLogo, PhPhone, PhSunHorizon, PhArrowUpRight, PhMoon, PhSun } from '@phosphor-icons/vue'
+import { PhMapPin, PhClock, PhWhatsappLogo, PhPhone, PhSunHorizon, PhArrowUpRight } from '@phosphor-icons/vue'
 import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { addDays, todayISO } from '@gioi/domain'
 import DatePicker from '@/components/DatePicker.vue'
-import { useTheme } from '@/composables/useTheme'
 import { useVenue } from '@/composables/useVenue'
 
 gsap.registerPlugin(ScrollTrigger)
@@ -14,13 +14,12 @@ gsap.registerPlugin(ScrollTrigger)
 const route = useRoute()
 const venue = (route.params.venue as string) || 'bali'
 const router = useRouter()
-const { isDark, toggleTheme } = useTheme()
 const { venue: venueData } = useVenue()
 
 const info = venueData.value
 const hours = venueData.value?.openingHours ?? {}
-const days = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'] as const
-const dayLabel = { mon: 'Mon', tue: 'Tue', wed: 'Wed', thu: 'Thu', fri: 'Fri', sat: 'Sat', sun: 'Sun' }
+const days = [1, 2, 3, 4, 5, 6, 0] as const // openingHours keys: 0 = Sunday
+const dayLabel: Record<number, string> = { 1: 'Mon', 2: 'Tue', 3: 'Wed', 4: 'Thu', 5: 'Fri', 6: 'Sat', 0: 'Sun' }
 const wa = info ? `https://wa.me/${info.whatsapp.replace(/\D/g, '')}` : '#'
 const today = todayISO()
 const witaFmt = new Intl.DateTimeFormat('en-GB', { timeZone: info?.timeZone ?? 'Asia/Makassar', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false })
@@ -69,19 +68,10 @@ onBeforeUnmount(() => ctx?.revert())
 
 <template>
   <div ref="root" class="overflow-x-clip">
-    <button
-      type="button"
-      class="fixed bottom-6 right-6 z-50 grid h-12 w-12 place-items-center rounded-full bg-raised text-ink shadow-soft ring-1 ring-line transition-all duration-200 hover:scale-110 active:scale-95 focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent"
-      :aria-label="isDark ? 'Switch to light mode' : 'Switch to dark mode'"
-      :title="isDark ? 'Switch to light mode' : 'Switch to dark mode'"
-      @click="toggleTheme"
-    >
-      <component :is="isDark ? PhSun : PhMoon" :size="22" class="transition-transform duration-300 hover:rotate-12" aria-hidden="true" />
-    </button>
-    <section data-hero class="relative isolate flex min-h-[100svh] flex-col bg-navy text-white">
+    <section data-hero class="relative isolate z-10 flex min-h-[100svh] flex-col bg-navy text-white">
       <header class="relative z-20">
         <div class="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 md:px-8">
-          <NuxtLink to="/" class="leading-none" aria-label="GIOI Ocean Gourmet, home"><img src="/logo.jpg" alt="" class="h-12 w-12 rounded-full object-cover" /></NuxtLink>
+          <NuxtLink :to="`/${venue}`" class="leading-none" aria-label="GIOI Ocean Gourmet, home"><img src="/logo.jpg" alt="" class="h-12 w-12 rounded-full object-cover" /></NuxtLink>
           <nav class="flex items-center gap-1 sm:gap-2">
             <a href="#experience" class="hidden rounded-full px-4 py-2 text-sm font-medium text-white/80 transition hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-sand sm:inline-flex">Experience</a>
             <a href="#visit" class="hidden rounded-full px-4 py-2 text-sm font-medium text-white/80 transition hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-sand sm:inline-flex">Visit</a>
@@ -112,19 +102,8 @@ onBeforeUnmount(() => ctx?.revert())
       <ol class="mt-16 grid gap-6 md:mt-24 md:grid-cols-3 md:gap-8"><li v-for="scene in scenes" :key="scene.title" data-rise :class="scene.feature ? 'md:-translate-y-12' : ''"><div class="group relative overflow-hidden rounded-surface"><div class="aspect-[4/5] overflow-hidden bg-line/50"><img :src="scene.img" :alt="scene.title" loading="lazy" class="h-full w-full object-cover transition duration-700 group-hover:scale-[1.03]" /></div><span class="absolute left-4 top-4 rounded-full bg-navy/85 px-3 py-1 font-display text-sm font-bold text-sand backdrop-blur">{{ scene.time }}</span></div><div class="mt-5"><h3 class="text-2xl font-extrabold">{{ scene.title }}</h3><p class="mt-2 max-w-[36ch] leading-relaxed text-muted">{{ scene.copy }}</p></div></li></ol>
     </section>
 
-    <section id="visit" class="border-b border-line"><div class="mx-auto grid max-w-7xl gap-16 px-4 py-24 md:grid-cols-[1.1fr_0.9fr] md:px-8 md:py-32"><div><p class="text-xs font-semibold uppercase tracking-[0.3em] text-muted">Find us</p><h2 data-reveal aria-label="On the beach at Discovery Mall." class="mt-4 text-[clamp(2rem,4.5vw,3.5rem)] font-extrabold leading-[1.02]"><span aria-hidden="true"><span v-for="w in 'On the beach at Discovery Mall.'.split(' ')" :key="w" class="inline-block overflow-hidden align-bottom"><span data-word class="inline-block pr-[0.2em]">{{ w }}</span></span></span></h2><p data-rise class="mt-8 flex gap-3 text-lg leading-relaxed"><PhMapPin :size="24" class="mt-1 shrink-0 text-accent" aria-hidden="true" /><span>{{ info?.address }}<br /></span></p>
-      <p class="mt-4 flex items-center gap-2"><PhClock :size="20" class="text-accent" aria-hidden="true" /><span class="font-semibold">WITA</span> <span id="wita-clock">{{ wita }}</span></p>
-      <div class="mt-6 space-y-3">
-        <p v-for="(d, i) in days" :key="d" class="text-sm">
-          <span class="w-10 text-muted">{{ dayLabel[d] }}</span>:
-          <span class="text-ink">{{ hours[d] ? `${hours[d].open} – ${hours[d].close}` : '–' }}</span>
-        </p>
-      </div>
-      <p class="mt-5"><a :href="wa" class="font-medium text-accent underline underline-offset-4"><PhWhatsappLogo :size="18" aria-hidden="true" /> WhatsApp</a> ·
-        <a :href="`tel:${info?.phone.replace(/\D/g, '')}`" class="font-medium text-accent underline underline-offset-4"><PhPhone :size="18" aria-hidden="true" /> Call</a></p>
-      </div>
-      <div class="relative order-2 md:order-1"><img src="https://www.gioigroup.com/images/brands/3/GIOI-OG_Gallery-image-outlet-03.webp" alt="GIOI Ocean Gourmet interior" class="w-full h-[22rem] object-cover rounded-surface shadow-soft" /></div></div></section>
+    <section id="visit" class="border-b border-line"><div class="mx-auto grid max-w-7xl gap-16 px-4 py-24 md:grid-cols-[1.1fr_0.9fr] md:px-8 md:py-32"><div><p class="text-xs font-semibold uppercase tracking-[0.3em] text-muted">Find us</p><h2 data-reveal aria-label="On the beach at Discovery Mall." class="mt-4 text-[clamp(2rem,4.5vw,3.5rem)] font-extrabold leading-[1.02]"><span aria-hidden="true"><span v-for="w in 'On the beach at Discovery Mall.'.split(' ')" :key="w" class="inline-block overflow-hidden align-bottom"><span data-word class="inline-block pr-[0.2em]">{{ w }}</span></span></span></h2><p data-rise class="mt-8 flex gap-3 text-lg leading-relaxed"><PhMapPin :size="24" class="mt-1 shrink-0 text-accent" aria-hidden="true" /><span>{{ info?.address }}<br /><a :href="info?.mapsUrl" target="_blank" rel="noopener" class="group inline-flex min-h-11 items-center gap-1 font-medium text-accent underline decoration-line underline-offset-4">Get directions <PhArrowUpRight :size="16" aria-hidden="true" /></a></span></p><div data-rise class="mt-10 flex flex-wrap gap-3"><a :href="wa" class="btn-secondary"><PhWhatsappLogo :size="20" aria-hidden="true" /> WhatsApp</a><a :href="`tel:${info?.phone.replace(/\D/g, '')}`" class="btn-secondary"><PhPhone :size="20" aria-hidden="true" /> {{ info?.phone }}</a></div></div><div data-rise class="self-end"><div class="flex items-center justify-between"><h3 class="flex items-center gap-2 text-sm font-semibold uppercase tracking-[0.2em] text-muted"><PhClock :size="18" aria-hidden="true" /> Hours</h3><span class="text-sm font-semibold uppercase tracking-[0.2em] tabular-nums" aria-label="Current time in Bali">{{ wita }} <span class="text-muted">WITA</span></span></div><ul class="mt-4 divide-y divide-line border-y border-line"><li v-for="d in days" :key="d" class="flex justify-between py-3"><span class="text-muted">{{ dayLabel[d] }}</span><span class="font-medium">{{ hours[d] ? `${hours[d].open} to ${hours[d].close}` : 'Closed' }}</span></li></ul></div></div></section>
 
-    <section class="bg-navy text-white"><div class="mx-auto max-w-7xl px-4 pb-10 pt-24 md:px-8 md:pt-32"><h2 data-reveal aria-label="Make sunset your reservation." class="max-w-[14ch] text-[clamp(2.5rem,7vw,6rem)] font-extrabold leading-[0.95] tracking-[-0.03em] text-white"><span aria-hidden="true"><span v-for="w in 'Make sunset your reservation.'.split(' ')" :key="w" class="inline-block overflow-hidden align-bottom"><span data-word class="inline-block pr-[0.2em]" :class="w === 'reservation.' ? 'text-sun' : ''">{{ w }}</span></span></span></h2><div data-rise class="mt-10 flex flex-wrap items-center gap-6"><NuxtLink :to="`/${venue}/book`" class="btn min-h-12 bg-sun px-8 text-base text-navy hover:bg-sand focus-visible:ring-sand focus-visible:ring-offset-navy">Reserve a table</NuxtLink><a :href="wa" class="btn-secondary min-h-12 px-8 text-base"><PhWhatsappLogo :size="20" aria-hidden="true" /> Message us</a></div></div></section>
+    <section class="bg-navy text-white"><div class="mx-auto max-w-7xl px-4 pb-10 pt-24 md:px-8 md:pt-32"><h2 data-reveal aria-label="Make sunset your reservation." class="max-w-[14ch] text-[clamp(2.5rem,7vw,6rem)] font-extrabold leading-[0.95] tracking-[-0.03em] text-white"><span aria-hidden="true"><span v-for="w in 'Make sunset your reservation.'.split(' ')" :key="w" class="inline-block overflow-hidden align-bottom"><span data-word class="inline-block pr-[0.2em]" :class="w === 'reservation.' ? 'text-sun' : ''">{{ w }}</span></span></span></h2><div data-rise class="mt-10 flex flex-wrap items-center gap-6"><NuxtLink :to="`/${venue}/book`" class="btn min-h-12 bg-sun px-8 text-base text-navy hover:bg-sand focus-visible:ring-sand focus-visible:ring-offset-navy">Reserve a table</NuxtLink><p class="max-w-[48ch] text-sm leading-relaxed text-white/65">For sunset seating, booking ahead is recommended.</p></div><footer class="mt-24 flex flex-col gap-4 border-t border-white/10 pt-6 text-xs text-white/50 sm:flex-row sm:items-center sm:justify-between"><img src="/logo.jpg" alt="GIOI Ocean Gourmet" class="h-10 w-10 rounded-full object-cover" /><span>GIOI Ocean Gourmet · Kuta, Bali · <NuxtLink to="/login" class="inline-flex min-h-11 items-center underline underline-offset-4 hover:text-white">Staff login</NuxtLink></span></footer></div></section>
   </div>
 </template>

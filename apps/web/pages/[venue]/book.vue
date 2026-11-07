@@ -2,14 +2,12 @@
 import { computed, ref, watch } from 'vue'
 import { useRoute, useRouter } from '#app'
 import { addDays, todayISO, isOpenOn, hoursFor, checkAvailability } from '@gioi/domain'
-import { PhArrowLeft, PhCaretDown, PhMinus, PhPlus, PhMoon, PhSun } from '@phosphor-icons/vue'
+import { PhArrowLeft, PhCaretDown, PhMinus, PhPlus } from '@phosphor-icons/vue'
 import DatePicker from '@/components/DatePicker.vue'
 import AvailabilityGrid from '@/components/AvailabilityGrid.vue'
-import { useTheme } from '@/composables/useTheme'
 import { createReservation } from '@/composables/useGuestApi'
 import type { CreateReservationBody } from '@/types/venue'
 
-const { isDark, toggleTheme } = useTheme()
 const route = useRoute()
 const router = useRouter()
 const venue = (route.params.venue as string) || 'bali'
@@ -208,25 +206,7 @@ onMounted(() => {
         <PhArrowLeft :size="16" aria-hidden="true" />
         Back to GIOI
       </NuxtLink>
-      <button
-        type="button"
-        class="btn-ghost grid h-10 w-10 place-items-center rounded-full p-0 text-ink"
-        :aria-label="isDark ? 'Switch to light mode' : 'Switch to dark mode'"
-        :title="isDark ? 'Switch to light mode' : 'Switch to dark mode'"
-        @click="toggleTheme"
-      >
-        <component :is="isDark ? PhSun : PhMoon" :size="20" aria-hidden="true" />
-      </button>
     </div>
-    <button
-      type="button"
-      class="fixed bottom-24 right-5 z-30 grid h-12 w-12 place-items-center rounded-full bg-raised text-ink shadow-soft ring-1 ring-line transition-all duration-200 hover:scale-110 active:scale-95 focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent lg:bottom-6 lg:right-6"
-      :aria-label="isDark ? 'Switch to light mode' : 'Switch to dark mode'"
-      :title="isDark ? 'Switch to light mode' : 'Switch to dark mode'"
-      @click="toggleTheme"
-    >
-      <component :is="isDark ? PhSun : PhMoon" :size="22" class="transition-transform duration-300 hover:rotate-12" aria-hidden="true" />
-    </button>
     <h1 class="mt-3 text-3xl font-extrabold md:text-4xl">Book a table</h1>
 
     <div class="mt-8 grid gap-8 lg:grid-cols-[1fr_320px]">

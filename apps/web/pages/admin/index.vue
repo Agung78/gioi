@@ -1,24 +1,33 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import { todayISO } from '@gioi/domain'
+import {
+	todayISO,
+	resolveDateRange,
+	defaultDashboardFilters,
+	describeDayLabel,
+	formatLeadTime,
+	type DateRangePreset,
+} from '@gioi/domain'
 import { statusLabel } from '@gioi/domain'
 import StatusChip from '@/components/StatusChip.vue'
 import BarChart from '@/components/BarChart.vue'
 import Sparkline from '@/components/Sparkline.vue'
-import { fetchAdminDashboard, fetchAuditLog, type AdminDashboard, type AuditEvent } from '@/composables/useApi'
+import { fetchAuditLog, type AdminAnalytics, type AuditEvent } from '@/composables/useApi'
 
 const today = todayISO()
-const preset = ref<'today' | 'last7' | 'last30' | 'custom'>('last30')
-const filters = ref({
-	rangeStart: today,
-	rangeEnd: today,
-	status: 'all' as string,
-	source: 'all' as string,
-	seatingAreaId: 'all' as string,
-	occasion: 'all' as string,
-})
+const preset = ref<DateRangePreset>('last30')
+const filters = ref(defaultDashboardFilters(today))
 
-const { data: dashboard, pending, error } = await useFetch<AdminDashboard>('/api/admin/dashboard', {
+const { data: analytics } = await useFetch<AdminAnalytics>(() => {
+	const params = new URLSearchParams()
+	params.set('from', filters.value.rangeStart)
+	params.set('to', filters.value.rangeEnd)
+	if (filters.value.status !== 'all') params.set('status', filters.value.status)
+	if (filters.value.source !== 'all') params.set('source', filters.value.source)
+	if (filters.value.seatingAreaId !== 'all') params.set('seatingAreaId', filters.value.seatingAreaId)
+	if (filters.value.occasion !== 'all') params.set('occasion', filters.value.occasion)
+	return `/api/admin/analytics?${params}`
+}, {
 	server: true,
 	credentials: 'include',
 })
@@ -28,21 +37,65 @@ const { data: audit } = await useFetch<AuditEvent[]>('/api/admin/audit-log', {
 	credentials: 'include',
 })
 
-const statusOptions: string[] = ['pending', 'confirmed', 'arrived', 'seated', 'completed', 'cancelled', 'no_show']
+const dashboard = computed(() => analytics.value?.dashboard ?? null)
+const settings = computed(() => analytics.value?.settings)
+const guests = computed(() => analytics.value?.guests ?? [])
+const feedback = computed(() => analytics.value?.feedback ?? [])
 
-function setPreset(next: typeof preset.value) {
+function setPreset(next: DateRangePreset) {
 	preset.value = next
-	if (next === 'today') { filters.value.rangeStart = today; filters.value.rangeEnd = today }
-	else if (next === 'last7') { filters.value.rangeStart = today; filters.value.rangeEnd = today }
-	else if (next === 'last30') { filters.value.rangeStart = today; filters.value.rangeEnd = today }
+	const range = resolveDateRange(next, today, filters.value.rangeStart, filters.value.rangeEnd)
+	filters.value = { ...filters.value, rangeStart: range.start, rangeEnd: range.end }
 }
 
+const statusOptions = ['pending', 'confirmed', 'arrived', 'seated', 'completed', 'cancelled', 'no_show']
+const occasions = computed(() => [...new Set((dashboard.value?.filtered ?? []).map((r) => r.occasion?.trim() || 'No occasion'))].sort())
+const areas = computed(() => (settings.value as any)?.seatingAreas ?? [])
+const guestName = (id: string) => guests.value.find((g) => g.id === id)?.fullName ?? 'Unknown guest'
+const areaName = (id: string) => areas.value.find((a) => a.id === id)?.name ?? id
 const rangeLabel = computed(() => `${filters.value.rangeStart} → ${filters.value.rangeEnd}`)
 const periodLabel = computed(() => ({ today: 'today', last7: 'last 7 days', last30: 'last 30 days', custom: rangeLabel.value })[preset.value])
 const search = ref('')
+const searchedReservations = computed(() => {
+	const q = search.value.trim().toLowerCase()
+	const base = dashboard.value?.filtered ?? []
+	if (!q) return base
+	return base.filter((r) => {
+		const g = guests.value.find((g) => g.id === r.guestId)
+		return [g?.fullName, r.bookingCode, g?.phone].some((v) => v?.toLowerCase().includes(q))
+	})
+})
+const cueLink = (cue: { guestId?: string; kind: string }) =>
+	cue.guestId ? `/guests/${cue.guestId}` : cue.kind === 'slot_over_capacity' ? '/host' : null
+const cueLinkLabel = (cue: { guestId?: string; kind: string }) => (cue.guestId ? 'Open guest →' : 'Open host view →')
+const feedbackDistribution = computed(() => [5, 4, 3, 2, 1].map((n) => ({ label: `${n} ★`, value: feedback.value.filter((r) => r.rating === n).length })))
+const feedbackTags = computed(() => {
+	const counts = new Map<string, number>()
+	for (const r of feedback.value) for (const t of r.serviceTags) counts.set(t, (counts.get(t) ?? 0) + 1)
+	return [...counts].sort((a, b) => b[1] - a[1]).slice(0, 8)
+})
 const asOf = new Date().toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })
-const describeDayLabel = (d: string) => new Date(d + 'T00:00:00').toLocaleDateString()
-const statusOptionsLabels = statusOptions
+const feedbackAverage = computed(() => feedback.value.length ? (feedback.value.reduce((sum, r) => sum + r.rating, 0) / feedback.value.length).toFixed(1) : '—')
+const selectedFeedback = ref<{ id: string; reservationId: string; guestId: string; rating: number; comments: string; serviceTags: string[]; submittedAt: string; reservation: { bookingCode: string; date: string; time: string; partySize: number; seatingAreaId: string; source: string; occasion?: string; guest: { fullName: string; phone: string | null } } } | null>(null)
+const reservationOf = (id: string) => (dashboard.value?.filtered ?? []).find((r) => r.id === id)
+const upcoming7Days = computed(() => dashboard.value?.upcoming7.daysBreakdown.map((d) => ({ label: describeDayLabel(d.date, today), value: d.covers, meta: `(${d.fillPercent}%)` })) ?? [])
+const upcoming30Days = computed(() => dashboard.value?.upcoming30.daysBreakdown.map((d) => ({ label: describeDayLabel(d.date, today), value: d.covers, meta: `(${d.fillPercent}%)` })) ?? [])
+const channelRows = computed(() => dashboard.value?.channel.rows.map((r) => ({ label: r.channel, value: r.covers, meta: `${r.bookings} bk · ${r.share}%` })) ?? [])
+const occasionRows = computed(() => dashboard.value?.guestMix.occasionMix.map((o) => ({ label: o.occasion, value: o.covers })) ?? [])
+const partySizeRows = computed(() => dashboard.value?.guestMix.partySizeMix.map((p) => ({ label: `${p.bucket} pax`, value: p.bookings })) ?? [])
+const reliabilityValues = computed(() => dashboard.value?.reliability.byDay.map((d) => d.noShowRate) ?? [])
+const upcoming30Covers = computed(() => dashboard.value?.upcoming30.daysBreakdown.map((d) => d.covers) ?? [])
+const upcoming30Peak = computed(() => dashboard.value?.upcoming30.daysBreakdown.reduce((a, b) => (b.covers > a.covers ? b : a), { date: '', covers: 0 }))
+const isMilestoneDay = (date: string, index: number) => {
+	const day = new Date(date + 'T00:00:00').getDate()
+	return index === 0 || index === 29 || day === 1 || day === 15 || (index + 1) % 5 === 0
+}
+const cueLabel: Record<string, string> = {
+	slot_over_capacity: 'Slot over capacity',
+	no_show_rate_high: 'No-show rate above target',
+	cancellation_rate_high: 'Cancellation rate high',
+	allergy_repeat_today: 'Allergy repeat guest today',
+}
 definePageMeta({ middleware: 'auth' })
 </script>
 
@@ -52,7 +105,7 @@ definePageMeta({ middleware: 'auth' })
 			<div>
 				<p class="text-xs uppercase tracking-wide text-muted">Manager dashboard</p>
 				<h1 class="font-display text-3xl font-semibold text-ink">
-					{{ new Date(today + 'T00:00:00').toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' }) }}
+					{{ new Date((analytics?.today ?? today) + 'T00:00:00').toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' }) }}
 				</h1>
 			</div>
 			<p class="text-sm text-muted">Live as of {{ asOf }}</p>
@@ -76,86 +129,296 @@ definePageMeta({ middleware: 'auth' })
 			<label class="label">Status
 				<select v-model="filters.status" class="field mt-1 !py-1.5 !px-3 text-sm">
 					<option value="all">All statuses</option>
-					<option v-for="status in statusOptionsLabels" :key="status" :value="status">{{ statusLabel(status as any) }}</option>
+					<option v-for="status in statusOptions" :key="status" :value="status">{{ statusLabel(status) }}</option>
 				</select>
 			</label>
 			<label class="label">Source
 				<select v-model="filters.source" class="field mt-1 !py-1.5 !px-3 text-sm">
 					<option value="all">All sources</option>
+					<option v-for="source in ['website', 'instagram', 'google', 'whatsapp', 'walk_in', 'phone', 'host']" :key="source" :value="source">{{ source }}</option>
 				</select>
 			</label>
 			<label class="label">Area
 				<select v-model="filters.seatingAreaId" class="field mt-1 !py-1.5 !px-3 text-sm">
 					<option value="all">All areas</option>
+					<option v-for="area in areas" :key="area.id" :value="area.id">{{ area.name }}</option>
 				</select>
 			</label>
 			<label class="label">Occasion
 				<select v-model="filters.occasion" class="field mt-1 !py-1.5 !px-3 text-sm">
 					<option value="all">All occasions</option>
+					<option v-for="occasion in occasions" :key="occasion" :value="occasion">{{ occasion }}</option>
 				</select>
 			</label>
 			<p class="text-xs text-muted md:col-span-3 lg:col-span-6">
-				Filters apply to period analytics ({{ periodLabel }}).
+				Filters apply to period analytics ({{ periodLabel }}: guest mix, channels, reliability) and the reservations table. Status only narrows the table. Today live, Next 7 days and Next 30 days are always live.
 			</p>
 		</section>
 
-		<section v-if="dashboard && dashboard.bookings !== undefined" class="mb-6 space-y-2">
+		<section v-if="dashboard && dashboard.cues.length" class="mb-6 space-y-2">
 			<h2 class="font-display text-lg font-semibold text-ink">Action cues</h2>
 			<ul class="space-y-1.5">
-				<li v-if="dashboard.noShows > 0" class="alert-warn">
-					<strong>No-shows today:</strong> {{ dashboard.noShows }}
-					<NuxtLink to="/host" class="ml-2 font-medium underline underline-offset-2">Open host view →</NuxtLink>
+				<li
+					v-for="(cue, i) in dashboard.cues"
+					:key="i"
+					:class="cue.severity === 'danger' ? 'alert-danger' : 'alert-warn'"
+				>
+					<strong>{{ cueLabel[cue.kind] ?? cue.kind }}:</strong> {{ cue.message }}
+					<NuxtLink v-if="cueLink(cue)" :to="cueLink(cue)!" class="ml-2 font-medium underline underline-offset-2">{{ cueLinkLabel(cue) }}</NuxtLink>
 				</li>
-				<li v-else-if="dashboard.cancellations > 0" class="alert-warn">
-					<strong>Cancellations today:</strong> {{ dashboard.cancellations }}
-				</li>
-				<li v-else class="text-sm text-muted">No action cues today.</li>
 			</ul>
 		</section>
 
 		<div class="grid gap-4 lg:grid-cols-3">
 			<section class="card">
 				<h3 class="font-display text-lg font-semibold text-ink">Today live <span class="ml-1 text-xs font-normal text-muted">unfiltered</span></h3>
-				<dl class="mt-4 grid grid-cols-2 gap-3 text-sm">
-					<div><dt class="text-muted">Bookings</dt><dd class="text-2xl font-semibold text-ink">{{ dashboard?.bookings ?? 0 }}</dd></div>
-					<div><dt class="text-muted">Expected covers</dt><dd class="text-2xl font-semibold text-ink">{{ dashboard?.expectedCovers ?? 0 }}</dd></div>
-					<div><dt class="text-muted">Arrived</dt><dd class="text-lg text-ink">{{ dashboard?.arrivedCovers ?? 0 }}</dd></div>
-					<div><dt class="text-muted">Seated</dt><dd class="text-lg text-ink">{{ dashboard?.seatedCovers ?? 0 }}</dd></div>
-					<div><dt class="text-muted">Completed</dt><dd class="text-lg text-ink">{{ dashboard?.completedCovers ?? 0 }}</dd></div>
-					<div><dt class="text-muted">No-shows / cancellations</dt><dd class="text-lg text-ink">{{ dashboard?.noShows ?? 0 }} / {{ dashboard?.cancellations ?? 0 }}</dd></div>
+				<dl class="mt-4 grid grid-cols-2 gap-3 text-sm" v-if="dashboard">
+					<div>
+						<dt class="text-muted">Bookings</dt>
+						<dd class="text-2xl font-semibold text-ink">{{ dashboard.today.bookings }}</dd>
+					</div>
+					<div>
+						<dt class="text-muted">Expected covers</dt>
+						<dd class="text-2xl font-semibold text-ink">{{ dashboard.today.expectedCovers }}</dd>
+					</div>
+					<div>
+						<dt class="text-muted">Arrived</dt>
+						<dd class="text-lg text-ink">{{ dashboard.today.arrivedCovers }}</dd>
+					</div>
+					<div>
+						<dt class="text-muted">Seated</dt>
+						<dd class="text-lg text-ink">{{ dashboard.today.seatedCovers }}</dd>
+					</div>
+					<div>
+						<dt class="text-muted">Completed</dt>
+						<dd class="text-lg text-ink">{{ dashboard.today.completedCovers }}</dd>
+					</div>
+					<div>
+						<dt class="text-muted">No-shows / cancellations</dt>
+						<dd class="text-lg text-ink">{{ dashboard.today.noShows }} / {{ dashboard.today.cancellations }}</dd>
+					</div>
 					<div class="col-span-2 mt-2">
 						<dt class="text-muted">Capacity fill</dt>
 						<dd class="mt-1">
 							<div class="h-3 w-full overflow-hidden rounded bg-line/40">
-								<div class="h-full rounded bg-accent transition-all" :style="{ width: '0%' }" />
+								<div class="h-full rounded bg-accent transition-all" :style="{ width: `${Math.min(100, dashboard.today.occupancyPercent)}%` }" />
 							</div>
-							<p class="mt-1 text-xs text-muted">0% of total capacity</p>
+							<p class="mt-1 text-xs text-muted">{{ dashboard.today.occupancyPercent }}% of total capacity</p>
 						</dd>
 					</div>
 				</dl>
 			</section>
 
 			<section class="card lg:col-span-2">
-				<h3 class="font-display text-lg font-semibold text-ink">Today by status <span class="ml-1 text-xs font-normal text-muted">unfiltered</span></h3>
-				<dl class="mt-4 space-y-2 text-sm">
-					<div v-for="(count, status) in dashboard?.byStatus ?? {}" :key="status" class="flex justify-between">
-						<dt class="text-muted">{{ statusLabel(status as any) }}</dt>
-						<dd class="font-semibold text-ink">{{ count }}</dd>
-					</div>
-					<div v-if="!(dashboard?.byStatus) || Object.keys(dashboard.byStatus).length === 0" class="text-sm text-muted">No bookings today.</div>
-				</dl>
+				<h3 class="font-display text-lg font-semibold text-ink">Next 7 days — covers <span class="ml-1 text-xs font-normal text-muted">unfiltered</span></h3>
+				<BarChart v-if="dashboard" :rows="upcoming7Days" />
+				<p v-if="dashboard && dashboard.upcoming7.busiestSlot" class="mt-3 text-xs text-muted">
+					Busiest slot: <strong>{{ dashboard.upcoming7.busiestSlot.time }}</strong> ({{ dashboard.upcoming7.busiestSlot.covers }} covers)
+				</p>
 			</section>
 
 			<section class="card lg:col-span-3">
-				<h3 class="font-display text-lg font-semibold text-ink">Recent audit <span class="ml-1 text-xs font-normal text-muted">unfiltered</span></h3>
-				<div v-if="audit && audit.length" class="mt-4 space-y-3">
-					<article v-for="e in audit.slice(0, 10)" :key="e.id" class="p-3 rounded-input bg-line/30 text-sm">
-						<p class="font-medium text-ink">{{ e.action }}</p>
-						<p class="text-xs text-muted">{{ e.actor }} · {{ e.entityType }} · {{ new Date(e.at).toLocaleString() }}</p>
-					</article>
+				<h3 class="font-display text-lg font-semibold text-ink">Next 30 days — covers per day <span class="ml-1 text-xs font-normal text-muted">unfiltered</span></h3>
+				<p v-if="dashboard" class="mt-1 text-xs text-muted">
+					{{ dashboard.upcoming30.totalCovers }} covers · avg {{ Math.round(dashboard.upcoming30.totalCovers / 30) }}/day · peak {{ upcoming30Peak.covers }} on {{ describeDayLabel(upcoming30Peak.date, today) }}
+				</p>
+				<Sparkline v-if="dashboard" class="mt-3" :values="upcoming30Covers" :height="120" />
+				<div class="grid text-center text-[10px] leading-tight text-muted" style="grid-template-columns: repeat(30, minmax(0, 1fr))">
+					<span
+						v-for="(d, i) in dashboard?.upcoming30.daysBreakdown ?? []"
+						:key="d.date"
+						class="py-1"
+						:class="isMilestoneDay(d.date, i) ? '' : 'invisible lg:visible'"
+						:title="`${describeDayLabel(d.date, today)}: ${d.covers} covers · ${d.bookings} bookings · ${d.fillPercent}% full`"
+					>
+						<span class="block font-medium text-ink">{{ d.covers }}</span>{{ new Date(d.date + 'T00:00:00').getDate() }}
+					</span>
 				</div>
-				<div v-else class="mt-4 text-sm text-muted">No audit events yet.</div>
+			</section>
+
+			<section class="card">
+				<h3 class="font-display text-lg font-semibold text-ink">Guest mix <span class="ml-1 text-xs font-normal text-muted">{{ periodLabel }}</span></h3>
+				<dl class="mt-4 space-y-2 text-sm" v-if="dashboard">
+					<div class="flex justify-between"><dt class="text-muted">Total guests</dt><dd>{{ dashboard.guestMix.totalGuests }}</dd></div>
+					<div class="flex justify-between"><dt class="text-muted">First-timers</dt><dd>{{ dashboard.guestMix.firstTimers }}</dd></div>
+					<div class="flex justify-between"><dt class="text-muted">Repeats</dt><dd>{{ dashboard.guestMix.repeatGuests }}</dd></div>
+					<div class="flex justify-between"><dt class="text-muted">Retention share</dt><dd><strong>{{ dashboard.guestMix.retentionShare }}%</strong></dd></div>
+				</dl>
+				<h4 v-if="dashboard" class="mt-4 label">Occasions</h4>
+				<BarChart v-if="dashboard" :rows="occasionRows" color="rgb(var(--brand-sun))" />
+				<h4 v-if="dashboard" class="mt-4 label">Party size</h4>
+				<BarChart v-if="dashboard" :rows="partySizeRows" color="rgb(var(--brand-sand))" />
+			</section>
+
+			<section class="card">
+				<h3 class="font-display text-lg font-semibold text-ink">Channel performance <span class="ml-1 text-xs font-normal text-muted">{{ periodLabel }}</span></h3>
+				<BarChart v-if="dashboard" :rows="channelRows" />
+				<p v-if="dashboard" class="mt-3 text-xs text-muted">
+					{{ dashboard.channel.totalBookings }} bookings · {{ dashboard.channel.totalCovers }} covers
+				</p>
+			</section>
+
+			<section class="card">
+				<h3 class="font-display text-lg font-semibold text-ink">Reliability <span class="ml-1 text-xs font-normal text-muted">{{ periodLabel }}</span></h3>
+				<dl class="mt-4 grid grid-cols-2 gap-3 text-sm" v-if="dashboard">
+					<div>
+						<dt class="text-muted">No-show rate</dt>
+						<dd :class="['text-2xl font-semibold', dashboard.reliability.noShowRate > (settings as any)?.noShowTargetPercent ? 'text-danger' : 'text-ink']">
+							{{ dashboard.reliability.noShowRate }}%
+						</dd>
+						<p class="text-xs text-muted">Target ≤ {{ (settings as any)?.noShowTargetPercent }}%</p>
+					</div>
+					<div>
+						<dt class="text-muted">Cancellation rate</dt>
+						<dd class="text-2xl font-semibold text-ink">{{ dashboard.reliability.cancellationRate }}%</dd>
+					</div>
+					<div>
+						<dt class="text-muted">Avg lead time</dt>
+						<dd class="text-lg text-ink">{{ formatLeadTime(dashboard.reliability.averageLeadTimeHours) }}</dd>
+					</div>
+					<div>
+						<dt class="text-muted">Total realised</dt>
+						<dd class="text-lg text-ink">{{ dashboard.reliability.totalRealised }}</dd>
+					</div>
+				</dl>
+				<h4 v-if="dashboard" class="mt-4 label">No-show rate trend</h4>
+				<Sparkline v-if="dashboard" :values="reliabilityValues" :height="80" color="rgb(var(--brand-sun))" fill="rgb(var(--brand-sun) / 0.12)" />
 			</section>
 		</div>
+
+		<section class="card mt-4">
+			<div class="flex flex-wrap items-baseline justify-between gap-2">
+				<h3 class="font-display text-lg font-semibold text-ink">Guest feedback</h3>
+				<span class="text-sm text-muted">{{ feedback.length }} responses · {{ feedbackAverage }}/5 average</span>
+			</div>
+			<div v-if="feedback.length" class="mt-4 grid gap-4 md:grid-cols-2">
+				<div><h4 class="label">Rating distribution</h4><BarChart :rows="feedbackDistribution" color="rgb(var(--brand-sun))" /></div>
+				<div>
+					<h4 class="label">Top tags</h4>
+					<div class="mt-2 flex flex-wrap gap-1.5"><span v-for="[tag, n] in feedbackTags" :key="tag" class="rounded-full bg-line px-2.5 py-0.5 text-xs text-ink">{{ tag }} · {{ n }}</span></div>
+				</div>
+			</div>
+			<div v-if="feedback.length" class="mt-4 space-y-3">
+				<article
+					v-for="response in feedback.slice(0, 10)"
+					:key="response.id"
+					class="group rounded-input bg-line/30 p-3 text-sm cursor-pointer transition hover:bg-line/60 focus:outline-none focus:ring-2 focus:ring-accent"
+					tabindex="0"
+					role="button"
+					aria-label="View feedback details"
+					@click="selectedFeedback = response"
+					@keydown.enter="selectedFeedback = response"
+				>
+					<div class="flex justify-between gap-3"><strong class="group-hover:text-accent">{{ response.reservation.guest.fullName }}</strong><span class="text-xs text-muted">{{ response.rating }}/5 · {{ new Date(response.submittedAt).toLocaleDateString() }}</span></div>
+					<p v-if="response.comments" class="mt-1 text-ink">{{ response.comments }}</p>
+					<div class="mt-1 flex flex-wrap items-center justify-between gap-2">
+						<p v-if="response.serviceTags.length" class="text-xs text-muted">{{ response.serviceTags.join(' · ') }}</p>
+						<span class="text-xs font-medium text-accent underline underline-offset-2">View details →</span>
+					</div>
+				</article>
+			</div>
+			<p v-else class="mt-4 text-sm text-muted">No native feedback responses yet.</p>
+		</section>
+		<!-- Feedback detail modal -->
+		<Transition name="modal">
+			<div
+				v-if="selectedFeedback"
+				class="modal-backdrop fixed inset-0 z-40 grid place-items-center overflow-y-auto bg-ink/50 p-4"
+				@click.self="selectedFeedback = null"
+			>
+				<div class="modal-panel card max-h-[calc(100dvh-2rem)] w-full max-w-lg overflow-y-auto">
+					<div class="flex items-start justify-between gap-3">
+						<div>
+							<p class="text-xs uppercase tracking-wide text-muted">Feedback detail</p>
+							<h2 class="font-display text-2xl font-semibold text-ink">
+								{{ selectedFeedback.reservation.guest.fullName }} — feedback
+							</h2>
+						</div>
+						<button class="btn-ghost" type="button" @click="selectedFeedback = null">Close</button>
+					</div>
+
+					<div class="mt-4 space-y-4 text-sm">
+						<div class="rounded-input bg-line/30 p-3">
+							<div class="flex items-center justify-between">
+								<span class="font-medium text-ink">Rating</span>
+								<span class="text-lg font-bold text-accent">{{ selectedFeedback.rating }} / 5</span>
+							</div>
+							<div v-if="selectedFeedback.serviceTags?.length" class="mt-2">
+								<span class="text-xs text-muted">Standout tags:</span>
+								<div class="mt-1 flex flex-wrap gap-1.5">
+									<span v-for="tag in selectedFeedback.serviceTags" :key="tag" class="rounded-full bg-line px-2.5 py-0.5 text-xs text-ink">
+										{{ tag }}
+									</span>
+								</div>
+							</div>
+						</div>
+
+						<div>
+							<h4 class="label">Comments</h4>
+							<p class="mt-1 rounded-input bg-line/20 p-3 text-ink" :class="{ 'italic text-muted': !selectedFeedback.comments }">
+								{{ selectedFeedback.comments || 'No comments provided.' }}
+							</p>
+						</div>
+
+						<div v-if="selectedFeedback.reservation" class="rounded-input border border-line p-3">
+							<div class="flex items-center justify-between">
+								<h4 class="label">Linked reservation</h4>
+								<span class="font-mono text-xs text-muted">{{ selectedFeedback.reservation.bookingCode }}</span>
+							</div>
+							<dl class="mt-2 grid grid-cols-2 gap-2 text-xs">
+								<div>
+									<dt class="text-muted">Date & time</dt>
+									<dd class="font-medium text-ink">{{ selectedFeedback.reservation.date }} · {{ selectedFeedback.reservation.time }}</dd>
+								</div>
+								<div>
+									<dt class="text-muted">Party & area</dt>
+									<dd class="font-medium text-ink">{{ selectedFeedback.reservation.partySize }} guests · {{ areaName(selectedFeedback.reservation.seatingAreaId) }}</dd>
+								</div>
+								<div>
+									<dt class="text-muted">Source</dt>
+									<dd class="font-medium text-ink capitalize">{{ selectedFeedback.reservation.source }}</dd>
+								</div>
+								<div v-if="selectedFeedback.reservation.occasion">
+									<dt class="text-muted">Occasion</dt>
+									<dd class="font-medium text-ink">{{ selectedFeedback.reservation.occasion }}</dd>
+								</div>
+							</dl>
+						</div>
+
+						<div v-if="selectedFeedback.reservation.guest" class="flex items-center justify-between rounded-input bg-line/20 p-3">
+							<div class="text-xs">
+								<p class="font-medium text-ink">{{ selectedFeedback.reservation.guest.fullName }}</p>
+								<p class="text-muted">{{ selectedFeedback.reservation.guest.phone }}</p>
+							</div>
+							<NuxtLink :to="`/guests/${selectedFeedback.reservation.guest.id}`" class="btn-primary !py-1.5 !px-3 !text-xs">
+								Open guest profile →
+							</NuxtLink>
+						</div>
+
+						<p class="text-right text-xs text-muted">
+							Submitted {{ new Date(selectedFeedback.submittedAt).toLocaleString() }}
+						</p>
+					</div>
+				</div>
+			</div>
+		</Transition>
+		<section class="card mt-4">
+			<div class="flex flex-wrap items-baseline justify-between gap-2">
+				<h3 class="font-display text-lg font-semibold text-ink">Filtered reservations</h3>
+				<div class="flex flex-wrap items-center gap-2">
+					<input v-model="search" type="search" class="field !w-56 !py-1.5 !px-3 text-sm" placeholder="Search name, code, phone" aria-label="Search reservations">
+					<span class="text-sm text-muted">{{ searchedReservations.length }} matching</span>
+					<button type="button" class="btn-secondary !min-h-9 !px-4" :disabled="!searchedReservations.length">Export CSV</button>
+				</div>
+			</div>
+			<div v-if="searchedReservations.length" class="mt-4 overflow-x-auto">
+				<table class="w-full text-left text-sm">
+					<thead><tr class="border-b border-line text-muted"><th class="p-2">Date</th><th class="p-2">Guest</th><th class="p-2">Party</th><th class="p-2">Area</th><th class="p-2">Source</th><th class="p-2">Status</th></tr></thead>
+					<tbody><tr v-for="reservation in searchedReservations.slice(0, 50)" :key="reservation.id" class="border-b border-line"><td class="p-2">{{ reservation.date }} {{ reservation.time }}</td><td class="p-2"><NuxtLink :to="`/guests/${reservation.guestId}`" class="font-medium text-accent underline underline-offset-2">{{ guestName(reservation.guestId) }}</NuxtLink><div class="text-xs text-muted">{{ reservation.bookingCode }}</div></td><td class="p-2">{{ reservation.partySize }}</td><td class="p-2">{{ areaName(reservation.seatingAreaId) }}</td><td class="p-2">{{ reservation.source }}</td><td class="p-2"><StatusChip :status="reservation.status" /></td></tr></tbody>
+				</table>
+				<p v-if="searchedReservations.length > 50" class="mt-2 text-xs text-muted">Showing first 50 reservations.</p>
+			</div>
+			<p v-else class="mt-4 text-sm text-muted">No reservations match these filters.</p>
+		</section>
 	</div>
 </template>

@@ -40,31 +40,17 @@ async function handleLogin() {
 			</div>
 			<h1 class="mt-4 font-display text-3xl font-semibold text-gioi-moss">Sign in to GIOI</h1>
 			<p class="mt-2 text-gioi-ink/70">Staff sign in. Enter your login and password.</p>
-
-			<div class="mt-8 space-y-4">
-				<div class="text-left">
-					<label class="label block mb-1">Login</label>
-					<input v-model="formLogin" type="text" class="field w-full" autocomplete="username" placeholder="e.g. host" />
+			<form class="mx-auto mt-8 max-w-sm space-y-4 text-left" @submit.prevent="handleLogin">
+				<div>
+					<label class="label" for="login">Login</label>
+					<input id="login" v-model="formLogin" class="field" type="text" autocomplete="username" required />
 				</div>
-				<div class="text-left">
-					<label class="label block mb-1">Password</label>
-					<input v-model="formPassword" type="password" class="field w-full" autocomplete="current-password" placeholder="••••••••" />
+				<div>
+					<label class="label" for="password">Password</label>
+					<input id="password" v-model="formPassword" class="field" type="password" autocomplete="current-password" required />
 				</div>
-				<button class="btn-primary w-full" type="button" @click="handleLogin" :disabled="submitting">
-					{{ submitting ? 'Signing in…' : 'Sign in' }}
-				</button>
-			</div>
-
-			<div class="mt-6 grid gap-4 sm:grid-cols-2 text-left">
-				<button class="card hover:border-gioi-moss/60 text-left transition-colors" type="button" @click="() => { formLogin = 'host'; formPassword = 'password' }">
-					<p class="label">Host — Putu</p>
-					<p class="mt-1 text-sm text-gioi-ink/70">host / password</p>
-				</button>
-				<button class="card hover:border-gioi-moss/60 text-left transition-colors" type="button" @click="() => { formLogin = 'admin'; formPassword = 'password' }">
-					<p class="label">Super Admin</p>
-					<p class="mt-1 text-sm text-gioi-ink/70">admin / password</p>
-				</button>
-			</div>
+				<button class="btn-primary min-h-12 w-full" type="submit" :disabled="submitting">{{ submitting ? 'Signing in…' : 'Sign in' }}</button>
+			</form>
 
 			<div v-if="error" class="alert-danger mt-6">{{ error }}</div>
 		</div>

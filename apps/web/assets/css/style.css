@@ -64,7 +64,7 @@
   .btn {
     @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-full px-5 py-2.5 text-sm font-semibold transition active:scale-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-surface disabled:cursor-not-allowed disabled:opacity-50;
   }
-  .btn-primary { @apply btn bg-accent text-accent-ink; }
+  .btn-primary { @apply btn bg-accent text-accent-ink hover:bg-gioi-olive; }
   .btn-secondary { @apply btn bg-transparent text-ink ring-1 ring-inset ring-line hover:bg-line/40; }
   .btn-ghost { @apply btn bg-transparent text-ink hover:bg-line/50; }
   .btn-danger { @apply btn bg-danger text-surface hover:opacity-90; }
@@ -83,6 +83,9 @@
 @layer utilities {
   @keyframes rise { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
   .rise { animation: rise 600ms cubic-bezier(0.16, 1, 0.3, 1) both; }
+  @supports (animation-timeline: view()) {
+    .reveal { animation: rise 1ms linear both; animation-timeline: view(); animation-range: entry 0% entry 40%; }
+  }
 }
 
 /* route transition (see router.ts): old page fades out fast, new page rises in. Enter-only motion, under 300ms. */

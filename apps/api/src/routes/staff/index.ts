@@ -1,10 +1,26 @@
+import { randomUUID } from 'node:crypto'
 import type { FastifyInstance, FastifyRequest } from 'fastify'
 import type { PrismaClient, Prisma, VenueRole } from '@prisma/client'
 import type { AuthedSession } from '../../lib/auth'
-import type { ReservationStatus, Channel } from '@gioi/domain'
+import {
+	canTransition,
+	nextStatuses,
+	dashboardData,
+	defaultDashboardFilters,
+	type ReservationStatus,
+	type Channel,
+	type Settings,
+	type DashboardFilters,
+} from '@gioi/domain'
 import { notFound, conflict, forbidden, unprocessable } from '../../lib/errors'
 import { requireAuth, requireVenueAccess } from '../../lib/middleware'
-import { canTransition, nextStatuses } from '@gioi/domain'
+import {
+	localDate,
+	localTime,
+	startOfLocalDay,
+	startOfNextLocalDay,
+	addDays,
+} from '@gioi/domain'
 
 function staffVenue(session: AuthedSession, venueId?: string): string {
 	const id = venueId ?? session.user.venueIds[0]
@@ -161,7 +177,7 @@ export function registerStaffRoutes(app: FastifyInstance, prisma: PrismaClient):
 				const reservation = await tx.reservation.create({
 					data: {
 						venueId,
-						bookingCode: require('crypto').randomUUID().replace(/-/g, '').slice(0, 10).toUpperCase(),
+						bookingCode: randomUUID().replace(/-/g, '').slice(0, 10).toUpperCase(),
 						guestId: guest.id,
 						seatingAreaId: areaId,
 						startsAt,
@@ -726,37 +742,227 @@ export function registerStaffRoutes(app: FastifyInstance, prisma: PrismaClient):
 		},
 	)
 
-	// ---- Admin: dashboard metrics -------------------------------------------
+	// ---- Admin: analytics ---------------------------------------------------
 	app.get(
-		'/admin/dashboard',
-		async (request: FastifyRequest<{ Querystring: { venueId?: string; date?: string } }>) => {
+		'/admin/analytics',
+		{
+			schema: {
+				querystring: {
+					type: 'object',
+					properties: {
+						venueId: { type: 'string' },
+						from: { type: 'string' },
+						to: { type: 'string' },
+						status: { type: 'string' },
+						source: { type: 'string' },
+						seatingAreaId: { type: 'string' },
+						occasion: { type: 'string' },
+					},
+				},
+			},
+		},
+		async (request: FastifyRequest<{
+			Querystring: {
+				venueId?: string
+				from?: string
+				to?: string
+				status?: string
+				source?: string
+				seatingAreaId?: string
+				occasion?: string
+			}
+		}>) => {
 			const session = await requireAuth(prisma, request.cookies as Record<string, string>)
 			const venueId = request.query.venueId ?? session.user.venueIds[0]
 			requireVenueAccess(session, venueId)
-			const date = request.query.date ?? new Date().toISOString().slice(0, 10)
 
-			const dayStart = new Date(`${date}T00:00:00Z`)
-			const dayEnd = new Date(`${date}T23:59:59Z`)
+			const venue = await prisma.venue.findUnique({
+				where: { id: venueId },
+				include: { openingHours: true, closedDates: true, seatingAreas: true },
+			})
+			if (!venue) throw notFound('venue not found')
+
+			const settings: Settings = {
+				restaurant: {
+					name: venue.name,
+					tagline: venue.tagline,
+					intro: venue.intro,
+					address: venue.address,
+					phone: venue.phone,
+					whatsapp: venue.whatsapp,
+					email: venue.email,
+					mapsUrl: venue.mapsUrl,
+				},
+				timeZone: venue.timeZone,
+				openingHours: Object.fromEntries(
+					venue.openingHours.map((oh) => {
+						const day = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'][oh.weekday]
+						return [
+							day,
+							{
+								open: String(Math.floor(oh.openMinute / 60)).padStart(2, '0') + ':' + String(oh.openMinute % 60).padStart(2, '0'),
+								close: String(Math.floor(oh.closeMinute / 60)).padStart(2, '0') + ':' + String(oh.closeMinute % 60).padStart(2, '0'),
+							},
+						]
+					}),
+				) as Settings['openingHours'],
+				closedDates: venue.closedDates.map((cd) => cd.date.toISOString().slice(0, 10)),
+				bookingIntervalMinutes: venue.bookingIntervalMinutes,
+				partySizeLimits: { min: venue.partyMin, max: venue.partyMax },
+				diningMinutes: venue.diningMinutes,
+				leadTimeMinutes: venue.leadTimeMinutes,
+				cutoffMinutes: venue.cutoffMinutes,
+				noShowTargetPercent: venue.noShowTargetPercent,
+				overCapacityAlertPercent: venue.overCapacityAlertPercent,
+				seatingAreas: venue.seatingAreas.map((a) => ({
+					id: a.id,
+					name: a.name,
+					capacity: a.capacity,
+					bookable: a.bookable,
+					minParty: a.minParty ?? undefined,
+					maxParty: a.maxParty ?? undefined,
+				})),
+				cancellationPolicy: venue.cancellationPolicy,
+				feedbackMessageTemplate: venue.feedbackMessageTemplate,
+			}
+
+			const today = localDate(new Date(), settings.timeZone)
+			const rangeStart = request.query.from ?? addDays(today, -30)
+			const rangeEnd = request.query.to ?? today
+
+			const fromUtc = startOfLocalDay(rangeStart, settings.timeZone)
+			const toUtc = startOfNextLocalDay(rangeEnd, settings.timeZone)
+
 			const reservations = await prisma.reservation.findMany({
-				where: { venueId, startsAt: { gte: dayStart, lte: dayEnd } },
+				where: {
+					venueId,
+					startsAt: { gte: fromUtc, lt: toUtc },
+				},
+				include: { guest: true },
+				orderBy: { startsAt: 'asc' },
 			})
 
-			const total = reservations.length
-			const covers = reservations.reduce((s, r) => s + r.partySize, 0)
-			const byStatus: Record<string, number> = {}
-			for (const r of reservations) byStatus[r.status] = (byStatus[r.status] ?? 0) + 1
+			const domainReservations = reservations.map((r) => ({
+				id: r.id,
+				bookingCode: r.bookingCode,
+				guestId: r.guestId,
+				date: localDate(r.startsAt, settings.timeZone),
+				time: localTime(r.startsAt, settings.timeZone),
+				partySize: r.partySize,
+				seatingAreaId: r.seatingAreaId,
+				occasion: r.occasion ?? undefined,
+				source: r.source,
+				status: r.status,
+				guestNotes: r.guestNotes ?? undefined,
+				internalNotes: r.internalNotes ?? undefined,
+				createdBy: r.createdById ?? 'system',
+				createdAt: r.createdAt.toISOString(),
+				updatedAt: r.updatedAt.toISOString(),
+			}))
+
+			const guests = (
+				await prisma.guest.findMany({
+					where: { venueId },
+					select: {
+						id: true,
+						fullName: true,
+						phone: true,
+						email: true,
+						country: true,
+						allergies: true,
+						accessibility: true,
+						seatingPreference: true,
+						notes: true,
+						marketingConsent: true,
+						marketingConsentAt: true,
+						createdAt: true,
+						updatedAt: true,
+					},
+				})
+			).map((g) => ({
+				id: g.id,
+				fullName: g.fullName,
+				phone: g.phone ?? '',
+				email: g.email ?? undefined,
+				country: g.country ?? undefined,
+				allergies: g.allergies,
+				accessibility: g.accessibility ?? undefined,
+				seatingPreference: g.seatingPreference ?? undefined,
+				notes: g.notes ?? undefined,
+				marketingConsent: g.marketingConsent,
+				marketingConsentAt: g.marketingConsentAt?.toISOString() ?? undefined,
+				createdAt: g.createdAt.toISOString(),
+				updatedAt: g.updatedAt.toISOString(),
+			}))
+
+			const feedback = await prisma.feedback.findMany({
+				where: { venueId },
+				orderBy: { submittedAt: 'desc' },
+				include: {
+					reservation: {
+						select: {
+							id: true,
+							bookingCode: true,
+							guestId: true,
+							startsAt: true,
+							partySize: true,
+							seatingAreaId: true,
+							source: true,
+							occasion: true,
+							guest: { select: { id: true, fullName: true, phone: true } },
+						},
+					},
+				},
+			})
+
+			const feedbackItems = feedback.map((f) => {
+				const r = f.reservation
+				return {
+					id: f.id,
+					reservationId: f.reservationId,
+					guestId: r.guestId,
+					rating: f.rating,
+					comments: f.comments,
+					serviceTags: f.serviceTags,
+					submittedAt: f.submittedAt.toISOString(),
+					reservation: {
+						id: r.id,
+						bookingCode: r.bookingCode,
+						guestId: r.guestId,
+						date: localDate(r.startsAt, settings.timeZone),
+						time: localTime(r.startsAt, settings.timeZone),
+						partySize: r.partySize,
+						seatingAreaId: r.seatingAreaId,
+						source: r.source,
+						occasion: r.occasion ?? undefined,
+						guest: {
+							id: r.guest.id,
+							fullName: r.guest.fullName,
+							phone: r.guest.phone ?? null,
+						},
+					},
+				}
+			})
+
+			const filters: DashboardFilters = {
+				rangeStart,
+				rangeEnd,
+				status: (request.query.status ?? 'all') as DashboardFilters['status'],
+				source: (request.query.source ?? 'all') as DashboardFilters['source'],
+				seatingAreaId: request.query.seatingAreaId ?? 'all',
+				occasion: request.query.occasion ?? 'all',
+			}
+
+			const dashboard = dashboardData(settings, domainReservations, guests, today, filters)
 
 			return {
 				venueId,
-				date,
-				bookings: total,
-				expectedCovers: covers,
-				arrivedCovers: reservations.filter((r) => r.status === 'arrived').reduce((s, r) => s + r.partySize, 0),
-				seatedCovers: reservations.filter((r) => r.status === 'seated').reduce((s, r) => s + r.partySize, 0),
-				completedCovers: reservations.filter((r) => r.status === 'completed').reduce((s, r) => s + r.partySize, 0),
-				noShows: byStatus['no_show'] ?? 0,
-				cancellations: byStatus['cancelled'] ?? 0,
-				byStatus,
+				today,
+				timeZone: settings.timeZone,
+				settings,
+				guests,
+				feedback: feedbackItems,
+				dashboard,
 			}
 		},
 	)

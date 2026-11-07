@@ -1,3 +1,4 @@
+import { useAuthStore } from '@/stores/auth' // circular with the store, but only used at call time
 import type { Channel, ReservationStatus } from '@gioi/domain'
 
 export interface StaffReservation {
@@ -26,8 +27,15 @@ export function apiFetch<T = unknown>(
 	input: RequestInfo | URL,
 	init?: Parameters<typeof $fetch>[1],
 ) {
-	return $fetch<T>(API + (String(input).startsWith('/') ? input : '/' + String(input)), {
+	const path = String(input)
+	return $fetch<T>(API + (path.startsWith('/') ? path : '/' + path), {
 		credentials: 'include',
+		// Session revoked (e.g. logged in on another device) → drop local state, go to login.
+		async onResponseError({ response }) {
+			if (response.status !== 401 || path.startsWith('/staff/login') || path.startsWith('/staff/me')) return
+			useAuthStore().user = null
+			await navigateTo('/login')
+		},
 		...init,
 	})
 }
@@ -150,23 +158,6 @@ export async function fetchGuest(id: string): Promise<StaffGuest> {
 	return apiFetch<StaffGuest>(`/staff/guests/${id}`)
 }
 
-export interface AdminDashboard {
-	venueId: string
-	date: string
-	bookings: number
-	expectedCovers: number
-	arrivedCovers: number
-	seatedCovers: number
-	completedCovers: number
-	noShows: number
-	cancellations: number
-	byStatus: Record<string, number>
-}
-
-export async function fetchAdminDashboard(venueId?: string, date?: string): Promise<AdminDashboard> {
-	return apiFetch<AdminDashboard>('/admin/dashboard', { query: { ...(venueId ? { venueId } : {}), ...(date ? { date } : {}) } })
-}
-
 export interface AuditEvent {
 	id: string
 	at: string
@@ -180,6 +171,121 @@ export interface AuditEvent {
 
 export async function fetchAuditLog(venueId?: string): Promise<AuditEvent[]> {
 	return apiFetch<AuditEvent[]>('/admin/audit-log', { query: venueId ? { venueId } : undefined })
+}
+export interface AdminAnalytics {
+	venueId: string
+	today: string
+	timeZone: string
+	settings: unknown
+	guests: Array<{
+		id: string
+		fullName: string
+		phone: string
+		allergies: string[]
+	}>
+	feedback: Array<{
+		id: string
+		reservationId: string
+		guestId: string
+		rating: number
+		comments: string
+		serviceTags: string[]
+		submittedAt: string
+		reservation: {
+			id: string
+			bookingCode: string
+			guestId: string
+			date: string
+			time: string
+			partySize: number
+			seatingAreaId: string
+			source: string
+			occasion?: string
+			guest: { id: string; fullName: string; phone: string | null }
+		}
+	}>
+	dashboard: {
+		today: {
+			date: string
+			bookings: number
+			expectedCovers: number
+			arrivedCovers: number
+			seatedCovers: number
+			completedCovers: number
+			remainingCovers: number
+			noShows: number
+			cancellations: number
+			occupancyPercent: number
+		}
+		upcoming7: {
+			startDate: string
+			days: number
+			daysBreakdown: Array<{ date: string; covers: number; bookings: number; fillPercent: number }>
+			busiestSlot: { time: string; covers: number } | null
+			totalCovers: number
+		}
+		upcoming30: {
+			startDate: string
+			days: number
+			daysBreakdown: Array<{ date: string; covers: number; bookings: number; fillPercent: number }>
+			busiestSlot: { time: string; covers: number } | null
+			totalCovers: number
+		}
+		guestMix: {
+			totalGuests: number
+			firstTimers: number
+			repeatGuests: number
+			retentionShare: number
+			occasionMix: Array<{ occasion: string; covers: number }>
+			partySizeMix: Array<{ bucket: string; bookings: number }>
+		}
+		channel: {
+			rows: Array<{ channel: string; bookings: number; covers: number; share: number }>
+			totalBookings: number
+			totalCovers: number
+		}
+		reliability: {
+			totalRealised: number
+			noShows: number
+			cancellations: number
+			noShowRate: number
+			cancellationRate: number
+			averageLeadTimeHours: number
+			byDay: Array<{ date: string; noShowRate: number; cancellationRate: number }>
+		}
+		cues: Array<{
+			kind: string
+			message: string
+			severity: 'warn' | 'danger'
+			reservationId?: string
+			guestId?: string
+			date?: string
+			time?: string
+		}>
+		filtered: Array<{
+			id: string
+			bookingCode: string
+			guestId: string
+			date: string
+			time: string
+			partySize: number
+			seatingAreaId: string
+			source: string
+			status: string
+			occasion?: string
+		}>
+	}
+}
+
+export async function fetchAdminAnalytics(filters: {
+	from: string
+	to: string
+	status?: string
+	source?: string
+	seatingAreaId?: string
+	occasion?: string
+}): Promise<AdminAnalytics> {
+	return apiFetch<AdminAnalytics>('/admin/analytics', { query: filters as Record<string, string> })
 }
 
 export interface VenueSettings {

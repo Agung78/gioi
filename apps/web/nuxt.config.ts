@@ -21,6 +21,20 @@ export default defineNuxtConfig({
 		// Nitro supports `proxy`; Nuxt's RouteRules type omits it.
 		routeRules: { '/api/**': { proxy: 'http://127.0.0.1:3001/**' } as never },
 	},
+	app: {
+		head: {
+			htmlAttrs: { lang: 'en' },
+			link: [
+				{ rel: 'icon', type: 'image/jpeg', href: '/logo.jpg' },
+				{ rel: 'preconnect', href: 'https://api.fontshare.com', crossorigin: '' },
+				// ponytail: Fontshare CDN; self-host Cabinet Grotesk + Satoshi before launch
+				{ rel: 'stylesheet', href: 'https://api.fontshare.com/v2/css?f[]=cabinet-grotesk@700,800&f[]=satoshi@400,500,700&display=optional' },
+			],
+			script: [
+				{ innerHTML: "try{var t=localStorage.getItem('gioi-theme');if(t)document.documentElement.dataset.theme=t}catch(e){}", tagPosition: 'head' },
+			],
+		},
+	},
 	css: ['@/assets/css/style.css'],
 	modules: [
 		'@pinia/nuxt',

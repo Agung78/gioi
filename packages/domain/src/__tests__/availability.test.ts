@@ -36,7 +36,7 @@ const baseSettings: Settings = {
   partySizeLimits: { min: 1, max: 8 },
   leadTimeMinutes: 60,
   cutoffMinutes: 120,
-  noShowTargetPercent: 5,
+  diningMinutes: 120,
   overCapacityAlertPercent: 85,
   seatingAreas: [
     { id: 'main', name: 'Main Hall', capacity: 24, bookable: true },
