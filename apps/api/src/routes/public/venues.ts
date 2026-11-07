@@ -128,13 +128,13 @@ export function registerPublicVenueRoutes(app: FastifyInstance, prisma: PrismaCl
 				},
 				timeZone: venue.timeZone,
 				openingHours: Object.fromEntries(
-					venue.openingHours.map((oh: OpeningHours) => [
-						oh.weekday,
-						{
+					venue.openingHours.map((oh: OpeningHours) => {
+						const day = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'][oh.weekday]
+						return [day, {
 							open: String(Math.floor(oh.openMinute / 60)).padStart(2, '0') + ':' + String(oh.openMinute % 60).padStart(2, '0'),
 							close: String(Math.floor(oh.closeMinute / 60)).padStart(2, '0') + ':' + String(oh.closeMinute % 60).padStart(2, '0'),
-						},
-					]),
+						}]
+					}),
 				) as Settings['openingHours'],
 				closedDates: venue.closedDates.map((cd: ClosedDate) => cd.date.toISOString().slice(0, 10)),
 				bookingIntervalMinutes: venue.bookingIntervalMinutes,

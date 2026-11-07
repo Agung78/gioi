@@ -1,15 +1,19 @@
-import type { FastifyInstance } from 'fastify'
+import type { FastifyInstance, FastifyError } from 'fastify'
 import type { PrismaClient } from '@prisma/client'
 import { AppError, unauthorized, forbidden } from './errors'
 import { SESSION_COOKIE, validateSession, userRole, type AuthedSession } from './auth'
 
 export function registerErrorHandler(app: FastifyInstance): void {
-	app.setErrorHandler((error, _request, reply) => {
+	app.setErrorHandler((error: FastifyError, _request, reply) => {
 		if (error instanceof AppError) {
 			return reply.status(error.statusCode).send({
 				error: error.code,
 				message: error.message,
 			})
+		}
+		// Fastify schema validation and other framework client errors carry a 4xx statusCode.
+		if (error.statusCode && error.statusCode >= 400 && error.statusCode < 500) {
+			return reply.status(error.statusCode).send({ error: 'ERR_BAD_REQUEST', message: error.message })
 		}
 		app.log.error(error)
 		return reply.status(500).send({ error: 'ERR_INTERNAL', message: 'internal server error' })

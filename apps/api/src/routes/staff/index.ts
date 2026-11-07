@@ -57,6 +57,9 @@ export function registerStaffRoutes(app: FastifyInstance, prisma: PrismaClient):
 					partySize: r.partySize,
 					startsAt: r.startsAt.toISOString(),
 					seatingArea: r.seatingArea.name,
+					date: r.startsAt.toISOString().slice(0, 10),
+					time: r.startsAt.toISOString().slice(11, 16),
+					internalNotes: r.internalNotes ?? null,
 					status: r.status,
 					source: r.source,
 					occasion: r.occasion ?? null,
@@ -377,8 +380,45 @@ export function registerStaffRoutes(app: FastifyInstance, prisma: PrismaClient):
 			}
 		},
 	)
+	// ---- Host: guest list (search) ------------------------------------------
+	app.get(
+		'/staff/guests',
+		async (request: FastifyRequest<{ Querystring: { q?: string; venueId?: string } }>) => {
+			const session = await requireAuth(prisma, request.cookies as Record<string, string>)
+			const venueId = request.query.venueId ?? session.user.venueIds[0]
+			if (!venueId) throw forbidden('no venue associated with this user')
+			requireVenueAccess(session, venueId)
+			const q = (request.query.q ?? '').trim().toLowerCase()
+			const guests = await prisma.guest.findMany({
+				where: {
+					venueId,
+					OR: [
+						q ? { fullName: { contains: q, mode: 'insensitive' as const } } : {},
+						q ? { phone: { contains: q } } : {},
+					].filter(Boolean),
+				},
+				take: 8,
+				orderBy: { fullName: 'asc' },
+			})
+			return guests.map((g) => ({
+				id: g.id,
+				fullName: g.fullName,
+				phone: g.phone ?? null,
+				email: g.email ?? null,
+				country: g.country ?? null,
+				allergies: g.allergies ?? [],
+				accessibility: g.accessibility ?? null,
+				seatingPreference: g.seatingPreference ?? null,
+				notes: g.notes ?? null,
+				marketingConsent: g.marketingConsent,
+				createdAt: g.createdAt.toISOString(),
+				reservations: [],
+			}))
+		},
+	)
 
 	// ---- Admin: venue settings ----------------------------------------------
+
 	app.get(
 		'/admin/venues/:id',
 		async (request: FastifyRequest<{ Params: { id: string } }>) => {

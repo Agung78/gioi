@@ -2,8 +2,7 @@ import type { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify'
 import type { PrismaClient } from '@prisma/client'
 import { notFound, conflict, forbidden, unprocessable } from '../../lib/errors'
 import { randomBookingCode } from '../../lib/crypto'
-import { canTransition } from '@gioi/domain'
-import { toUtc } from '@gioi/domain'
+import { canTransition, localDate, localTime, toUtc } from '@gioi/domain'
 
 interface CreateReservationBody {
 	guestName: string
@@ -184,10 +183,11 @@ export function registerPublicReservationRoutes(app: FastifyInstance, prisma: Pr
 			})
 			if (!reservation) throw notFound('reservation not found')
 
+			const venue = await prisma.venue.findUnique({ where: { id: reservation.venueId } })
 			return {
 				bookingCode: reservation.bookingCode,
-				date: reservation.startsAt.toISOString().slice(0, 10),
-				time: reservation.startsAt.toISOString().slice(11, 16),
+				date: venue ? localDate(reservation.startsAt, venue.timeZone) : reservation.startsAt.toISOString().slice(0, 10),
+				time: venue ? localTime(reservation.startsAt, venue.timeZone) : reservation.startsAt.toISOString().slice(11, 16),
 				partySize: reservation.partySize,
 				seatingArea: reservation.seatingArea.name,
 				status: reservation.status,

@@ -9,7 +9,7 @@ import { registerPublicReservationRoutes } from '../../routes/public/reservation
 import { registerStaffAuthRoutes } from '../../routes/staff/auth'
 
 const DATABASE_URL = process.env.TEST_DATABASE_URL || 'postgresql://gioi_app:password@localhost:5432/gioi_test'
-const ADMIN_URL = process.env.TEST_ADMIN_DATABASE_URL || 'postgresql://postgres:postgres@localhost:5432/gioi?sslmode=disable'
+const ADMIN_URL = process.env.TEST_ADMIN_DATABASE_URL || 'postgresql://postgres:postgres@localhost:5432/gioi_test?sslmode=disable'
 
 interface BuiltApp {
 	app: ReturnType<typeof Fastify>

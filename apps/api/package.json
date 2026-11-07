@@ -11,9 +11,9 @@
     "test": "vitest run --exclude 'src/**/__tests__/db/**' --passWithNoTests",
     "test:db": "vitest run --config vitest.db.config.ts",
     "typecheck": "tsc --noEmit",
-    "prisma:generate": "prisma generate",
-    "prisma:migrate": "prisma migrate deploy",
-    "prisma:seed": "prisma db seed"
+    "prisma:generate": "node --env-file=.env node_modules/prisma/build/index.js generate",
+    "prisma:migrate": "node --env-file=.env node_modules/prisma/build/index.js migrate deploy",
+    "prisma:seed": "tsx --env-file=.env prisma/seed.ts"
   },
   "dependencies": {
     "@fastify/cookie": "^11.0.0",
