@@ -49,6 +49,8 @@
 | Admin Settings | `/admin/settings` | operational | 2 | 2 | 6 | Hours, closed dates, areas, feedback templates |
 | Admin Audit | `/admin/audit` | operational | 2 | 2 | 7 | Immutable event audit trail |
 
+Routes above are the prototype's single-venue paths. In production (`gioi_infrastructure_decision.md`, Decision 5) guest surfaces live on `book.gioigroup.com` under the venue slug: `/bali`, `/bali/book`, `/bali/confirmation/:code`, `/bali/feedback/:code`. Staff surfaces (Login, Host, Guest Profile, Admin) live on `admin.gioigroup.com` at the paths above, and the venue comes from the logged-in account.
+
 ---
 
 ## 2. Implemented Architecture & UI/UX Audit

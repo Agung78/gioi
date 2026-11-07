@@ -1,0 +1,169 @@
+erDiagram
+  venues {
+    uuid id PK
+    text slug UK "URL path, e.g. bali"
+    text name
+    text time_zone "IANA, e.g. Asia/Makassar"
+    text tagline
+    text intro
+    text address
+    text phone
+    text whatsapp
+    text email
+    text maps_url
+    smallint booking_interval_minutes
+    smallint party_min
+    smallint party_max
+    smallint lead_time_minutes
+    smallint cutoff_minutes
+    smallint no_show_target_percent
+    smallint over_capacity_alert_percent
+    text cancellation_policy
+    text feedback_title
+    text feedback_subtitle
+    text_array feedback_tags
+    text feedback_message_template
+    timestamptz created_at
+    timestamptz updated_at
+  }
+
+  opening_hours {
+    uuid venue_id PK,FK
+    smallint weekday PK "0 Mon .. 6 Sun"
+    smallint open_minute "local minutes"
+    smallint close_minute "local minutes"
+  }
+
+  closed_dates {
+    uuid venue_id PK,FK
+    date date PK "local date"
+    text reason
+  }
+
+  seating_areas {
+    uuid id PK
+    uuid venue_id FK
+    text name "unique per venue"
+    smallint capacity "covers per slot"
+    boolean bookable
+    smallint min_party
+    smallint max_party
+    timestamptz created_at
+    timestamptz updated_at
+  }
+
+  guests {
+    uuid id PK
+    uuid venue_id FK
+    text full_name
+    text phone "E.164, unique per venue"
+    text email
+    text country
+    text_array allergies
+    text accessibility
+    text seating_preference
+    text notes "internal only"
+    boolean marketing_consent
+    timestamptz marketing_consent_at
+    timestamptz anonymized_at
+    timestamptz created_at
+    timestamptz updated_at
+  }
+
+  reservations {
+    uuid id PK
+    uuid venue_id FK
+    text booking_code UK "random"
+    uuid guest_id FK "with venue_id"
+    uuid seating_area_id FK "with venue_id"
+    timestamptz starts_at "UTC"
+    smallint party_size
+    text occasion
+    text guest_notes "sensitive"
+    text internal_notes
+    reservation_channel source
+    reservation_status status
+    uuid idempotency_key UK
+    uuid created_by_id FK
+    uuid updated_by_id FK
+    timestamptz created_at
+    timestamptz updated_at
+  }
+
+  reservation_status_events {
+    uuid id PK
+    uuid reservation_id FK
+    reservation_status from_status
+    reservation_status to_status
+    actor_type actor_type "user, guest, system"
+    uuid actor_user_id FK
+    text reason
+    timestamptz at
+  }
+
+  feedback {
+    uuid id PK
+    uuid venue_id FK
+    uuid reservation_id FK,UK "one per visit"
+    smallint rating "1..5"
+    text comments
+    text_array service_tags
+    timestamptz submitted_at
+  }
+
+  users {
+    uuid id PK
+    text name
+    text login UK "lowercase"
+    text password_hash "argon2id"
+    boolean is_super_admin
+    boolean active
+    timestamptz last_login_at
+    timestamptz created_at
+    timestamptz updated_at
+  }
+
+  user_venues {
+    uuid user_id PK,FK
+    uuid venue_id PK,FK
+    venue_role role "host, admin"
+  }
+
+  sessions {
+    text token_hash PK "sha256 of cookie"
+    uuid user_id FK
+    timestamptz expires_at
+    timestamptz created_at
+  }
+
+  audit_events {
+    uuid id PK
+    uuid venue_id FK "null = group level"
+    actor_type actor_type
+    uuid actor_user_id FK
+    text action
+    text entity_type
+    uuid entity_id
+    jsonb changes "no PII values"
+    text note
+    text request_id
+    timestamptz at
+  }
+
+  venues ||--o{ opening_hours : "open on"
+  venues ||--o{ closed_dates : "closed on"
+  venues ||--o{ seating_areas : has
+  venues ||--o{ guests : has
+  venues ||--o{ reservations : takes
+  venues ||--o{ feedback : receives
+  venues ||--o{ user_venues : staffed_by
+  venues |o--o{ audit_events : scopes
+  guests ||--o{ reservations : books
+  seating_areas ||--o{ reservations : holds
+  reservations ||--o{ reservation_status_events : "status history"
+  reservations ||--o| feedback : "rated by"
+  users ||--o{ user_venues : "works at"
+  users ||--o{ sessions : "logged in"
+  users |o--o{ reservations : "created / updated"
+  users |o--o{ reservation_status_events : "acted"
+  users |o--o{ audit_events : "acted"

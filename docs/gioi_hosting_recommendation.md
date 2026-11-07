@@ -1,106 +1,175 @@
-# GIOI — Hosting Recommendation
+# How to set up hosting for GIOI Bali
 
-**Date:** 2026-10-16
-**Decision:** Cloudflare (frontend, DNS, backups) + Render (API, Postgres), Singapore region.
+**Date:** 2026-11-07
+**Stack:** Nuxt web app and Fastify API on Vercel Pro (`sin1`), Neon Launch Postgres (`aws-ap-southeast-1`), encrypted daily backups to Cloudflare R2, UptimeRobot.
 
-## Final Stack
+This guide lists the setup steps in order. The reasons, the alternatives, the costs and the open items are in `gioi_infrastructure_decision.md`. Answer open items 1–2 there before step 1: a USD card and data residency.
 
-| Layer | Where | Plan | Cost/mo |
-|---|---|---|---|
-| Frontend (Vite SPA) | Cloudflare Pages | Free | $0 |
-| DNS / SSL / DDoS / CDN | Cloudflare (proxied) | Free | $0 |
-| API (Fastify + Node) | Render Web Service, Singapore | Starter (0.5 CPU / 512 MB) | $7 |
-| Database | Render Postgres, Singapore, internal-only | Basic 256 MB | $6 |
-| DB backups | Render Cron Job → Cloudflare R2 | R2 free tier (10 GB) | ~$0 |
-| Workspace | Render | Hobby | $0 |
-| **Total** | | | **~$13/mo (~Rp 215k)** |
+## Before you start
 
-Plus a domain: about Rp 220–300k per year (~Rp 25k/mo).
+You need these accounts:
 
-Exchange rate used: ~Rp 16.500/USD. Check the current rate before quoting.
+- GitHub, with the code in a private repository.
+- Vercel Pro, with one developer seat. The GIOI team can join as free viewers.
+- Neon, on the Launch plan.
+- Cloudflare, for R2 only. DNS stays at Rumahweb.
+- UptimeRobot (free).
+- Access to GIOI's Rumahweb account.
 
-## Why This Combination
+Turn on MFA for every account in this list.
 
-- Cheapest option that runs a real Node + Postgres backend.
-- Bandwidth risk removed: Cloudflare Pages has unlimited free bandwidth. Render charges $0.15/GB above the 5 GB Hobby allowance.
-- The database has no public access; it is reachable only over Render's private network.
-- A standard, portable stack: moving later (e.g. to GCP) takes a `pg_dump` plus redeploying the API.
-- The owner writes the backend (auth, booking rules), which is a deliberate learning goal.
+## 1. Create the database
 
-## Options Considered
+1. Create a Neon project in `aws-ap-southeast-1` (Singapore). A Neon project's region cannot be changed later.
+2. Set the autoscaling ceiling to 1 CU. Keep scale to zero on (5 minutes).
+3. Set a spending notification at USD 25 a month.
+4. Create an app role for the API without superuser rights.
+5. Write the first Prisma migration with `venue_id` and a venue time zone column. See Decision 6 in `gioi_infrastructure_decision.md`.
 
-| Option | Est. cost/mo | Verdict |
-|---|---|---|
-| Railway Hobby/Pro | $6–20 usage-based | Rejected: usage-based billing, less trust in the platform |
-| Vercel + Supabase | ~$45 ($25 with CF Pages) | Familiar and the least code, but security depends entirely on RLS and it costs more |
-| Render Pro | ~$38–54 | Only worth it for a 2nd team member, longer PITR, preview environments or audit logs |
-| Google Cloud (Cloud Run + Cloud SQL, Jakarta) | ~$13–17 + 11% PPN | Good if data must stay in Indonesia; more setup work and cold starts |
-| All-Cloudflare (Workers + D1) | ~$5 | Rejected: Fastify does not run on Workers, D1 is SQLite rather than Postgres, and Prisma's D1 support is limited |
+## 2. Deploy the API (Fastify)
 
-## Render Pricing Reference
+1. Create a Vercel project for the API from the repository's API folder. Vercel detects Fastify with no configuration.
+2. Pin its functions to Singapore in `vercel.json`. Vercel runs new projects in `iad1` (Washington, D.C.) by default, and every query to Neon would then cross the Pacific.
 
-Workspace plans changed on 2026-04-23; legacy workspaces were migrated on 2026-08-01.
+	```json
+	{ "regions": ["sin1"] }
+	```
 
-| | Hobby | Pro |
-|---|---|---|
-| Fee | $0 | $25 flat (compute billed separately) |
-| Seats | 1 | Unlimited |
-| Bandwidth included | 5 GB* | 25 GB* |
-| Bandwidth overage | $0.15/GB | $0.15/GB |
-| Postgres PITR | 3 days* | Longer* |
-| Custom domains | 2* | 15* |
-| Extras | — | Autoscaling, preview envs, private links, request logs, audit logs, OIDC |
+3. Set `DATABASE_URL` to the Neon **pooled** connection string with `sslmode=verify-full`, as a secret environment variable.
+4. Run `prisma migrate deploy` in the build step.
+5. Add a `/health` route.
 
-\* From a third-party source (temps.sh). Not yet verified against Render's own pages.
+Build the API with these rules:
 
-Compute: Web Starter $7 · Postgres 256 MB $6 · Postgres 1 GB $19* · storage above the included amount $0.30/GB*.
+- Keep each request to a few database round trips: one transaction per booking, and no query per row.
+- Hash passwords with argon2 through a prebuilt package such as `@node-rs/argon2`, so no native compile step runs on Vercel.
+- Set session cookies to `httpOnly`, `Secure` and `SameSite=Lax`.
+- Do not rely on `@fastify/rate-limit` with its memory store. Each function instance keeps its own counter, so it limits nothing. Use Vercel Firewall rate-limit rules (step 6).
+- Validate every request with Fastify JSON Schema.
 
-## Setup Notes
+## 3. Deploy the web app (Nuxt)
 
-### Frontend — Cloudflare Pages
-- Root: `prototype` · Build: `pnpm build` · Output: `dist`
-- SPA fallback: `prototype/public/_redirects` → `/* /index.html 200`
-- Env: `VITE_API_URL=https://api.<domain>`
+1. Create a second Vercel project from the web app's folder.
+2. Pin its functions to Singapore and proxy the API through the web app's domain, so the browser sees one origin and cookies need no CORS:
 
-### API — Render Web Service
-- Region: Singapore. Define the services in `render.yaml` so the setup lives in git.
-- Use the Postgres **internal** URL as `DATABASE_URL`.
-- Add a `/health` route and set it as the health-check path.
-- CORS: allow only the frontend origin.
+	```json
+	{
+		"regions": ["sin1"],
+		"rewrites": [
+			{ "source": "/api/:path*", "destination": "https://<api-project-domain>/:path*" }
+		]
+	}
+	```
 
-### Database — Render Postgres
-- Remove all external IP allowlist entries (internal access only).
-- Migrations: Prisma (matches pns-app and customer-zero).
+3. Prerender each venue's landing page and render the other screens in the browser. Guest pages are served on `book.gioigroup.com`, staff screens on `admin.gioigroup.com` (Decision 5 in the decision record):
 
-### Backups — R2
-- Render Cron Job, schedule `0 19 * * *` (03:00 WITA):
-  `pg_dump "$DATABASE_URL" -Fc | aws s3 cp - s3://gioi-backups/gioi-$(date +%F).dump --endpoint-url $R2_ENDPOINT`
-- R2 lifecycle rule: delete after 30 days.
-- Use an R2 API token scoped to the backup bucket only.
-- Expected size: 5–50 MB per dump, ~0.15–1.5 GB retained, which is within the free tier.
-- Do a restore test monthly.
+	```ts
+	// nuxt.config.ts
+	export default defineNuxtConfig({
+		routeRules: {
+			'/bali': { prerender: true }, // one landing page per venue
+			'/bali/book/**': { ssr: false },
+			'/admin/**': { ssr: false },
+			'/host/**': { ssr: false },
+			'/guests/**': { ssr: false },
+		},
+	})
+	```
 
-## Security Checklist
+4. Make the landing page fast on mobile data:
+	- Keep the headline and the hero photo visible in the prerendered HTML. Let GSAP animate from that visible state, or start after the page loads. An element hidden until JavaScript runs delays LCP.
+	- Build WebP or AVIF images at fixed sizes during the build. Preload the hero photo. Set `width` and `height` on every image.
+	- Keep the existing `prefers-reduced-motion` handling.
+5. Refresh the live manager dashboard and the host screen by polling every few seconds. Vercel functions cannot hold WebSockets.
 
-- [ ] Database: internal network only, no public access
-- [ ] Cloudflare proxy on both the web and API domains
-- [ ] Passwords hashed with argon2; httpOnly session cookies; role checks (host / admin / super admin)
+## 4. Connect Neon to Vercel
+
+1. Install the **Neon-Managed** Vercel integration on both projects. Each preview deployment then gets its own Neon branch, and the branch is deleted when its Git branch is deleted.
+2. Create one Vercel custom environment named `staging` for UAT with the GIOI team. Give it its own Neon branch.
+
+## 5. Add the domain
+
+1. Add `book.gioigroup.com` and `admin.gioigroup.com` to the web app project in Vercel.
+2. At Rumahweb, create the two `CNAME` records that Vercel shows. Do not change the nameservers.
+3. Redirect the production `*.vercel.app` address to the custom domain.
+4. Add the `gioigroup.com/bali` redirect to `.htaccess` on the Rumahweb hosting:
+
+	```apache
+	RewriteRule ^bali(/.*)?$ https://book.gioigroup.com/bali$1 [R=301,L]
+	```
+
+5. Turn on auto-renew for `gioigroup.com` at Rumahweb. It expires on 2027-09-20.
+
+## 6. Protect the budget and the booking form
+
+1. In Vercel **Settings → Billing → Spend Management**, set an On-Demand Budget of $20. That budget counts only usage above the $20 included credit. Notifications arrive at 50%, 75% and 100%.
+2. Turn **off** **Pause Production Deployments**. When this switch is on, Vercel pauses production at the budget, and guests see `503 DEPLOYMENT_PAUSED` until each project is resumed by hand.
+3. Add a Vercel Firewall rate-limit rule on the booking and login routes.
+4. Add Cloudflare Turnstile to the public booking form.
+
+## 7. Set up the daily backup
+
+1. Create the R2 bucket `gioi-backups` (Standard storage class, location hint Asia-Pacific).
+2. Create an R2 API token with **Object Read & Write** on `gioi-backups` only.
+3. Add a lifecycle rule that deletes objects after 30 days.
+4. Create an `age` key pair on your laptop. Store the private key offline, in a password manager and on a USB drive. Only the public key goes into the workflow.
+5. Add these GitHub Actions secrets: `DATABASE_URL_DIRECT` (the Neon direct, unpooled connection string), `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `R2_ENDPOINT` and `AGE_PUBLIC_KEY`.
+6. Add a workflow on schedule `0 19 * * *` (03:00 WITA), with Postgres 17 client tools and `age`. It runs with `set -o pipefail`, so a failed `pg_dump` fails the job instead of uploading an empty file:
+
+	```bash
+	set -o pipefail
+	pg_dump "$DATABASE_URL_DIRECT" -Fc \
+		| age -r "$AGE_PUBLIC_KEY" \
+		| aws s3 cp - "s3://gioi-backups/gioi-$(date +%F).dump.age" --endpoint-url "$R2_ENDPOINT"
+	```
+
+7. Run the workflow once by hand and confirm that the file appears in the bucket.
+
+`pg_dump` uses the direct connection string because it does not work reliably through the pooler. The dumps are encrypted because they hold guest PII. A leaked R2 token then yields only encrypted files. GitHub emails the person who last edited the schedule when a scheduled run fails.
+
+## 8. Set up monitoring
+
+1. Add an UptimeRobot monitor on `https://<booking-domain>/api/health`, every 5 minutes.
+2. Send its alerts to the developer and to one person at GIOI.
+
+## 9. Finish the SEO work
+
+1. Add `Restaurant` structured data (JSON-LD) to the landing page: name, address, geo coordinates, opening hours, cuisines (Indonesian, Asian, Balinese, Western), price range, phone, and `acceptsReservations` with the booking URL.
+2. Set titles, descriptions and Open Graph tags with `useSeoMeta`, so shared links show a preview on Instagram and WhatsApp.
+3. Set one canonical URL for the landing page. Vercel adds `X-Robots-Tag: noindex` to preview deployments automatically.
+4. Publish `sitemap.xml` and `robots.txt` on `book.gioigroup.com`. List each venue's landing page and disallow `/*/book`. Serve `Disallow: /` on `admin.gioigroup.com`.
+5. Submit the sitemap in Google Search Console.
+6. Add `book.gioigroup.com/bali/book` as the reservation link on GIOI's Google Business Profile.
+7. Point SEO backlinks to `gioigroup.com/bali`, not to `book.gioigroup.com`.
+
+## Check the setup after the first deploy
+
+- The deployment summary of both Vercel projects shows `sin1`.
+- `GET /api/health` answers 200 on the custom domain.
+- A preview deployment answers with `X-Robots-Tag: noindex`.
+- Lighthouse on the landing page, mobile profile, reports a good LCP.
+- The first backup file is in R2, and it decrypts with the private key.
+- A test booking appears on the host screen within one polling interval.
+
+## Every month
+
+1. Restore test: download the latest `.dump.age` file, decrypt it, create a temporary Neon branch, run `pg_restore` into it, compare the row counts of `reservations` and `guests` with production, and delete the branch.
+2. Read the Neon CU-hours and the Vercel usage. After the first two weeks live, replace the estimate in the cost table of `gioi_infrastructure_decision.md`.
+3. Review dependency updates and apply security patches.
+
+## Security checklist
+
+- [ ] Database: `sslmode=verify-full`, connection strings stored only as secrets, app role without superuser rights
+- [ ] Guest pages on `book.gioigroup.com`, staff screens on `admin.gioigroup.com`. Staff cookies host-only on `admin.`. Each host returns 404 for the other's routes
+- [ ] Passwords hashed with argon2. `httpOnly`, `Secure`, `SameSite=Lax` session cookies. Role checks (host, admin, super admin)
 - [ ] Booking capacity enforced in a DB transaction plus a constraint
-- [ ] `@fastify/rate-limit` + Cloudflare Turnstile on the public booking form
+- [ ] Vercel Firewall rate limits and Cloudflare Turnstile on the public booking form
 - [ ] Request validation with Fastify JSON Schema
 - [ ] Audit log table (already required by the scope docs)
-- [ ] MFA on Render, Cloudflare and GitHub accounts
+- [ ] Backups encrypted with `age`. The private key kept offline
+- [ ] MFA on GitHub, Vercel, Neon, Cloudflare and Rumahweb
 - [ ] Guest PII handled under UU PDP: consent and audit trail
 
-## Open Items Before Quoting the Client
+## Not covered by hosting
 
-1. **Confirm that Render Hobby allows commercial use.** Check render.com/terms and /acceptable-use, or get written confirmation from Render support. If it isn't allowed, budget for Pro (+$25/mo).
-2. Confirm the pricing marked * in the Render dashboard's create flow.
-3. Ask whether the client requires guest data to be stored in Indonesia. If so, use GCP Jakarta instead.
-4. Budget messaging separately: a WhatsApp provider plus Meta per-message fees, and an email provider. Pass these through or include them in the retainer.
-
-## Upgrade Triggers
-
-- A 2nd developer joins, PITR needs to be longer than 3 days, or preview environments are needed for client review → **Render Pro**
-- The database needs more than 256 MB RAM → **Postgres 1 GB ($19)**
-- Data residency in Indonesia is required → **GCP `asia-southeast2`**
+Budget messaging separately: a WhatsApp provider plus Meta per-message fees, and an email provider. Pass these through to GIOI or include them in the retainer.
