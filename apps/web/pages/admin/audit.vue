@@ -2,6 +2,8 @@
 import { computed, ref } from 'vue'
 import { useRoute } from '#app'
 import { fetchAuditLog, type AuditEvent } from '@/composables/useApi'
+import { usePagination } from '@/composables/usePagination'
+import Pagination from '@/components/Pagination.vue'
 
 const route = useRoute()
 const venueId = route.query.venueId ? String(route.query.venueId) : undefined
@@ -17,6 +19,7 @@ const filtered = computed(() => {
 	if (filter.value === 'all') return events.value ?? []
 	return (events.value ?? []).filter((e) => e.entityType === filter.value)
 })
+const { page, pageCount, paged } = usePagination(filtered, 25)
 
 function describe(e: AuditEvent): string {
 	switch (e.action) {
@@ -37,7 +40,7 @@ function fields(e: AuditEvent): string {
 	if (!e.changes) return ''
 	return Object.keys(e.changes).join(', ')
 }
-definePageMeta({ middleware: 'auth' })
+definePageMeta({ middleware: ['auth', 'admin'] })
 </script>
 
 <template>
@@ -70,7 +73,7 @@ definePageMeta({ middleware: 'auth' })
 		</div>
 
 		<ol v-else class="card divide-y divide-line !p-0">
-			<li v-for="e in filtered" :key="e.id" class="flex flex-col gap-1 px-4 py-3 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
+			<li v-for="e in paged" :key="e.id" class="flex flex-col gap-1 px-4 py-3 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
 				<div class="min-w-0">
 					<p class="font-medium text-ink">{{ describe(e) }}</p>
 					<p class="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted">
@@ -83,5 +86,6 @@ definePageMeta({ middleware: 'auth' })
 				<time class="shrink-0 text-xs text-muted" :datetime="e.at">{{ new Date(e.at).toLocaleString() }}</time>
 			</li>
 		</ol>
+		<Pagination v-model:page="page" :page-count="pageCount" />
 	</div>
 </template>

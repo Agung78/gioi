@@ -9,12 +9,12 @@ const route = useRoute()
 
 const next = computed(() => {
 	const raw = route.query.next
-	return typeof raw === 'string' ? raw : null
+	return typeof raw === 'string' && /^\/(?![/\\])/.test(raw) ? raw : null
 })
 
 const formLogin = ref('')
 const formPassword = ref('')
-const error = ref<string | null>(null)
+const error = ref<string | null>(route.query.reason === 'session' ? 'You were signed out: your session expired or you signed in on another device.' : null)
 const submitting = ref(false)
 
 async function handleLogin() {
@@ -22,10 +22,12 @@ async function handleLogin() {
 	submitting.value = true
 	try {
 		const user = await auth.login({ login: formLogin.value, password: formPassword.value })
-		const dest = next.value ?? (user.isSuperAdmin ? '/admin' : '/host')
+		if (!user) throw new Error('Sign in failed. Please try again.')
+		const dest = next.value ?? (auth.isAdmin ? '/admin' : '/host')
 		await router.push(dest)
 	} catch (e: any) {
-		error.value = e.message ?? 'Invalid login or password.'
+		const s = e.statusCode ?? e.status ?? 0
+		error.value = s >= 500 ? 'Service unavailable. Please try again shortly.' : s === 429 ? 'Too many attempts. Try again later.' : s ? 'Invalid login or password.' : e.message
 	} finally {
 		submitting.value = false
 	}

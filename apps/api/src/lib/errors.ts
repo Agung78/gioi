@@ -30,3 +30,7 @@ export function unauthorized(message = 'unauthorized') {
 export function forbidden(message = 'forbidden') {
 	return new AppError(403, message, 'ERR_FORBIDDEN')
 }
+
+export function tooManyRequests(message = 'too many requests') {
+	return new AppError(429, message, 'ERR_RATE_LIMITED')
+}

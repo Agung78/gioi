@@ -14,7 +14,7 @@ gsap.registerPlugin(ScrollTrigger)
 const route = useRoute()
 const venue = (route.params.venue as string) || 'bali'
 const router = useRouter()
-const { venue: venueData } = useVenue()
+const { venue: venueData } = await useVenue()
 
 const info = venueData.value
 const hours = venueData.value?.openingHours ?? {}
@@ -23,7 +23,7 @@ const dayLabel: Record<number, string> = { 1: 'Mon', 2: 'Tue', 3: 'Wed', 4: 'Thu
 const wa = info ? `https://wa.me/${info.whatsapp.replace(/\D/g, '')}` : '#'
 const today = todayISO()
 const witaFmt = new Intl.DateTimeFormat('en-GB', { timeZone: info?.timeZone ?? 'Asia/Makassar', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false })
-const wita = ref(witaFmt.format(new Date()))
+const wita = ref('--:--:--')
 const clockTimer = ref<ReturnType<typeof setInterval> | null>(null)
 onBeforeUnmount(() => { if (clockTimer.value) clearInterval(clockTimer.value) })
 const qDate = ref(today)
@@ -45,7 +45,7 @@ const root = ref<HTMLElement>()
 let ctx: gsap.Context | undefined
 
 onMounted(() => {
-  if (typeof window !== 'undefined') clockTimer.value = setInterval(() => { wita.value = witaFmt.format(new Date()) }, 1000)
+  if (typeof window !== 'undefined') { wita.value = witaFmt.format(new Date()); clockTimer.value = setInterval(() => { wita.value = witaFmt.format(new Date()) }, 1000) }
   if (matchMedia('(prefers-reduced-motion: reduce)').matches) return
   ctx = gsap.context(() => {
     const ease = 'expo.out'

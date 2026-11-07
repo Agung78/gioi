@@ -1,4 +1,5 @@
 import { describe, expect, it, beforeAll, afterAll, beforeEach } from 'vitest'
+import { hash } from '@node-rs/argon2'
 import Fastify from 'fastify'
 import fastifyCors from '@fastify/cors'
 import fastifyCookie from '@fastify/cookie'
@@ -277,5 +278,25 @@ describe('API integration', () => {
 			body: JSON.stringify({ rating: 5 }),
 		})
 		expect(res.status).toBe(409)
+	})
+
+	it('new login revokes the previous session (single device)', async () => {
+		await prisma.user.create({ data: { name: 'Host', login: 'host1', passwordHash: await hash('pw-12345') } })
+		const login = async () => {
+			const r = await fetch(`${baseUrl}/staff/login`, {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ login: 'host1', password: 'pw-12345' }),
+			})
+			expect(r.status).toBe(200)
+			return r.headers.get('set-cookie')!.split(';')[0]
+		}
+		const me = (cookie: string) => fetch(`${baseUrl}/staff/me`, { headers: { cookie } })
+
+		const deviceA = await login()
+		expect((await me(deviceA)).status).toBe(200)
+		const deviceB = await login()
+		expect((await me(deviceB)).status).toBe(200)
+		expect((await me(deviceA)).status).toBe(401)
 	})
 })

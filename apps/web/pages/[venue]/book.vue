@@ -169,13 +169,21 @@ async function submit() {
       seatingAreaId: r.areaId ?? seatingAreaId.value ?? settings.value?.seatingAreas[0]?.id,
       occasion: occasion.value.trim() || undefined,
       guestNotes: guestNotes.value.trim() || undefined,
+      allergies: allergies.length ? allergies : undefined,
+      accessibility: accessibility.value.trim() || undefined,
       idempotencyKey: crypto.randomUUID(),
       ...(turnstileToken.value ? { turnstileToken: turnstileToken.value } : {}),
     }
     const res = await createReservation(venue, body)
     router.push(`/${venue}/confirmation/${res.bookingCode}`)
   } catch (e: any) {
-    error.value = e.message || 'Booking failed. Try again.'
+    if (e?.statusCode === 409) {
+      error.value = 'That time just filled up. Pick another slot above.'
+      time.value = null
+      fetchSlots()
+    } else {
+      error.value = e.message || 'Booking failed. Try again.'
+    }
   } finally {
     submitting.value = false
   }
@@ -215,7 +223,7 @@ onMounted(() => {
           <h2 class="text-xl font-bold">1. When</h2>
           <div>
             <span class="label">Date</span>
-            <div class="-mx-4 flex snap-x gap-2 overflow-x-auto px-4 pb-2 md:mx-0 md:px-0">
+            <div class="-mx-4 flex snap-x scroll-px-4 gap-2 overflow-x-auto px-4 pb-2 md:mx-0 md:scroll-px-0 md:px-0">
               <button v-for="d in days" :key="d.iso" type="button"
                 class="pill min-h-16 shrink-0 snap-start flex-col px-4"
                 :class="[date === d.iso ? 'pill-on' : '', d.isClosed ? 'cursor-not-allowed opacity-40' : 'hover:border-accent']"

@@ -2,7 +2,7 @@ import type { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify'
 import type { PrismaClient } from '@prisma/client'
 import { notFound, conflict, forbidden, unprocessable } from '../../lib/errors'
 import { randomBookingCode } from '../../lib/crypto'
-import { canTransition, localDate, localTime, toUtc } from '@gioi/domain'
+import { addDays, canTransition, dayOfWeek, localDate, localTime, toMinutes, toUtc } from '@gioi/domain'
 
 interface CreateReservationBody {
 	guestName: string
@@ -14,6 +14,8 @@ interface CreateReservationBody {
 	seatingAreaId?: string
 	occasion?: string
 	guestNotes?: string
+	allergies?: string[]
+	accessibility?: string
 	idempotencyKey?: string
 }
 
@@ -35,15 +37,17 @@ export function registerPublicReservationRoutes(app: FastifyInstance, prisma: Pr
 					type: 'object',
 					required: ['guestName', 'phone', 'date', 'time', 'partySize'],
 					properties: {
-						guestName: { type: 'string' },
-						phone: { type: 'string' },
-						email: { type: 'string' },
-						date: { type: 'string' },
-						time: { type: 'string' },
-						partySize: { type: 'integer' },
+						guestName: { type: 'string', maxLength: 120 },
+						phone: { type: 'string', maxLength: 32 },
+						email: { type: 'string', maxLength: 254 },
+						date: { type: 'string', pattern: '^\\d{4}-\\d{2}-\\d{2}$' },
+						time: { type: 'string', pattern: '^\\d{2}:\\d{2}$' },
+						partySize: { type: 'integer', minimum: 1 },
 						seatingAreaId: { type: 'string', format: 'uuid' },
-						occasion: { type: 'string' },
-						guestNotes: { type: 'string' },
+						occasion: { type: 'string', maxLength: 100 },
+						guestNotes: { type: 'string', maxLength: 1000 },
+						allergies: { type: 'array', maxItems: 20, items: { type: 'string', minLength: 1, maxLength: 60 } },
+						accessibility: { type: 'string', maxLength: 300 },
 						idempotencyKey: { type: 'string', format: 'uuid' },
 						turnstileToken: { type: 'string' },
 					},
@@ -64,7 +68,7 @@ export function registerPublicReservationRoutes(app: FastifyInstance, prisma: Pr
 				if (!verified) throw unprocessable('Turnstile verification failed')
 			}
 
-			const venue = await prisma.venue.findUnique({ where: { slug } })
+			const venue = await prisma.venue.findUnique({ where: { slug }, include: { openingHours: true, closedDates: true } })
 			if (!venue) throw notFound('venue not found')
 
 			if (body.idempotencyKey) {
@@ -75,6 +79,18 @@ export function registerPublicReservationRoutes(app: FastifyInstance, prisma: Pr
 			}
 
 			const startsAt = toUtc(body.date, body.time, venue.timeZone)
+
+			// Server-side booking rules: the UI hides these via the slot grid, the API must enforce them.
+			const weekday = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'].indexOf(dayOfWeek(body.date))
+			const hours = venue.openingHours.find((oh) => oh.weekday === weekday)
+			const minute = toMinutes(body.time)
+			const diffMin = (startsAt.getTime() - Date.now()) / 60000
+			if (body.partySize < venue.partyMin || body.partySize > venue.partyMax) throw unprocessable('party size out of range')
+			if (venue.closedDates.some((cd) => cd.date.toISOString().slice(0, 10) === body.date) || !hours || minute < hours.openMinute || minute >= hours.closeMinute) {
+				throw unprocessable('outside opening hours')
+			}
+			if (diffMin < venue.leadTimeMinutes || diffMin <= venue.cutoffMinutes) throw unprocessable('too soon to book')
+			if (body.date > addDays(localDate(new Date(), venue.timeZone), 90)) throw unprocessable('date too far ahead')
 
 			await prisma.$transaction(async (tx) => {
 				// Lock the chosen (or candidate) seating area(s) to serialize capacity checks.
@@ -110,14 +126,22 @@ export function registerPublicReservationRoutes(app: FastifyInstance, prisma: Pr
 
 				const capacity = venueAreas.find((a) => a.id === areaId)!.capacity
 				if (usedSum + body.partySize > capacity) throw conflict('full')
+				const existing = await tx.guest.findUnique({ where: { venueId_phone: { venueId: venue.id, phone: body.phone } }, select: { allergies: true } })
 				const guest = await tx.guest.upsert({
 					where: { venueId_phone: { venueId: venue.id, phone: body.phone } },
-					update: { fullName: body.guestName, email: body.email ?? null },
+					update: {
+						fullName: body.guestName,
+						email: body.email ?? null,
+						...(body.allergies?.length ? { allergies: { set: [...new Set([...(existing?.allergies ?? []), ...body.allergies])] } } : {}),
+						...(body.accessibility ? { accessibility: body.accessibility } : {}),
+					},
 					create: {
 						venueId: venue.id,
 						fullName: body.guestName,
 						phone: body.phone,
 						email: body.email ?? null,
+						allergies: body.allergies ?? [],
+						accessibility: body.accessibility ?? null,
 					},
 				})
 

@@ -10,11 +10,8 @@ import WalkInModal from '@/components/WalkInModal.vue'
 import {
 	fetchDay,
 	changeReservationStatus,
-	fetchGuests,
-	fetchGuest,
 	type DayView,
 	type StaffReservation,
-	type StaffGuest,
 } from '@/composables/useApi'
 
 const router = useRouter()
@@ -25,7 +22,7 @@ const lastError = ref<string | null>(null)
 const tab = ref<'today' | 'search'>('today')
 const reservations = ref<StaffReservation[]>([])
 const areas = ref<Array<{ id: string; name: string }>>([])
-const guests = ref<StaffGuest[]>([])
+const venue = ref<{ slug: string; name: string; feedbackMessageTemplate: string } | null>(null)
 const poll = ref<ReturnType<typeof setInterval> | null>(null)
 
 async function load(day?: string) {
@@ -34,16 +31,9 @@ async function load(day?: string) {
 		const d = await fetchDay(day)
 		reservations.value = d.reservations
 		areas.value = d.areas
+		venue.value = d.venue
 	} catch (e: any) {
 		lastError.value = e.message ?? 'Failed to load day.'
-	}
-}
-
-async function loadGuests() {
-	try {
-		guests.value = await fetchGuests()
-	} catch {
-		guests.value = []
 	}
 }
 
@@ -53,7 +43,6 @@ watch(date, (v) => {
 
 onMounted(() => {
 	load(date.value)
-	loadGuests()
 	poll.value = setInterval(() => load(date.value), 4000)
 })
 
@@ -76,17 +65,12 @@ async function changeStatus(r: StaffReservation, to: ReservationStatus) {
 	}
 }
 
+// The guest page loads and reports its own errors; there is no route named 'guest' (Nuxt names it 'guests-id').
 function openGuest(r: StaffReservation) {
-	router.push({ name: 'guest', params: { id: r.guestId } })
+	router.push(`/guests/${r.guestId}`)
 }
-async function openGuestById(id: string) {
-	if (!id) return
-	try {
-		const g = await fetchGuest(id)
-		router.push({ name: 'guest', params: { id: g.id } })
-	} catch {
-		lastError.value = 'Guest not found.'
-	}
+function openGuestById(id: string) {
+	if (id) router.push(`/guests/${id}`)
 }
 
 function guestOf(r: StaffReservation) {
@@ -115,14 +99,6 @@ function isRepeat(r: StaffReservation): boolean {
 	return visitCount(r.guestId) > 1
 }
 
-const settings = {
-	restaurant: {
-		name: 'GIOI Ocean Gourmet',
-		whatsapp: '',
-	},
-	feedbackMessageTemplate: 'Hi {{guestName}}, thank you for dining with us at {{restaurantName}}. We\'d love to hear about your experience: {{feedbackUrl}}',
-} as any
-
 function sendFeedback(r: StaffReservation) {
 	const guest = guestOf(r)
 	if (!guest.phone) {
@@ -130,10 +106,11 @@ function sendFeedback(r: StaffReservation) {
 		return
 	}
 	const phone = guest.phone.replace(/\D/g, '')
-	const feedbackUrl = `${window.location.origin}/feedback/${encodeURIComponent(r.bookingCode)}`.trim()
-	const message = settings.feedbackMessageTemplate
+	if (!venue.value) return
+	const feedbackUrl = `${window.location.origin}/${venue.value.slug}/feedback/${encodeURIComponent(r.bookingCode)}`
+	const message = venue.value.feedbackMessageTemplate
 		.replaceAll('{{guestName}}', guest.fullName)
-		.replaceAll('{{restaurantName}}', settings.restaurant.name)
+		.replaceAll('{{restaurantName}}', venue.value.name)
 		.replaceAll('{{feedbackUrl}}', feedbackUrl)
 	window.open(`https://wa.me/${phone}?text=${encodeURIComponent(message)}`, '_blank', 'noopener,noreferrer')
 	lastError.value = null
@@ -203,7 +180,7 @@ definePageMeta({ middleware: 'auth' })
 			<h2 class="font-display text-xl font-bold">Find a guest</h2>
 			<p class="mt-1 text-sm text-muted">Search by name, phone, or email to see their visit history and notes.</p>
 			<div class="mt-4">
-				<GuestSearch :guests="guests" @open="openGuestById" />
+				<GuestSearch @open="openGuestById" />
 			</div>
 		</section>
 		</template>
@@ -274,6 +251,6 @@ definePageMeta({ middleware: 'auth' })
 	</Transition>
 
 
-		<WalkInModal :open="showWalkIn" @close="showWalkIn = false" @created="lastError = null" />
+		<WalkInModal :open="showWalkIn" :areas="areas" @close="showWalkIn = false" @created="lastError = null" />
 	</div>
 </template>

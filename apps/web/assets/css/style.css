@@ -119,14 +119,9 @@
   opacity: 0;
 }
 
-/* smooth theme switching */
-html.theme-transitioning,
-html.theme-transitioning *,
-html.theme-transitioning *::before,
-html.theme-transitioning *::after {
-  transition: background-color 250ms cubic-bezier(0.23, 1, 0.32, 1),
-              border-color 250ms cubic-bezier(0.23, 1, 0.32, 1),
-              color 200ms ease,
-              fill 200ms ease !important;
-  transition-delay: 0s !important;
-}
+/* smooth theme switching (useTheme.ts): new theme fades in over a held snapshot of the old one; header fades with it. */
+html.theme-vt::view-transition-old(root),
+html.theme-vt::view-transition-old(app-header) { animation: none; display: block; }
+html.theme-vt::view-transition-new(root),
+html.theme-vt::view-transition-new(app-header) { animation: 250ms ease-out both vt-fade; }
+@keyframes vt-fade { from { opacity: 0; } }

@@ -12,14 +12,16 @@ export function useTheme() {
   const route = useRoute()
   const isDark = computed(() => (theme.value ?? (route.meta?.public ? (osDark.value ? 'dark' : 'light') : 'dark')) === 'dark')
   function toggleTheme() {
-    if (typeof document !== 'undefined') {
-      document.documentElement.classList.add('theme-transitioning')
-      setTimeout(() => {
-        document.documentElement.classList.remove('theme-transitioning')
-      }, 300)
+    const next = isDark.value ? 'light' : 'dark'
+    const apply = () => {
+      theme.value = next
+      document.documentElement.dataset.theme = next
+      try { localStorage.setItem('gioi-theme', next) } catch { /* private mode */ }
     }
-    theme.value = isDark.value ? 'light' : 'dark'
-    try { localStorage.setItem('gioi-theme', theme.value) } catch { /* private mode */ }
+    if (!document.startViewTransition || matchMedia('(prefers-reduced-motion: reduce)').matches) return apply()
+    const root = document.documentElement
+    root.classList.add('theme-vt')
+    document.startViewTransition(apply).finished.finally(() => root.classList.remove('theme-vt'))
   }
   return { isDark, toggleTheme }
 }

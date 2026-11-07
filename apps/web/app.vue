@@ -8,7 +8,7 @@
         <NuxtLink to="/" class="flex items-center gap-2">
           <img src="/logo.jpg" alt="GIOI Ocean Gourmet" class="h-10 w-10 rounded-full object-cover" />
         </NuxtLink>
-        <nav class="hidden gap-1 sm:flex">
+        <nav v-if="navLinks.length > 1" class="hidden gap-1 sm:flex">
           <NuxtLink
             v-for="link in navLinks"
             :key="link.to"
@@ -20,7 +20,7 @@
           </NuxtLink>
         </nav>
         <div class="flex items-center gap-2">
-          <span v-if="auth.user" class="chip hidden bg-line/60 text-ink md:inline-flex">{{ auth.user.name }} · {{ auth.user.role }}</span>
+          <span v-if="auth.user" class="chip hidden bg-line/60 text-ink md:inline-flex">{{ auth.user.name }} · {{ auth.isSuperAdmin ? 'super admin' : auth.isAdmin ? 'admin' : 'host' }}</span>
           <button v-if="auth.user" class="btn-secondary min-h-12" type="button" @click="signOut">Sign out</button>
         </div>
       </div>
@@ -74,14 +74,9 @@ async function signOut() {
 const isPublic = computed(() => route.meta?.public === true)
 const navLinks = computed(() => {
   if (!auth.user) return []
-  if (auth.user.role === 'SUPER_ADMIN') {
-    return [
-      { to: '/host', label: 'Host' },
-      { to: '/admin', label: 'Dashboard' },
-      { to: '/admin/settings', label: 'Settings' },
-      { to: '/admin/audit', label: 'Audit' },
-    ]
-  }
-  return [{ to: '/host', label: 'Host' }]
+  const links = [{ to: '/host', label: 'Host' }]
+  if (auth.isAdmin) links.push({ to: '/admin', label: 'Dashboard' }, { to: '/admin/settings', label: 'Settings' })
+  if (auth.isSuperAdmin) links.push({ to: '/admin/audit', label: 'Audit' })
+  return links
 })
 </script>

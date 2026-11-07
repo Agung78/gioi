@@ -8,7 +8,7 @@ import { registerStaffRoutes } from './routes/staff'
 import { registerPublicReservationRoutes } from './routes/public/reservations'
 import { registerStaffAuthRoutes } from './routes/staff/auth'
 
-const app = Fastify({ logger: true })
+const app = Fastify({ logger: true, trustProxy: !!process.env.VERCEL })
 
 await app.register(fastifyCors, {
 	origin: process.env.CORS_ORIGIN ?? true,
@@ -16,6 +16,15 @@ await app.register(fastifyCors, {
 })
 
 await app.register(fastifyCookie)
+
+// CSRF: cookie auth + unsafe method → Origin (when sent) must be the configured web origin.
+const allowedOrigin = process.env.CORS_ORIGIN
+app.addHook('onRequest', async (request, reply) => {
+	const origin = request.headers.origin
+	if (allowedOrigin && origin && origin !== allowedOrigin && !['GET', 'HEAD', 'OPTIONS'].includes(request.method)) {
+		return reply.status(403).send({ error: 'ERR_FORBIDDEN', message: 'origin not allowed' })
+	}
+})
 
 registerErrorHandler(app)
 

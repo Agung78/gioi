@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from 'vue'
+import { useAuthStore } from '@/stores/auth'
 import { useRoute } from '#app'
 import type { SeatingArea, User, DayOfWeek } from '@gioi/domain'
 import {
@@ -23,6 +24,7 @@ function hhmm(minutes: number | undefined): string {
 
 const route = useRoute()
 let venueId = String(route.query.venueId || '')
+const auth = useAuthStore()
 
 const venue = ref<VenueSettings | null>(null)
 const loading = ref(true)
@@ -48,7 +50,7 @@ async function load() {
 			fetchOpeningHours(venueId),
 			fetchClosedDates(venueId),
 			fetchSeatingAreas(venueId),
-			fetchUsers(venueId),
+			auth.isSuperAdmin ? fetchUsers(venueId) : Promise.resolve([]), // /admin/users is super-admin only
 		])
 		venue.value = v
 		draft.value = clone(v)
@@ -108,7 +110,7 @@ async function saveHours() {
 }
 
 const saveAreas = () => run(() => saveSeatingAreas(venueId, areas.value))
-const saveUsersApi = () => run(() => saveUsers(users.value.map((u) => ({ userId: u.id, venueId: u.venueId, role: u.role }))))
+const saveUsersApi = () => run(() => saveUsers(users.value.map((u) => ({ userId: u.id, venueId: u.venueId, role: u.role, name: u.name, login: u.login, active: u.active }))))
 
 const newClosedDate = ref('')
 const closedDateError = ref<string | null>(null)
@@ -170,14 +172,14 @@ function exportReservations() {
 
 const totalCapacity = computed(() => areas.value.filter((a) => a.bookable).reduce((s, a) => s + a.capacity, 0))
 
-definePageMeta({ middleware: 'auth' })
+definePageMeta({ middleware: ['auth', 'admin'] })
 </script>
 
 <template>
 	<div class="mx-auto max-w-5xl px-4 py-8">
 		<header class="mb-6 flex items-baseline justify-between gap-3">
 			<div>
-				<p class="text-xs uppercase tracking-wide text-muted">Super Admin</p>
+				<p class="text-xs uppercase tracking-wide text-muted">{{ auth.isSuperAdmin ? 'Super Admin' : 'Admin' }}</p>
 				<h1 class="font-display text-3xl font-semibold text-ink">Settings</h1>
 			</div>
 			<p v-if="saved" class="text-sm text-ink">{{ saved }}</p>
@@ -346,7 +348,7 @@ definePageMeta({ middleware: 'auth' })
 				</div>
 			</section>
 
-			<section class="card mb-6">
+			<section v-if="auth.isSuperAdmin" class="card mb-6">
 				<h2 class="font-display text-xl font-semibold text-ink">Users</h2>
 				<div class="mt-4 space-y-3">
 					<div v-for="(u, idx) in users" :key="u.id" class="grid items-end gap-3 sm:grid-cols-[2fr_1fr_1fr_auto]">

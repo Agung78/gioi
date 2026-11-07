@@ -1,8 +1,8 @@
 import type { Venue } from '@/types/venue'
 
-export function useVenue() {
+export async function useVenue() {
   const venue = useState<Venue | null>('venue', () => null)
-  const { data, pending, error, refresh } = useFetch<Venue>(`/api/public/venues/${useRoute().params.venue}`, {
+  const { data, pending, error, refresh } = await useFetch<Venue>(`/api/public/venues/${useRoute().params.venue}`, {
     server: true,
   })
 

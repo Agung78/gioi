@@ -1,13 +1,20 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { useRoute } from '#app'
+import { useRoute, useRouter } from '#app'
+import { useAuthStore } from '@/stores/auth'
 import { PhArrowLeft } from '@phosphor-icons/vue'
 import { statusLabel } from '@gioi/domain'
 import StatusChip from '@/components/StatusChip.vue'
+import Pagination from '@/components/Pagination.vue'
+import { usePagination } from '@/composables/usePagination'
 import type { StaffGuest } from '@/composables/useApi'
 
 const route = useRoute()
 const id = String(route.params.id)
+// Return to wherever the user came from (host view or admin dashboard); direct loads fall back by role.
+const auth = useAuthStore()
+const prev = useRouter().options.history.state.back
+const backTo = typeof prev === 'string' && prev.startsWith('/') && !prev.startsWith('/login') ? prev : auth.isAdmin ? '/admin' : '/host'
 
 const { data: guest, pending, error } = await useFetch<StaffGuest>(`/api/staff/guests/${id}`, {
 	server: true,
@@ -18,6 +25,7 @@ const visits = computed(() => {
 	if (!guest.value) return []
 	return [...guest.value.reservations].sort((a, b) => (b.date + b.time).localeCompare(a.date + a.time))
 })
+const { page, pageCount, paged } = usePagination(visits, 10)
 const completedCount = computed(() =>
 	visits.value.filter((r) => ['completed', 'arrived', 'seated'].includes(r.status)).length,
 )
@@ -35,7 +43,7 @@ definePageMeta({ middleware: 'auth' })
 
 <template>
 	<div class="mx-auto max-w-4xl px-4 py-8">
-		<p class="text-sm"><NuxtLink to="/host" class="btn-ghost inline-flex min-h-11 items-center gap-1.5 !px-3 font-medium text-ink"><PhArrowLeft :size="18" aria-hidden="true" /> Back to host</NuxtLink></p>
+		<p class="text-sm"><NuxtLink :to="backTo" class="btn-ghost inline-flex min-h-11 items-center gap-1.5 !px-3 font-medium text-ink"><PhArrowLeft :size="18" aria-hidden="true" /> Back</NuxtLink></p>
 		<div v-if="pending" class="card mt-4 text-center">
 			<p class="text-muted">Loading…</p>
 		</div>
@@ -83,7 +91,7 @@ definePageMeta({ middleware: 'auth' })
 				<h2 class="font-display text-xl font-semibold text-ink">Visit history</h2>
 				<div v-if="visits.length === 0" class="mt-4 text-sm text-muted">No reservations yet.</div>
 				<ul v-else class="mt-4 divide-y divide-line">
-					<li v-for="r in visits" :key="r.id" class="py-3">
+					<li v-for="r in paged" :key="r.id" class="py-3">
 						<div class="flex flex-wrap items-baseline justify-between gap-2">
 							<div>
 								<p class="font-medium text-ink">
@@ -109,6 +117,7 @@ definePageMeta({ middleware: 'auth' })
 						</div>
 					</li>
 				</ul>
+				<Pagination v-model:page="page" :page-count="pageCount" />
 			</section>
 		</div>
 	</div>

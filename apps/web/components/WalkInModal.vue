@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { todayISO } from '@gioi/domain'
 import type { Channel } from '@gioi/domain'
 import { createWalkIn, changeReservationStatus } from '@/composables/useApi'
@@ -13,6 +13,10 @@ const emit = defineEmits<{
 	(e: 'close'): void
 	(e: 'created', reservationId: string): void
 }>()
+
+const closeOnEsc = (e: KeyboardEvent) => { if (e.key === 'Escape' && props.open) emit('close') }
+onMounted(() => document.addEventListener('keydown', closeOnEsc))
+onBeforeUnmount(() => document.removeEventListener('keydown', closeOnEsc))
 
 const fullName = ref('')
 const phone = ref('')

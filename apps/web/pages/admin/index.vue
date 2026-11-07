@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import {
 	todayISO,
 	resolveDateRange,
@@ -12,13 +12,15 @@ import { statusLabel } from '@gioi/domain'
 import StatusChip from '@/components/StatusChip.vue'
 import BarChart from '@/components/BarChart.vue'
 import Sparkline from '@/components/Sparkline.vue'
-import { fetchAuditLog, type AdminAnalytics, type AuditEvent } from '@/composables/useApi'
+import Pagination from '@/components/Pagination.vue'
+import { usePagination } from '@/composables/usePagination'
+import type { AdminAnalytics } from '@/composables/useApi'
 
 const today = todayISO()
 const preset = ref<DateRangePreset>('last30')
 const filters = ref(defaultDashboardFilters(today))
 
-const { data: analytics } = await useFetch<AdminAnalytics>(() => {
+const { data: analytics, error: analyticsError } = await useFetch<AdminAnalytics>(() => {
 	const params = new URLSearchParams()
 	params.set('from', filters.value.rangeStart)
 	params.set('to', filters.value.rangeEnd)
@@ -28,11 +30,6 @@ const { data: analytics } = await useFetch<AdminAnalytics>(() => {
 	if (filters.value.occasion !== 'all') params.set('occasion', filters.value.occasion)
 	return `/api/admin/analytics?${params}`
 }, {
-	server: true,
-	credentials: 'include',
-})
-
-const { data: audit } = await useFetch<AuditEvent[]>('/api/admin/audit-log', {
 	server: true,
 	credentials: 'include',
 })
@@ -65,6 +62,8 @@ const searchedReservations = computed(() => {
 		return [g?.fullName, r.bookingCode, g?.phone].some((v) => v?.toLowerCase().includes(q))
 	})
 })
+const { page: resPage, pageCount: resPageCount, paged: resPaged } = usePagination(searchedReservations, 25)
+const { page: fbPage, pageCount: fbPageCount, paged: fbPaged } = usePagination(feedback, 10)
 const cueLink = (cue: { guestId?: string; kind: string }) =>
 	cue.guestId ? `/guests/${cue.guestId}` : cue.kind === 'slot_over_capacity' ? '/host' : null
 const cueLinkLabel = (cue: { guestId?: string; kind: string }) => (cue.guestId ? 'Open guest →' : 'Open host view →')
@@ -78,6 +77,9 @@ const asOf = new Date().toLocaleTimeString(undefined, { hour: '2-digit', minute:
 const feedbackAverage = computed(() => feedback.value.length ? (feedback.value.reduce((sum, r) => sum + r.rating, 0) / feedback.value.length).toFixed(1) : '—')
 const selectedFeedback = ref<{ id: string; reservationId: string; guestId: string; rating: number; comments: string; serviceTags: string[]; submittedAt: string; reservation: { bookingCode: string; date: string; time: string; partySize: number; seatingAreaId: string; source: string; occasion?: string; guest: { fullName: string; phone: string | null } } } | null>(null)
 const reservationOf = (id: string) => (dashboard.value?.filtered ?? []).find((r) => r.id === id)
+const closeOnEsc = (e: KeyboardEvent) => { if (e.key === 'Escape') selectedFeedback.value = null }
+onMounted(() => document.addEventListener('keydown', closeOnEsc))
+onBeforeUnmount(() => document.removeEventListener('keydown', closeOnEsc))
 const upcoming7Days = computed(() => dashboard.value?.upcoming7.daysBreakdown.map((d) => ({ label: describeDayLabel(d.date, today), value: d.covers, meta: `(${d.fillPercent}%)` })) ?? [])
 const upcoming30Days = computed(() => dashboard.value?.upcoming30.daysBreakdown.map((d) => ({ label: describeDayLabel(d.date, today), value: d.covers, meta: `(${d.fillPercent}%)` })) ?? [])
 const channelRows = computed(() => dashboard.value?.channel.rows.map((r) => ({ label: r.channel, value: r.covers, meta: `${r.bookings} bk · ${r.share}%` })) ?? [])
@@ -96,7 +98,7 @@ const cueLabel: Record<string, string> = {
 	cancellation_rate_high: 'Cancellation rate high',
 	allergy_repeat_today: 'Allergy repeat guest today',
 }
-definePageMeta({ middleware: 'auth' })
+definePageMeta({ middleware: ['auth', 'admin'] })
 </script>
 
 <template>
@@ -150,6 +152,7 @@ definePageMeta({ middleware: 'auth' })
 					<option v-for="occasion in occasions" :key="occasion" :value="occasion">{{ occasion }}</option>
 				</select>
 			</label>
+			<p v-if="analyticsError" class="text-sm text-red-500 md:col-span-3 lg:col-span-6" role="alert">Invalid date range. Pick a start before the end (max 1 year).</p>
 			<p class="text-xs text-muted md:col-span-3 lg:col-span-6">
 				Filters apply to period analytics ({{ periodLabel }}: guest mix, channels, reliability) and the reservations table. Status only narrows the table. Today live, Next 7 days and Next 30 days are always live.
 			</p>
@@ -300,7 +303,7 @@ definePageMeta({ middleware: 'auth' })
 			</div>
 			<div v-if="feedback.length" class="mt-4 space-y-3">
 				<article
-					v-for="response in feedback.slice(0, 10)"
+					v-for="response in fbPaged"
 					:key="response.id"
 					class="group rounded-input bg-line/30 p-3 text-sm cursor-pointer transition hover:bg-line/60 focus:outline-none focus:ring-2 focus:ring-accent"
 					tabindex="0"
@@ -316,6 +319,7 @@ definePageMeta({ middleware: 'auth' })
 						<span class="text-xs font-medium text-accent underline underline-offset-2">View details →</span>
 					</div>
 				</article>
+				<Pagination v-model:page="fbPage" :page-count="fbPageCount" />
 			</div>
 			<p v-else class="mt-4 text-sm text-muted">No native feedback responses yet.</p>
 		</section>
@@ -414,9 +418,9 @@ definePageMeta({ middleware: 'auth' })
 			<div v-if="searchedReservations.length" class="mt-4 overflow-x-auto">
 				<table class="w-full text-left text-sm">
 					<thead><tr class="border-b border-line text-muted"><th class="p-2">Date</th><th class="p-2">Guest</th><th class="p-2">Party</th><th class="p-2">Area</th><th class="p-2">Source</th><th class="p-2">Status</th></tr></thead>
-					<tbody><tr v-for="reservation in searchedReservations.slice(0, 50)" :key="reservation.id" class="border-b border-line"><td class="p-2">{{ reservation.date }} {{ reservation.time }}</td><td class="p-2"><NuxtLink :to="`/guests/${reservation.guestId}`" class="font-medium text-accent underline underline-offset-2">{{ guestName(reservation.guestId) }}</NuxtLink><div class="text-xs text-muted">{{ reservation.bookingCode }}</div></td><td class="p-2">{{ reservation.partySize }}</td><td class="p-2">{{ areaName(reservation.seatingAreaId) }}</td><td class="p-2">{{ reservation.source }}</td><td class="p-2"><StatusChip :status="reservation.status" /></td></tr></tbody>
+					<tbody><tr v-for="reservation in resPaged" :key="reservation.id" class="border-b border-line"><td class="p-2">{{ reservation.date }} {{ reservation.time }}</td><td class="p-2"><NuxtLink :to="`/guests/${reservation.guestId}`" class="font-medium text-accent underline underline-offset-2">{{ guestName(reservation.guestId) }}</NuxtLink><div class="text-xs text-muted">{{ reservation.bookingCode }}</div></td><td class="p-2">{{ reservation.partySize }}</td><td class="p-2">{{ areaName(reservation.seatingAreaId) }}</td><td class="p-2">{{ reservation.source }}</td><td class="p-2"><StatusChip :status="reservation.status" /></td></tr></tbody>
 				</table>
-				<p v-if="searchedReservations.length > 50" class="mt-2 text-xs text-muted">Showing first 50 reservations.</p>
+				<Pagination v-model:page="resPage" :page-count="resPageCount" />
 			</div>
 			<p v-else class="mt-4 text-sm text-muted">No reservations match these filters.</p>
 		</section>

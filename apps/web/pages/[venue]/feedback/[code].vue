@@ -8,6 +8,7 @@ import type { FeedbackBody } from '@/types/venue'
 const route = useRoute()
 const venueSlug = String(route.params.venue)
 const code = String(route.params.code)
+const exists = await $fetch(`/api/public/reservations/${encodeURIComponent(code)}`).then(() => true, () => false)
 
 const rating = ref(0)
 const comments = ref('')
@@ -35,7 +36,12 @@ async function submit() {
 
 <template>
   <div class="mx-auto max-w-2xl px-4 py-12 md:py-16">
-    <form v-if="!submitted" class="card" @submit.prevent="submit">
+    <div v-if="!exists" class="card text-center">
+      <h1 class="text-3xl font-extrabold">Booking not found</h1>
+      <p class="mt-2 text-muted">We couldn't find that booking. Check the link and try again.</p>
+      <NuxtLink :to="`/${venueSlug}`" class="mt-8 inline-block text-sm font-medium text-accent underline underline-offset-4">Back to GIOI</NuxtLink>
+    </div>
+    <form v-else-if="!submitted" class="card" @submit.prevent="submit">
       <p class="text-sm font-medium text-accent">GIOI Ocean Gourmet</p>
       <h1 class="mt-2 text-3xl font-extrabold">{{ headline }}</h1>
       <p class="mt-2 text-muted">{{ subtitle }}</p>

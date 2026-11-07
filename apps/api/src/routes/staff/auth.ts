@@ -1,6 +1,7 @@
 import type { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify'
 import type { PrismaClient } from '@prisma/client'
 import { verify } from '@node-rs/argon2'
+import { assertLoginAllowed, recordLoginFailure, clearLoginFailures } from '../../lib/loginLimit'
 import { unauthorized } from '../../lib/errors'
 import { sha256Hex } from '../../lib/crypto'
 import { createSession, setSessionCookie, clearSessionCookie, validateSession } from '../../lib/auth'
@@ -19,11 +20,15 @@ export function registerStaffAuthRoutes(app: FastifyInstance, prisma: PrismaClie
 		},
 		async (request: FastifyRequest<{ Body: LoginBody }>, reply: FastifyReply) => {
 			const { login, password } = request.body
+			const limitKey = `${request.ip}|${login.toLowerCase()}`
+			assertLoginAllowed(limitKey)
 			const user = await prisma.user.findFirst({ where: { login: login.toLowerCase() } })
-			if (!user || !user.active) throw unauthorized('invalid credentials')
-
-			const valid = await verifyPassword(user.passwordHash, password)
-			if (!valid) throw unauthorized('invalid credentials')
+			const valid = !!user?.active && (await verifyPassword(user.passwordHash, password))
+			if (!user || !valid) {
+				recordLoginFailure(limitKey)
+				throw unauthorized('invalid credentials')
+			}
+			clearLoginFailures(limitKey)
 
 			const venues = await prisma.userVenue.findMany({ where: { userId: user.id } })
 			const token = await createSession(prisma, user.id, venues.map((v: { venueId: string }) => v.venueId))

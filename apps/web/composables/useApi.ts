@@ -34,7 +34,7 @@ export function apiFetch<T = unknown>(
 		async onResponseError({ response }) {
 			if (response.status !== 401 || path.startsWith('/staff/login') || path.startsWith('/staff/me')) return
 			useAuthStore().user = null
-			await navigateTo('/login')
+			await navigateTo('/login?reason=session')
 		},
 		...init,
 	})
@@ -63,6 +63,7 @@ export interface DayView {
 	venueId: string
 	reservations: StaffReservation[]
 	areas: Array<{ id: string; name: string }>
+	venue: { slug: string; name: string; feedbackMessageTemplate: string }
 }
 
 export async function fetchDay(date?: string): Promise<DayView> {
@@ -136,6 +137,7 @@ export interface StaffGuest {
 	notes: string | null
 	marketingConsent: boolean
 	createdAt: string
+	visits?: number // completed/arrived/seated count; only set by the search endpoint
 	reservations: Array<{
 		id: string
 		bookingCode: string
@@ -382,7 +384,7 @@ export async function fetchUsers(venueId?: string): Promise<StaffUserRow[]> {
 	return apiFetch<StaffUserRow[]>('/admin/users', { query: venueId ? { venueId } : undefined })
 }
 
-export async function saveUsers(rows: Array<{ userId: string; venueId: string; role: string }>): Promise<void> {
+export async function saveUsers(rows: Array<{ userId: string; venueId: string; role: string; name?: string; login?: string; active?: boolean }>): Promise<void> {
 	await apiFetch('/admin/users', { method: 'PUT', body: rows })
 }
 

@@ -1,7 +1,7 @@
 import type { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify'
 import type { PrismaClient, OpeningHours, ClosedDate, SeatingArea, Reservation } from '@prisma/client'
 import { notFound } from '../../lib/errors'
-import { getDayAvailability, toUtc, type Settings } from '@gioi/domain'
+import { getDayAvailability, localDate, localTime, toUtc, type Settings } from '@gioi/domain'
 
 export function registerPublicVenueRoutes(app: FastifyInstance, prisma: PrismaClient): void {
 	app.get(
@@ -160,8 +160,8 @@ export function registerPublicVenueRoutes(app: FastifyInstance, prisma: PrismaCl
 				id: r.id,
 				bookingCode: r.bookingCode,
 				guestId: r.guestId,
-				date: r.startsAt.toISOString().slice(0, 10),
-				time: r.startsAt.toISOString().slice(11, 16),
+				date: localDate(r.startsAt, venue.timeZone),
+				time: localTime(r.startsAt, venue.timeZone),
 				partySize: r.partySize,
 				seatingAreaId: r.seatingAreaId,
 				source: r.source,

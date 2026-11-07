@@ -1,30 +1,39 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
-import { useRouter } from '#app'
+import { ref, watch } from 'vue'
 import { PhStar, PhWarning, PhWheelchair } from '@phosphor-icons/vue'
-import type { StaffGuest } from '@/composables/useApi'
+import { fetchGuests, type StaffGuest } from '@/composables/useApi'
 
-const props = defineProps<{ guests: StaffGuest[] }>()
 const emit = defineEmits<{ (e: 'open', id: string): void }>()
 
-const router = useRouter()
 const query = ref('')
+const results = ref<StaffGuest[]>([])
+const searching = ref(false)
+let timer: ReturnType<typeof setTimeout> | undefined
+let seq = 0
 
-const results = computed<StaffGuest[]>(() => {
-	const q = query.value.trim().toLowerCase()
-	if (q.length < 2) return []
-	return props.guests.filter((g) => {
-		return (
-			g.fullName.toLowerCase().includes(q) ||
-			(g.phone ?? '').toLowerCase().includes(q) ||
-			(g.email ?? '').toLowerCase().includes(q)
-		)
-	}).slice(0, 8)
+// Server-side search (name, phone, email), debounced; `seq` drops out-of-order responses.
+watch(query, (v) => {
+	clearTimeout(timer)
+	const q = v.trim()
+	if (q.length < 2) {
+		seq++
+		results.value = []
+		searching.value = false
+		return
+	}
+	searching.value = true
+	timer = setTimeout(async () => {
+		const mine = ++seq
+		try {
+			const found = await fetchGuests(q)
+			if (mine === seq) results.value = found
+		} catch {
+			if (mine === seq) results.value = []
+		} finally {
+			if (mine === seq) searching.value = false
+		}
+	}, 250)
 })
-
-function visitCount(reservations: StaffGuest['reservations']): number {
-	return reservations.filter((r) => ['arrived', 'seated', 'completed'].includes(r.status)).length
-}
 
 function open(g: StaffGuest) {
 	emit('open', g.id)
@@ -34,7 +43,7 @@ function highlight(g: StaffGuest): string[] {
 	const flags: string[] = []
 	if (g.allergies?.length) flags.push('allergy')
 	if (g.accessibility) flags.push('accessibility')
-	if (visitCount(g.reservations) > 1) flags.push('repeat')
+	if ((g.visits ?? 0) > 1) flags.push('repeat')
 	return flags
 }
 </script>
@@ -48,6 +57,7 @@ function highlight(g: StaffGuest): string[] {
 			placeholder="Search by name, phone, or email"
 		/>
 		<div v-if="query.length < 2" class="text-sm text-muted">Type at least 2 characters.</div>
+		<div v-else-if="searching" class="text-sm text-muted">Searching…</div>
 		<div v-else-if="results.length === 0" class="text-sm text-muted">No guests match.</div>
 		<ul v-else class="divide-y divide-line rounded-surface border border-line bg-raised">
 			<li
@@ -58,7 +68,7 @@ function highlight(g: StaffGuest): string[] {
 			>
 				<div>
 					<p class="font-medium text-ink">{{ g.fullName }}</p>
-					<p class="text-xs text-muted">{{ g.phone }} · {{ visitCount(g.reservations) }} visits</p>
+					<p class="text-xs text-muted">{{ g.phone }} · {{ g.visits ?? 0 }} visits</p>
 				</div>
 				<div class="flex flex-wrap items-center gap-1">
 					<span v-for="f in highlight(g)" :key="f" class="chip" :class="{

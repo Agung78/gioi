@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import type { StaffUser } from '@/composables/useApi'
 import { fetchMe, login as apiLogin, logout as apiLogout } from '@/composables/useApi'
 
@@ -14,10 +14,13 @@ export const useAuthStore = defineStore('auth', () => {
 		return u
 	}
 
+	const isSuperAdmin = computed(() => !!user.value?.isSuperAdmin)
+	// venue admins manage their venue; super admins manage everything
+	const isAdmin = computed(() => isSuperAdmin.value || Object.values(user.value?.venueRoles ?? {}).includes('admin'))
+
 	async function login(body: { login: string; password: string }) {
-		const { user: u } = await apiLogin(body)
-		user.value = u
-		return u
+		await apiLogin(body)
+		return me() // /staff/me carries venueRoles, which the login response lacks
 	}
 
 	async function logout() {
@@ -26,5 +29,5 @@ export const useAuthStore = defineStore('auth', () => {
 		ready.value = true
 	}
 
-	return { user, ready, me, login, logout }
+	return { user, ready, isSuperAdmin, isAdmin, me, login, logout }
 })

@@ -8,7 +8,7 @@ import type { ReservationPublic } from '@/types/venue'
 
 const route = useRoute()
 const venueSlug = String(route.params.venue)
-const { venue: info } = useVenue()
+const { venue: info } = await useVenue()
 const code = computed(() => String(route.params.code))
 
 const { data: reservation, pending, error } = await useFetch<ReservationPublic>(`/api/public/reservations/${code.value}`, {
@@ -18,7 +18,7 @@ const { data: reservation, pending, error } = await useFetch<ReservationPublic>(
 const copied = ref(false)
 
 const dateLabel = computed(() => reservation.value
-  ? new Date(reservation.value.date + 'T00:00:00').toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' })
+  ? new Date(reservation.value.date + 'T00:00:00').toLocaleDateString('en-GB', { weekday: 'long', month: 'long', day: 'numeric' })
   : '')
 
 async function copy() {
@@ -29,14 +29,16 @@ async function copy() {
   } catch { /* clipboard unavailable, code stays visible */ }
 }
 
-// ponytail: assumes 90 min stay and floating local time; add duration setting if needed
+// ponytail: assumes 90 min stay; TZID without VTIMEZONE (Google/Apple/Outlook resolve it); add duration setting if needed
 const icsHref = computed(() => {
   const r = reservation.value
   if (!r) return ''
   const start = `${r.date.replace(/-/g, '')}T${r.time.replace(':', '')}00`
   const [h, m] = r.time.split(':').map(Number)
   const end = `${r.date.replace(/-/g, '')}T${String(Math.floor((h * 60 + m + 90) / 60) % 24).padStart(2, '0')}${String((m + 30) % 60).padStart(2, '0')}00`
-  const ics = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'BEGIN:VEVENT', `UID:${r.bookingCode}@gioi`, `DTSTART:${start}`, `DTEND:${end}`,
+  const tz = info.value?.timeZone ?? 'Asia/Makassar'
+  const stamp = `${start}Z` // deterministic (SSR-safe); clients ignore DTSTAMP value
+  const ics = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//GIOI//booking//EN', 'BEGIN:VEVENT', `UID:${r.bookingCode}@gioi`, `DTSTAMP:${stamp}`, `DTSTART;TZID=${tz}:${start}`, `DTEND;TZID=${tz}:${end}`,
     `SUMMARY:${info.value?.name ?? 'GIOI'}`, `LOCATION:${info.value?.address ?? ''}`, 'END:VEVENT', 'END:VCALENDAR'].join('\r\n')
   return `data:text/calendar;charset=utf-8,${encodeURIComponent(ics)}`
 })

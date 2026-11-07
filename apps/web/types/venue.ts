@@ -60,6 +60,8 @@ export interface CreateReservationBody {
   seatingAreaId?: string
   occasion?: string
   guestNotes?: string
+  allergies?: string[]
+  accessibility?: string
   idempotencyKey?: string
   turnstileToken?: string
 }
