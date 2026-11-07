@@ -37,6 +37,7 @@ const baseSettings: Settings = {
   leadTimeMinutes: 60,
   cutoffMinutes: 120,
   diningMinutes: 120,
+  noShowTargetPercent: 5,
   overCapacityAlertPercent: 85,
   seatingAreas: [
     { id: 'main', name: 'Main Hall', capacity: 24, bookable: true },

@@ -273,7 +273,7 @@ export interface AdminAnalytics {
 			partySize: number
 			seatingAreaId: string
 			source: string
-			status: string
+		status: ReservationStatus
 			occasion?: string
 		}>
 	}

@@ -12,6 +12,9 @@ import { registerStaffAuthRoutes } from '../../routes/staff/auth'
 const DATABASE_URL = process.env.TEST_DATABASE_URL || 'postgresql://gioi_app:password@localhost:5432/gioi_test'
 const ADMIN_URL = process.env.TEST_ADMIN_DATABASE_URL || 'postgresql://postgres:postgres@localhost:5432/gioi_test?sslmode=disable'
 
+// Reservations must be in the future; a fixed date goes stale.
+const DATE = new Date(Date.now() + 30 * 864e5).toISOString().slice(0, 10)
+
 interface BuiltApp {
 	app: ReturnType<typeof Fastify>
 	prisma: PrismaClient
@@ -118,10 +121,10 @@ describe('API integration', () => {
 	})
 
 	it('GET /public/venues/:slug/availability returns slots', async () => {
-		const res = await fetch(`${baseUrl}/public/venues/bali/availability?date=2026-06-15&party=2`)
+		const res = await fetch(`${baseUrl}/public/venues/bali/availability?date=${DATE}&party=2`)
 		expect(res.status).toBe(200)
 		const body = await res.json()
-		expect(body.date).toBe('2026-06-15')
+		expect(body.date).toBe(DATE)
 		expect(Array.isArray(body.slots)).toBe(true)
 		expect(body.slots.length).toBeGreaterThan(0)
 	})
@@ -133,7 +136,7 @@ describe('API integration', () => {
 			body: JSON.stringify({
 				guestName: 'Ayu',
 				phone: '+62 811 222 333',
-				date: '2026-06-15',
+				date: DATE,
 				time: '13:00',
 				partySize: 2,
 				idempotencyKey: '11111111-1111-4111-8111-111111111111',
@@ -148,7 +151,7 @@ describe('API integration', () => {
 		const booking = {
 			guestName: 'Ayu',
 			phone: '+62 811 222 333',
-			date: '2026-06-15',
+			date: DATE,
 			time: '13:00',
 			partySize: 2,
 			idempotencyKey: '22222222-2222-4222-8222-222222222222',
@@ -181,7 +184,7 @@ describe('API integration', () => {
 			body: JSON.stringify({
 				guestName: 'Ayu',
 				phone: '+62 811 222 333',
-				date: '2026-06-15',
+				date: DATE,
 				time: '13:00',
 				partySize: 2,
 			}),
@@ -207,7 +210,7 @@ describe('API integration', () => {
 				body: JSON.stringify({
 					guestName: `Guest ${i}`,
 					phone: `+62 811 000 ${String(i).padStart(4, '0')}`,
-					date: '2026-06-15',
+					date: DATE,
 					time: '14:00',
 					partySize,
 					seatingAreaId: areaId,
@@ -224,7 +227,7 @@ describe('API integration', () => {
 		const total = await prisma.reservation.aggregate({
 			where: {
 				seatingAreaId: areaId,
-				startsAt: new Date('2026-06-15T06:00:00Z'), // 14:00 Asia/Makassar (UTC+8)
+				startsAt: new Date(`${DATE}T06:00:00Z`), // 14:00 Asia/Makassar (UTC+8)
 				status: { in: ['pending', 'confirmed', 'arrived', 'seated'] },
 			},
 			_sum: { partySize: true },
@@ -239,7 +242,7 @@ describe('API integration', () => {
 			body: JSON.stringify({
 				guestName: 'Ayu',
 				phone: '+62 811 222 333',
-				date: '2026-06-15',
+				date: DATE,
 				time: '13:00',
 				partySize: 2,
 			}),
@@ -265,7 +268,7 @@ describe('API integration', () => {
 			body: JSON.stringify({
 				guestName: 'Ayu',
 				phone: '+62 811 222 333',
-				date: '2026-06-15',
+				date: DATE,
 				time: '13:00',
 				partySize: 2,
 			}),

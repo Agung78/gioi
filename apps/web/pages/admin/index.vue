@@ -7,6 +7,7 @@ import {
 	describeDayLabel,
 	formatLeadTime,
 	type DateRangePreset,
+	type ReservationStatus,
 } from '@gioi/domain'
 import { statusLabel } from '@gioi/domain'
 import StatusChip from '@/components/StatusChip.vue'
@@ -45,11 +46,11 @@ function setPreset(next: DateRangePreset) {
 	filters.value = { ...filters.value, rangeStart: range.start, rangeEnd: range.end }
 }
 
-const statusOptions = ['pending', 'confirmed', 'arrived', 'seated', 'completed', 'cancelled', 'no_show']
+const statusOptions: ReservationStatus[] = ['pending', 'confirmed', 'arrived', 'seated', 'completed', 'cancelled', 'no_show']
 const occasions = computed(() => [...new Set((dashboard.value?.filtered ?? []).map((r) => r.occasion?.trim() || 'No occasion'))].sort())
 const areas = computed(() => (settings.value as any)?.seatingAreas ?? [])
 const guestName = (id: string) => guests.value.find((g) => g.id === id)?.fullName ?? 'Unknown guest'
-const areaName = (id: string) => areas.value.find((a) => a.id === id)?.name ?? id
+const areaName = (id: string) => areas.value.find((a: { id: string; name: string }) => a.id === id)?.name ?? id
 const rangeLabel = computed(() => `${filters.value.rangeStart} → ${filters.value.rangeEnd}`)
 const periodLabel = computed(() => ({ today: 'today', last7: 'last 7 days', last30: 'last 30 days', custom: rangeLabel.value })[preset.value])
 const search = ref('')
@@ -75,7 +76,7 @@ const feedbackTags = computed(() => {
 })
 const asOf = new Date().toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })
 const feedbackAverage = computed(() => feedback.value.length ? (feedback.value.reduce((sum, r) => sum + r.rating, 0) / feedback.value.length).toFixed(1) : '—')
-const selectedFeedback = ref<{ id: string; reservationId: string; guestId: string; rating: number; comments: string; serviceTags: string[]; submittedAt: string; reservation: { bookingCode: string; date: string; time: string; partySize: number; seatingAreaId: string; source: string; occasion?: string; guest: { fullName: string; phone: string | null } } } | null>(null)
+const selectedFeedback = ref<AdminAnalytics['feedback'][number] | null>(null)
 const reservationOf = (id: string) => (dashboard.value?.filtered ?? []).find((r) => r.id === id)
 const closeOnEsc = (e: KeyboardEvent) => { if (e.key === 'Escape') selectedFeedback.value = null }
 onMounted(() => document.addEventListener('keydown', closeOnEsc))
@@ -87,7 +88,7 @@ const occasionRows = computed(() => dashboard.value?.guestMix.occasionMix.map((o
 const partySizeRows = computed(() => dashboard.value?.guestMix.partySizeMix.map((p) => ({ label: `${p.bucket} pax`, value: p.bookings })) ?? [])
 const reliabilityValues = computed(() => dashboard.value?.reliability.byDay.map((d) => d.noShowRate) ?? [])
 const upcoming30Covers = computed(() => dashboard.value?.upcoming30.daysBreakdown.map((d) => d.covers) ?? [])
-const upcoming30Peak = computed(() => dashboard.value?.upcoming30.daysBreakdown.reduce((a, b) => (b.covers > a.covers ? b : a), { date: '', covers: 0 }))
+const upcoming30Peak = computed(() => dashboard.value?.upcoming30.daysBreakdown.reduce((a, b) => (b.covers > a.covers ? b : a), { date: '', covers: 0 }) ?? { date: '', covers: 0 })
 const isMilestoneDay = (date: string, index: number) => {
 	const day = new Date(date + 'T00:00:00').getDate()
 	return index === 0 || index === 29 || day === 1 || day === 15 || (index + 1) % 5 === 0
