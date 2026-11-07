@@ -384,12 +384,26 @@ export async function fetchUsers(venueId?: string): Promise<StaffUserRow[]> {
 	return apiFetch<StaffUserRow[]>('/admin/users', { query: venueId ? { venueId } : undefined })
 }
 
-export async function saveUsers(rows: Array<{ userId: string; venueId: string; role: string; name?: string; login?: string; active?: boolean }>): Promise<void> {
+export async function saveUsers(rows: Array<{ userId: string; venueId: string; role: string; name?: string; login?: string; active?: boolean; password?: string }>): Promise<void> {
 	await apiFetch('/admin/users', { method: 'PUT', body: rows })
 }
 
 export async function createUser(body: { venueId: string; name: string; login: string; password: string; role: string }): Promise<StaffUserRow> {
 	return apiFetch<StaffUserRow>('/admin/users', { method: 'POST', body })
+}
+
+export async function removeUser(userId: string, venueId: string): Promise<void> {
+	await apiFetch(`/admin/users/${userId}`, { method: 'DELETE', query: { venueId } })
+}
+
+export interface VenueSummary { id: string; slug: string; name: string }
+
+export async function fetchVenues(): Promise<VenueSummary[]> {
+	return apiFetch<VenueSummary[]>('/admin/venues')
+}
+
+export async function createVenue(body: { slug: string; name: string }): Promise<VenueSummary> {
+	return apiFetch<VenueSummary>('/admin/venues', { method: 'POST', body })
 }
 
 export async function downloadExportCSV(venueId: string): Promise<string> {

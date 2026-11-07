@@ -741,13 +741,62 @@ export function registerStaffRoutes(app: FastifyInstance, prisma: PrismaClient):
 		},
 	)
 
+	// ---- Admin: venues ------------------------------------------------------
+	app.get('/admin/venues', async (request: FastifyRequest) => {
+		const session = await requireAuth(prisma, request.cookies as Record<string, string>)
+		if (!session.user.isSuperAdmin) throw forbidden('super admin required')
+		return prisma.venue.findMany({ select: { id: true, slug: true, name: true }, orderBy: { name: 'asc' } })
+	})
+
+	app.post(
+		'/admin/venues',
+		{
+			schema: {
+				body: {
+					type: 'object',
+					required: ['slug', 'name'],
+					properties: {
+						slug: { type: 'string', pattern: '^[a-z0-9]+(-[a-z0-9]+)*$', maxLength: 64 },
+						name: { type: 'string', minLength: 1, maxLength: 120 },
+					},
+				},
+			},
+		},
+		async (request: FastifyRequest<{ Body: { slug: string; name: string } }>, reply) => {
+			const session = await requireAuth(prisma, request.cookies as Record<string, string>)
+			if (!session.user.isSuperAdmin) throw forbidden('super admin required')
+			const { slug, name } = request.body
+			if (await prisma.venue.findUnique({ where: { slug } })) throw conflict('venue slug already exists')
+			const venue = await prisma.venue.create({
+				data: {
+					slug,
+					name,
+					timeZone: 'Asia/Makassar',
+					tagline: '',
+					intro: '',
+					address: '',
+					phone: '',
+					whatsapp: '',
+					email: '',
+					mapsUrl: '',
+					cancellationPolicy: '',
+					feedbackMessageTemplate: "Hi {{guestName}}, thank you for dining with us at {{restaurantName}}. We'd love to hear about your experience: {{feedbackUrl}}",
+				},
+			})
+			await prisma.auditEvent.create({
+				data: { venueId: venue.id, actorType: 'user', actorUserId: session.user.id, action: 'venue.created', entityType: 'venue', entityId: venue.id },
+			})
+			return reply.status(201).send({ id: venue.id, slug, name })
+		},
+	)
+
 	// ---- Admin: users -------------------------------------------------------
 	app.get(
 		'/admin/users',
 		async (request: FastifyRequest<{ Querystring: { venueId?: string } }>) => {
 			const session = await requireAuth(prisma, request.cookies as Record<string, string>)
 			if (!session.user.isSuperAdmin) throw forbidden('super admin required')
-			const where = request.query.venueId ? { venueId: request.query.venueId } : {}
+			const where = { ...(request.query.venueId ? { venueId: request.query.venueId } : {}), user: { isSuperAdmin: false } }
 			const users = await prisma.userVenue.findMany({ where, include: { user: true }, orderBy: { user: { name: 'asc' } } })
 			return users.map((uv) => ({
 				id: uv.user.id,
@@ -811,6 +860,7 @@ export function registerStaffRoutes(app: FastifyInstance, prisma: PrismaClient):
 							name: { type: 'string', minLength: 1, maxLength: 120 },
 							login: { type: 'string', minLength: 1, maxLength: 64 },
 							active: { type: 'boolean' },
+							password: { type: 'string', minLength: 12, maxLength: 200 },
 						},
 					},
 				},
@@ -818,7 +868,7 @@ export function registerStaffRoutes(app: FastifyInstance, prisma: PrismaClient):
 		},
 		async (
 			request: FastifyRequest<{
-				Body: Array<{ userId: string; venueId: string; role: string; name?: string; login?: string; active?: boolean }>
+				Body: Array<{ userId: string; venueId: string; role: string; name?: string; login?: string; active?: boolean; password?: string }>
 			}>,
 		) => {
 			const session = await requireAuth(prisma, request.cookies as Record<string, string>)
@@ -831,9 +881,12 @@ export function registerStaffRoutes(app: FastifyInstance, prisma: PrismaClient):
 						update: { role: row.role as VenueRole },
 						create: { userId: row.userId, venueId: row.venueId, role: row.role as VenueRole },
 					})
-					const { name, login, active } = row
-					if (name !== undefined || login !== undefined || active !== undefined) {
-						await tx.user.update({ where: { id: row.userId }, data: { name, login, active } })
+					const { name, active, password } = row
+					const login = row.login?.trim().toLowerCase()
+					if (name !== undefined || login !== undefined || active !== undefined || password !== undefined) {
+						const passwordHash = password === undefined ? undefined : await hash(password)
+						await tx.user.update({ where: { id: row.userId }, data: { name, login, active, passwordHash } })
+						if (passwordHash || active === false) await tx.session.deleteMany({ where: { userId: row.userId } })
 					}
 				}
 				await tx.auditEvent.create({
@@ -846,6 +899,34 @@ export function registerStaffRoutes(app: FastifyInstance, prisma: PrismaClient):
 					},
 				})
 			})
+		},
+	)
+
+	app.delete(
+		'/admin/users/:userId',
+		{
+			schema: {
+				params: { type: 'object', required: ['userId'], properties: { userId: { type: 'string', format: 'uuid' } } },
+				querystring: { type: 'object', required: ['venueId'], properties: { venueId: { type: 'string', format: 'uuid' } } },
+			},
+		},
+		async (request: FastifyRequest<{ Params: { userId: string }; Querystring: { venueId: string } }>, reply) => {
+			const session = await requireAuth(prisma, request.cookies as Record<string, string>)
+			if (!session.user.isSuperAdmin) throw forbidden('super admin required')
+			const { userId } = request.params
+			const { venueId } = request.query
+			const target = await prisma.user.findUnique({ where: { id: userId } })
+			if (!target || target.isSuperAdmin) throw notFound('user not found')
+			// Audit rows reference the user, so removal = unlink from the venue and deactivate once no venue is left.
+			await prisma.$transaction(async (tx) => {
+				await tx.userVenue.delete({ where: { userId_venueId: { userId, venueId } } })
+				if ((await tx.userVenue.count({ where: { userId } })) === 0) await tx.user.update({ where: { id: userId }, data: { active: false } })
+				await tx.session.deleteMany({ where: { userId } })
+				await tx.auditEvent.create({
+					data: { venueId, actorType: 'user', actorUserId: session.user.id, action: 'user.removed', entityType: 'user', entityId: userId },
+				})
+			})
+			return reply.status(204).send()
 		},
 	)
 
