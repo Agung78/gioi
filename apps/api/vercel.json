@@ -1,4 +1,6 @@
 {
+  "framework": null,
   "regions": ["sin1"],
-  "buildCommand": "pnpm exec prisma migrate deploy"
+  "buildCommand": "pnpm exec prisma migrate deploy && pnpm bundle",
+  "rewrites": [{ "source": "/(.*)", "destination": "/api" }]
 }
