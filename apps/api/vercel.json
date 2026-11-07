@@ -1,4 +1,4 @@
 {
   "regions": ["sin1"],
-  "buildCommand": "prisma migrate deploy"
+  "buildCommand": "pnpm exec prisma migrate deploy"
 }
