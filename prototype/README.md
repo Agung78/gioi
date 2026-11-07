@@ -2,6 +2,8 @@
 
 A clickable, frontend-only prototype of the GIOI Bali direct reservation platform.
 
+> **Demo only.** This prototype is single-venue with fake auth and browser-only data. The production design (domains, routes, `venue_id`, auth, time zones) is in [`../docs/gioi_infrastructure_decision.md`](../docs/gioi_infrastructure_decision.md). See [`../AGENTS.md`](../AGENTS.md) for what to reuse and what not to copy.
+
 This is the **first-release scope** from
 [`docs/gioi_client_scope_and_delivery.md`](../docs/gioi_client_scope_and_delivery.md)
 and [`docs/gioi_reservation_platform_design.md`](../docs/gioi_reservation_platform_design.md):
