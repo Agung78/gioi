@@ -2,7 +2,7 @@
 
 **Date:** 2026-11-07
 **Status:** Draft for the build in weeks 2–5.
-**Inputs:** `gioi_infrastructure_decision.md` (stack, hosting, domains), `gioi_hosting_recommendation.md` (setup steps, security checklist), `gioi_reservation_platform_design.md` (lifecycle, minimum data model, privacy rules), `prototype/src/domain` (business rules), Neon [postgres-best-practices](https://github.com/neondatabase/postgres-skills/tree/main/skills/postgres-best-practices) (schema design, indexing, isolation, roles, pooling).
+**Inputs:** `gioi_infrastructure_decision.md` (stack, hosting, domains), `gioi_hosting_recommendation.md` (setup steps, security checklist), `gioi_reservation_platform_design.md` (lifecycle, minimum data model, privacy rules), `gioi_prototype_feature_inventory.md` (what the prototype does and does not do; check before porting), `prototype/src/domain` (business rules), Neon [postgres-best-practices](https://github.com/neondatabase/postgres-skills/tree/main/skills/postgres-best-practices) (schema design, indexing, isolation, roles, pooling).
 
 Claims marked **[verify]** depend on library or platform behaviour that must be checked on the first deploy in week 2.
 
