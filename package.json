@@ -1,0 +1,14 @@
+{
+  "name": "gioi",
+  "private": true,
+  "packageManager": "pnpm@10.30.3",
+  "description": "GIOI Bali reservation platform — Nuxt web app, Fastify API, shared domain package",
+  "scripts": {
+    "lint": "pnpm -r --if-present run lint",
+    "test": "pnpm -r --if-present run test",
+    "typecheck": "pnpm -r --if-present run typecheck"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}

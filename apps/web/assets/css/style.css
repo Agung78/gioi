@@ -1,0 +1,127 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  @media (prefers-reduced-motion: no-preference) {
+    html { scroll-behavior: smooth; }
+  }
+  :root {
+    --surface: 243 245 244;
+    --surface-raised: 251 252 252;
+    --ink: 19 47 69;
+    --ink-muted: 74 98 106;
+    --line: 213 222 223;
+    --accent: 31 74 107;
+    --accent-hover: 25 61 89;
+    --accent-ink: 244 239 230;
+    --brand-sand: 214 196 163;
+    --brand-sun: 232 122 58;
+    --brand-navy: 16 38 56;
+    --danger: 179 38 30;
+    color-scheme: light;
+  }
+  :root[data-theme='dark'] {
+    --surface: 11 26 31;
+    --surface-raised: 18 37 43;
+    --ink: 230 238 242;
+    --ink-muted: 157 179 185;
+    --line: 35 57 63;
+    --accent: 127 168 201;
+    --accent-hover: 152 188 217;
+    --accent-ink: 11 26 38;
+    --danger: 242 184 181;
+    color-scheme: dark;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme='light']) {
+      --surface: 11 26 31;
+      --surface-raised: 18 37 43;
+      --ink: 230 238 242;
+      --ink-muted: 157 179 185;
+      --line: 35 57 63;
+      --accent: 127 168 201;
+      --accent-hover: 152 188 217;
+      --accent-ink: 11 26 38;
+      --danger: 242 184 181;
+      color-scheme: dark;
+    }
+  }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    @apply bg-surface font-sans text-ink antialiased;
+    font-variant-numeric: tabular-nums;
+  }
+  h1, h2, h3 { @apply font-display tracking-tight; line-height: 1.1; }
+  select.field { color-scheme: inherit; }
+  @media (prefers-reduced-motion: reduce) {
+    *, ::before, ::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+  }
+}
+
+@layer components {
+  /* shape rule: interactive = pill, surface = 16px, input = 12px */
+  .btn {
+    @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-full px-5 py-2.5 text-sm font-semibold transition active:scale-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-surface disabled:cursor-not-allowed disabled:opacity-50;
+  }
+  .btn-primary { @apply btn bg-accent text-accent-ink hover:bg-gioi-olive; }
+  .btn-secondary { @apply btn bg-transparent text-ink ring-1 ring-inset ring-line hover:bg-line/40; }
+  .btn-ghost { @apply btn bg-transparent text-ink hover:bg-line/50; }
+  .btn-danger { @apply btn bg-danger text-surface hover:opacity-90; }
+  .field {
+    @apply block w-full rounded-input border border-line bg-raised px-3.5 py-2.5 text-base text-ink placeholder:text-muted/60 focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30;
+  }
+  .label { @apply mb-1.5 block text-sm font-medium text-ink; }
+  .card { @apply rounded-surface border border-line bg-raised p-5 shadow-soft; }
+  .chip { @apply inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold; }
+  .pill { @apply inline-flex min-h-11 items-center justify-center rounded-full border border-line bg-transparent px-4 text-sm font-medium transition active:scale-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-accent; }
+  .pill-on { @apply border-accent bg-accent text-accent-ink; }
+  .alert-warn { @apply rounded-input border border-line bg-line/40 px-3 py-2 text-sm text-ink; }
+  .alert-danger { @apply rounded-input border border-danger/40 bg-danger/10 px-3 py-2 text-sm text-danger; }
+}
+
+@layer utilities {
+  @keyframes rise { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+  .rise { animation: rise 600ms cubic-bezier(0.16, 1, 0.3, 1) both; }
+  @supports (animation-timeline: view()) {
+    .reveal { animation: rise 1ms linear both; animation-timeline: view(); animation-range: entry 0% entry 40%; }
+  }
+}
+
+/* route transition (see router.ts): old page fades out fast, new page rises in. Enter-only motion, under 300ms. */
+::view-transition-old(root) { animation: 150ms cubic-bezier(0.23, 1, 0.32, 1) both vt-out; }
+::view-transition-new(root) { animation: 250ms cubic-bezier(0.23, 1, 0.32, 1) both vt-in; }
+/* persistent header: own snapshot, held still (no slide, no fade) */
+::view-transition-old(app-header) { display: none; }
+::view-transition-new(app-header) { animation: none; }
+@keyframes vt-out { to { opacity: 0; } }
+@keyframes vt-in { from { opacity: 0; transform: translateY(8px); } }
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-new(root) { animation-name: vt-fade; }
+  @keyframes vt-fade { from { opacity: 0; } }
+}
+
+/* modal enter/leave (WalkInModal): backdrop fades, panel rises + scales. Reduced-motion handled globally. */
+.modal-enter-active { transition: opacity 200ms cubic-bezier(0.23, 1, 0.32, 1); }
+.modal-leave-active { transition: opacity 150ms ease-in; }
+.modal-enter-active .modal-panel { transition: transform 250ms cubic-bezier(0.23, 1, 0.32, 1); }
+.modal-leave-active .modal-panel { transition: transform 150ms ease-in; }
+.modal-enter-from, .modal-leave-to { opacity: 0; }
+.modal-enter-from .modal-panel, .modal-leave-to .modal-panel { transform: translateY(12px) scale(0.97); }
+
+/* tab panel fade (HostView) */
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 120ms ease;
+}
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+
+/* smooth theme switching (useTheme.ts): new theme fades in over a held snapshot of the old one; header fades with it. */
+html.theme-vt::view-transition-old(root),
+html.theme-vt::view-transition-old(app-header) { animation: none; display: block; }
+html.theme-vt::view-transition-new(root),
+html.theme-vt::view-transition-new(app-header) { animation: 250ms ease-out both vt-fade; }
+@keyframes vt-fade { from { opacity: 0; } }

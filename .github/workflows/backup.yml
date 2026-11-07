@@ -1,0 +1,30 @@
+name: Backup
+
+on:
+  schedule:
+    - cron: '0 19 * * *' # 03:00 WITA
+  workflow_dispatch:
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Postgres client tools and age
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y postgresql-client age
+
+      - name: Dump, encrypt, and upload to R2
+        env:
+          DATABASE_URL_DIRECT: ${{ secrets.DATABASE_URL_DIRECT }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          R2_ENDPOINT: ${{ secrets.R2_ENDPOINT }}
+          AGE_PUBLIC_KEY: ${{ secrets.AGE_PUBLIC_KEY }}
+        run: |
+          set -o pipefail
+          pg_dump "$DATABASE_URL_DIRECT" -Fc \
+            | age -r "$AGE_PUBLIC_KEY" \
+            | aws s3 cp - "s3://gioi-backups/gioi-$(date +%F).dump.age" --endpoint-url "$R2_ENDPOINT"

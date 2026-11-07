@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /bali
+Disallow: /bali/book
+Sitemap: https://book.gioigroup.com/sitemap.xml
