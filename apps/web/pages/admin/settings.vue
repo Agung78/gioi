@@ -8,9 +8,9 @@ import {
 	fetchOpeningHours, saveOpeningHours,
 	fetchClosedDates, saveClosedDates,
 	fetchSeatingAreas, saveSeatingAreas,
-	fetchUsers, saveUsers, createUser, fetchMe,
+	fetchUsers, saveUsers, createUser, removeUser, fetchVenues, createVenue, fetchMe,
 	downloadExportCSV,
-	type VenueSettings, type OpeningHoursRow, type ClosedDateRow, type SeatingAreaRow, type StaffUserRow,
+	type VenueSettings, type OpeningHoursRow, type ClosedDateRow, type SeatingAreaRow, type StaffUserRow, type VenueSummary,
 } from '@/composables/useApi'
 
 const DAYS_OF_WEEK: DayOfWeek[] = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun']
@@ -45,26 +45,30 @@ const dayLabel: Record<string, string> = { mon: 'Mon', tue: 'Tue', wed: 'Wed', t
 async function load() {
 	loading.value = true
 	try {
-		const [v, oh, cd, ar, us] = await Promise.all([
+		if (auth.isSuperAdmin) {
+			venues.value = await fetchVenues()
+			if (!venues.value.some((v) => v.id === venueId)) venueId = venues.value[0]?.id ?? ''
+			users.value = venueId ? await fetchUsers(venueId) : []
+			return
+		}
+		const [v, oh, cd, ar] = await Promise.all([
 			fetchVenue(venueId),
 			fetchOpeningHours(venueId),
 			fetchClosedDates(venueId),
 			fetchSeatingAreas(venueId),
-			auth.isSuperAdmin ? fetchUsers(venueId) : Promise.resolve([]), // /admin/users is super-admin only
 		])
 		venue.value = v
 		draft.value = clone(v)
 		opening.value = oh.map((r) => ({ weekday: r.weekday, openMinute: r.openMinute, closeMinute: r.closeMinute }))
 		closed.value = cd
 		areas.value = ar
-		users.value = us
 	} finally {
 		loading.value = false
 	}
 }
 
 onMounted(async () => {
-	if (!venueId) venueId = (await fetchMe())?.venueIds?.[0] ?? ''
+	if (!venueId && !auth.isSuperAdmin) venueId = (await fetchMe())?.venueIds?.[0] ?? ''
 	await load()
 })
 
@@ -110,12 +114,27 @@ async function saveHours() {
 }
 
 const saveAreas = () => run(() => saveSeatingAreas(venueId, areas.value))
-const saveUsersApi = () => run(() => saveUsers(users.value.map((u) => ({ userId: u.id, venueId: u.venueId, role: u.role, name: u.name, login: u.login, active: u.active }))))
+const saveUsersApi = () => run(async () => {
+	await saveUsers(users.value.map((u) => ({ userId: u.id, venueId: u.venueId, role: u.role, name: u.name, login: u.login, active: u.active, password: resetPasswords.value[u.id] || undefined })))
+	resetPasswords.value = {}
+})
 const newUser = ref({ name: '', login: '', password: '', role: 'host' })
 const addUser = () => run(async () => {
 	await createUser({ venueId, ...newUser.value })
 	newUser.value = { name: '', login: '', password: '', role: 'host' }
 })
+
+const venues = ref<VenueSummary[]>([])
+const newVenue = ref({ name: '', slug: '' })
+const resetPasswords = ref<Record<string, string>>({})
+const addVenue = () => run(async () => {
+	venueId = (await createVenue(newVenue.value)).id
+	newVenue.value = { name: '', slug: '' }
+})
+const selectVenue = (id: string) => { venueId = id; return run(async () => {}) }
+const removeAccount = (u: StaffUserRow) => {
+	if (confirm(`Remove ${u.login} from this venue?`)) return run(() => removeUser(u.id, venueId))
+}
 
 const newClosedDate = ref('')
 const closedDateError = ref<string | null>(null)
@@ -194,7 +213,7 @@ definePageMeta({ middleware: ['auth', 'admin'] })
 			<p class="text-muted">Loading settings…</p>
 		</div>
 
-		<div v-else-if="!draft" class="card py-16 text-center">
+		<div v-else-if="!auth.isSuperAdmin && !draft" class="card py-16 text-center">
 			<p class="text-muted">No venue found for this account. Run the create-super-admin script, or check the API.</p>
 		</div>
 
@@ -358,9 +377,27 @@ definePageMeta({ middleware: ['auth', 'admin'] })
 			</section>
 
 			<section v-if="auth.isSuperAdmin" class="card mb-6">
-				<h2 class="font-display text-xl font-semibold text-ink">Users</h2>
+				<h2 class="font-display text-xl font-semibold text-ink">Venues</h2>
+				<div class="mt-4 grid items-end gap-3 sm:grid-cols-[2fr_auto]">
+					<div>
+						<label class="label">Venue</label>
+						<select class="field" :value="venueId" :disabled="!venues.length" @change="selectVenue(($event.target as HTMLSelectElement).value)">
+							<option v-for="v in venues" :key="v.id" :value="v.id">{{ v.name }} ({{ v.slug }})</option>
+						</select>
+					</div>
+				</div>
+				<form class="mt-4 grid items-end gap-3 border-t border-line pt-4 sm:grid-cols-[2fr_1fr_auto]" @submit.prevent="addVenue">
+					<div><label class="label">New venue name</label><input v-model="newVenue.name" class="field" required /></div>
+					<div><label class="label">Slug (URL)</label><input v-model="newVenue.slug" class="field" required pattern="[a-z0-9]+(-[a-z0-9]+)*" placeholder="bali" /></div>
+					<button class="btn-primary" type="submit">Create venue</button>
+				</form>
+			</section>
+
+			<section v-if="auth.isSuperAdmin && venueId" class="card mb-6">
+				<h2 class="font-display text-xl font-semibold text-ink">Accounts</h2>
+				<p v-if="!users.length" class="mt-2 text-sm text-muted">No admin or host accounts for this venue yet.</p>
 				<div class="mt-4 space-y-3">
-					<div v-for="(u, idx) in users" :key="u.id" class="grid items-end gap-3 sm:grid-cols-[2fr_1fr_1fr_auto]">
+					<div v-for="(u, idx) in users" :key="u.id" class="grid items-end gap-3 sm:grid-cols-[2fr_1.5fr_1fr_1.5fr_auto_auto]">
 						<div>
 							<label class="label">Name</label>
 							<input :value="u.name" class="field" @input="updateUser(idx, { name: ($event.target as HTMLInputElement).value })" />
@@ -376,14 +413,19 @@ definePageMeta({ middleware: ['auth', 'admin'] })
 								<option value="host">Host</option>
 							</select>
 						</div>
+						<div>
+							<label class="label">New password</label>
+							<input v-model="resetPasswords[u.id]" type="password" minlength="12" class="field" placeholder="leave blank to keep" autocomplete="new-password" />
+						</div>
 						<label class="flex items-center gap-2 text-sm">
 							<input type="checkbox" :checked="u.active" @change="updateUser(idx, { active: ($event.target as HTMLInputElement).checked })" />
 							Active
 						</label>
+						<button class="btn-ghost" type="button" @click="removeAccount(u)">Remove</button>
 					</div>
 				</div>
-				<div class="mt-4 flex justify-end">
-					<button class="btn-primary" type="button" @click="saveUsersApi">Save users</button>
+				<div v-if="users.length" class="mt-4 flex justify-end">
+					<button class="btn-primary" type="button" @click="saveUsersApi">Save accounts</button>
 				</div>
 				<form class="mt-6 grid items-end gap-3 border-t border-line pt-4 sm:grid-cols-[2fr_1fr_1fr_1fr_auto]" @submit.prevent="addUser">
 					<div><label class="label">Name</label><input v-model="newUser.name" class="field" required /></div>
@@ -393,7 +435,7 @@ definePageMeta({ middleware: ['auth', 'admin'] })
 						<label class="label">Role</label>
 						<select v-model="newUser.role" class="field"><option value="admin">Admin</option><option value="host">Host</option></select>
 					</div>
-					<button class="btn-primary" type="submit">Add user</button>
+					<button class="btn-primary" type="submit">Add account</button>
 				</form>
 			</section>
 

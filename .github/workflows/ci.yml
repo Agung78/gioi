@@ -45,7 +45,10 @@ jobs:
 
       - name: Generate Prisma client
         working-directory: apps/api
-        run: pnpm prisma:generate
+        run: pnpm exec prisma generate
+
+      - name: Prepare Nuxt types
+        run: pnpm --filter @gioi/web exec nuxt prepare
 
       - name: Typecheck
         run: pnpm typecheck
@@ -55,4 +58,4 @@ jobs:
 
       - name: Validate Prisma schema
         working-directory: apps/api
-        run: pnpm prisma validate
+        run: pnpm exec prisma validate
