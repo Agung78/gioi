@@ -29,4 +29,9 @@ registerPublicReservationRoutes(app, prisma)
 registerStaffAuthRoutes(app, prisma)
 registerStaffRoutes(app, prisma)
 
+// Vercel imports the default export; locally there is no platform to call it.
+if (!process.env.VERCEL) {
+	await app.listen({ port: Number(process.env.PORT ?? 3001), host: '127.0.0.1' })
+}
+
 export default app

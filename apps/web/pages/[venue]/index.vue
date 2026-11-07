@@ -84,6 +84,10 @@ const jsonLd = venueData.value
 			})),
 		}
 	: {}
+
+useHead({
+	script: [{ type: 'application/ld+json', innerHTML: JSON.stringify(jsonLd) }],
+})
 </script>
 
 <template>
@@ -105,6 +109,5 @@ const jsonLd = venueData.value
 			</ul>
 		</section>
 
-		<script type="application/ld+json">{{ jsonLd }}</script>
 	</div>
 </template>

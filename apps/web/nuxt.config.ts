@@ -13,6 +13,10 @@ export default defineNuxtConfig({
 		'/host/**': { ssr: false },
 		'/guests/**': { ssr: false },
 	},
+	// Local only: production rewrites /api to the API project in vercel.json.
+	$development: {
+		routeRules: { '/api/**': { proxy: 'http://127.0.0.1:3001/**' } },
+	},
 	vue: {
 		compilerOptions: {
 			isCustomElement: (tag) => tag.startsWith('icon-'),

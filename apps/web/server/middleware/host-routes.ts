@@ -1,10 +1,11 @@
-export default defineNuxtRouteMiddleware((to, from) => {
-	const host = useRuntimeConfig().public.apiBase ?? ''
-	const isBook = host.includes('book') || window.location.hostname.includes('book')
+// book.* serves guest routes only; admin.* serves staff routes only. Other hosts (localhost, previews) serve both.
+const STAFF = /^\/(login|host|guests|admin)(\/|$)/
+const GUEST = /^\/[^/]+\/(book|confirmation|feedback)(\/|$)/
 
-	const staffRoutes = ['/login', '/host', '/guests', '/admin']
-
-	if (isBook && staffRoutes.some((r) => to.path.startsWith(r))) {
-		return abortNavigation({ statusCode: 404 })
+export default defineEventHandler((event) => {
+	const host = getRequestHost(event, { xForwardedHost: true })
+	const path = event.path.split('?')[0]
+	if ((host.startsWith('book.') && STAFF.test(path)) || (host.startsWith('admin.') && GUEST.test(path))) {
+		throw createError({ statusCode: 404, statusMessage: 'Not Found' })
 	}
 })
