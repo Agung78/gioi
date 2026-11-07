@@ -194,8 +194,12 @@ definePageMeta({ middleware: ['auth', 'admin'] })
 			<p class="text-muted">Loading settings…</p>
 		</div>
 
+		<div v-else-if="!draft" class="card py-16 text-center">
+			<p class="text-muted">No venue found for this account. Run the create-super-admin script, or check the API.</p>
+		</div>
+
 		<div v-else>
-			<section class="card mb-6">
+			<section v-if="!auth.isSuperAdmin" class="card mb-6">
 				<h2 class="font-display text-xl font-semibold text-ink">Restaurant</h2>
 				<div class="mt-4 grid gap-4 sm:grid-cols-2">
 					<div>
@@ -236,7 +240,7 @@ definePageMeta({ middleware: ['auth', 'admin'] })
 				</div>
 			</section>
 
-			<section class="card mb-6">
+			<section v-if="!auth.isSuperAdmin" class="card mb-6">
 				<h2 class="font-display text-xl font-semibold text-ink">Opening hours & rules</h2>
 				<div class="mt-4 grid gap-3 sm:grid-cols-2">
 					<div v-for="day in DAYS_OF_WEEK" :key="day" class="grid grid-cols-[64px_minmax(0,1fr)_minmax(0,1fr)] items-center gap-2 text-sm">
@@ -292,7 +296,7 @@ definePageMeta({ middleware: ['auth', 'admin'] })
 				</div>
 			</section>
 
-			<section class="card mb-6">
+			<section v-if="!auth.isSuperAdmin" class="card mb-6">
 				<h2 class="font-display text-xl font-semibold text-ink">Guest feedback</h2>
 				<p class="mt-1 text-sm text-muted">Configure the WhatsApp message template and feedback tags.</p>
 				<div class="mt-4 grid gap-4">
@@ -317,7 +321,7 @@ definePageMeta({ middleware: ['auth', 'admin'] })
 				<div class="mt-4 flex justify-end"><button class="btn-primary" type="button" @click="saveSettings">Save feedback settings</button></div>
 			</section>
 
-			<section class="card mb-6">
+			<section v-if="!auth.isSuperAdmin" class="card mb-6">
 				<h2 class="font-display text-xl font-semibold text-ink">Seating areas</h2>
 				<p class="text-sm text-muted">Total bookable capacity: {{ totalCapacity }} covers</p>
 				<div class="mt-4 space-y-3">
@@ -393,7 +397,7 @@ definePageMeta({ middleware: ['auth', 'admin'] })
 				</form>
 			</section>
 
-			<section class="card">
+			<section v-if="!auth.isSuperAdmin" class="card">
 				<h2 class="font-display text-xl font-semibold text-ink">Data export</h2>
 				<p class="mt-1 text-sm text-muted">Download every reservation as CSV. The file includes guest contact details and allergy/accessibility notes — handle accordingly.</p>
 				<button class="btn-primary mt-4" type="button" @click="exportReservations">Download reservations CSV</button>
