@@ -13,6 +13,7 @@ import {
 	type DashboardFilters,
 } from '@gioi/domain'
 import { notFound, conflict, forbidden, unprocessable, AppError } from '../../lib/errors'
+import { hash } from '@node-rs/argon2'
 import { requireAuth, requireRole, requireVenueAccess } from '../../lib/middleware'
 import {
 	localDate,
@@ -759,6 +760,40 @@ export function registerStaffRoutes(app: FastifyInstance, prisma: PrismaClient):
 		},
 	)
 
+	app.post(
+		'/admin/users',
+		{
+			schema: {
+				body: {
+					type: 'object',
+					required: ['venueId', 'name', 'login', 'password', 'role'],
+					properties: {
+						venueId: { type: 'string', format: 'uuid' },
+						name: { type: 'string', minLength: 1, maxLength: 120 },
+						login: { type: 'string', minLength: 1, maxLength: 64 },
+						password: { type: 'string', minLength: 12, maxLength: 200 },
+						role: { type: 'string', enum: ['host', 'admin'] },
+					},
+				},
+			},
+		},
+		async (request: FastifyRequest<{ Body: { venueId: string; name: string; login: string; password: string; role: string } }>, reply) => {
+			const session = await requireAuth(prisma, request.cookies as Record<string, string>)
+			if (!session.user.isSuperAdmin) throw forbidden('super admin required')
+			const { venueId, name, password, role } = request.body
+			const login = request.body.login.trim().toLowerCase()
+			if (await prisma.user.findUnique({ where: { login } })) throw conflict('login already exists')
+			const passwordHash = await hash(password)
+			const user = await prisma.user.create({
+				data: { name, login, passwordHash, venues: { create: { venueId, role: role as VenueRole } } },
+			})
+			await prisma.auditEvent.create({
+				data: { venueId, actorType: 'user', actorUserId: session.user.id, action: 'user.created', entityType: 'user', entityId: user.id },
+			})
+			return reply.status(201).send({ id: user.id, name, login, role, active: true, venueId })
+		},
+	)
+
 	app.put(
 		'/admin/users',
 		{
@@ -873,6 +908,7 @@ export function registerStaffRoutes(app: FastifyInstance, prisma: PrismaClient):
 		}>) => {
 			const session = await requireAuth(prisma, request.cookies as Record<string, string>)
 			const venueId = request.query.venueId ?? session.user.venueIds[0]
+			if (!venueId) throw forbidden('no venue associated with this user')
 			requireVenueAccess(session, venueId)
 			requireRole('admin')(session, venueId)
 			const { from, to } = request.query

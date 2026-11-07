@@ -8,7 +8,7 @@ import {
 	fetchOpeningHours, saveOpeningHours,
 	fetchClosedDates, saveClosedDates,
 	fetchSeatingAreas, saveSeatingAreas,
-	fetchUsers, saveUsers, fetchMe,
+	fetchUsers, saveUsers, createUser, fetchMe,
 	downloadExportCSV,
 	type VenueSettings, type OpeningHoursRow, type ClosedDateRow, type SeatingAreaRow, type StaffUserRow,
 } from '@/composables/useApi'
@@ -111,6 +111,11 @@ async function saveHours() {
 
 const saveAreas = () => run(() => saveSeatingAreas(venueId, areas.value))
 const saveUsersApi = () => run(() => saveUsers(users.value.map((u) => ({ userId: u.id, venueId: u.venueId, role: u.role, name: u.name, login: u.login, active: u.active }))))
+const newUser = ref({ name: '', login: '', password: '', role: 'host' })
+const addUser = () => run(async () => {
+	await createUser({ venueId, ...newUser.value })
+	newUser.value = { name: '', login: '', password: '', role: 'host' }
+})
 
 const newClosedDate = ref('')
 const closedDateError = ref<string | null>(null)
@@ -376,6 +381,16 @@ definePageMeta({ middleware: ['auth', 'admin'] })
 				<div class="mt-4 flex justify-end">
 					<button class="btn-primary" type="button" @click="saveUsersApi">Save users</button>
 				</div>
+				<form class="mt-6 grid items-end gap-3 border-t border-line pt-4 sm:grid-cols-[2fr_1fr_1fr_1fr_auto]" @submit.prevent="addUser">
+					<div><label class="label">Name</label><input v-model="newUser.name" class="field" required /></div>
+					<div><label class="label">Login</label><input v-model="newUser.login" class="field" required autocomplete="off" /></div>
+					<div><label class="label">Password (12+)</label><input v-model="newUser.password" type="password" minlength="12" class="field" required autocomplete="new-password" /></div>
+					<div>
+						<label class="label">Role</label>
+						<select v-model="newUser.role" class="field"><option value="admin">Admin</option><option value="host">Host</option></select>
+					</div>
+					<button class="btn-primary" type="submit">Add user</button>
+				</form>
 			</section>
 
 			<section class="card">

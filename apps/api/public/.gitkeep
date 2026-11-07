@@ -1,0 +1,1 @@
+DATABASE_URL="postgresql://neondb_owner:npg_1zYroQcpKNA2@ep-shiny-mode-b396dj4j.c-4.ap-southeast-1.aws.neon.tech/neondb?sslmode=require" ADMIN_LOGIN=admin ADMIN_PASSWORD="gioi#Kx7mQ2v" npx tsx prisma/create-super-admin.ts
