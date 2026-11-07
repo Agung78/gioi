@@ -1,0 +1,289 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum ReservationStatus {
+  pending
+  confirmed
+  arrived
+  seated
+  completed
+  cancelled
+  no_show
+
+  @@map("reservation_status")
+}
+
+enum Channel {
+  website
+  instagram
+  google
+  whatsapp
+  walk_in
+  phone
+  host
+  chope_import
+
+  @@map("reservation_channel")
+}
+
+enum VenueRole {
+  host
+  admin
+
+  @@map("venue_role")
+}
+
+enum ActorType {
+  user
+  guest
+  system
+
+  @@map("actor_type")
+}
+
+model Venue {
+  id                       String   @id @default(uuid(7)) @db.Uuid
+  slug                     String   @unique
+  name                     String
+  timeZone                 String   @map("time_zone")
+  tagline                  String
+  intro                    String
+  address                  String
+  phone                    String
+  whatsapp                 String
+  email                    String
+  mapsUrl                  String   @map("maps_url")
+  bookingIntervalMinutes   Int      @default(30) @map("booking_interval_minutes") @db.SmallInt
+  partyMin                 Int      @default(1) @map("party_min") @db.SmallInt
+  partyMax                 Int      @default(8) @map("party_max") @db.SmallInt
+  diningMinutes           Int      @default(120) @map("dining_minutes") @db.SmallInt // typical table time per party, minutes
+  leadTimeMinutes          Int      @default(60) @map("lead_time_minutes") @db.SmallInt
+  cutoffMinutes            Int      @default(120) @map("cutoff_minutes") @db.SmallInt
+  noShowTargetPercent      Int      @default(8) @map("no_show_target_percent") @db.SmallInt
+  overCapacityAlertPercent Int      @default(85) @map("over_capacity_alert_percent") @db.SmallInt
+  cancellationPolicy       String   @map("cancellation_policy")
+  feedbackTitle            String?  @map("feedback_title")
+  feedbackSubtitle         String?  @map("feedback_subtitle")
+  feedbackTags             String[] @map("feedback_tags")
+  feedbackMessageTemplate  String   @map("feedback_message_template")
+  createdAt                DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt                DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  openingHours OpeningHours[]
+  closedDates  ClosedDate[]
+  seatingAreas SeatingArea[]
+  guests       Guest[]
+  reservations Reservation[]
+  feedback     Feedback[]
+  userVenues   UserVenue[]
+  auditEvents  AuditEvent[]
+
+  @@map("venues")
+}
+
+model OpeningHours {
+  venueId     String @map("venue_id") @db.Uuid
+  weekday     Int    @db.SmallInt // 0 = Monday … 6 = Sunday
+  openMinute  Int    @map("open_minute") @db.SmallInt
+  closeMinute Int    @map("close_minute") @db.SmallInt
+
+  venue Venue @relation(fields: [venueId], references: [id], onDelete: Cascade)
+
+  @@id([venueId, weekday])
+  @@map("opening_hours")
+}
+
+model ClosedDate {
+  venueId String   @map("venue_id") @db.Uuid
+  date    DateTime @db.Date // local date in the venue zone
+  reason  String?
+
+  venue Venue @relation(fields: [venueId], references: [id], onDelete: Cascade)
+
+  @@id([venueId, date])
+  @@map("closed_dates")
+}
+
+model SeatingArea {
+  id        String   @id @default(uuid(7)) @db.Uuid
+  venueId   String   @map("venue_id") @db.Uuid
+  name      String
+  capacity  Int      @db.SmallInt
+  bookable  Boolean  @default(true)
+  minParty  Int?     @map("min_party") @db.SmallInt
+  maxParty  Int?     @map("max_party") @db.SmallInt
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  venue        Venue         @relation(fields: [venueId], references: [id])
+  reservations Reservation[]
+
+  @@unique([venueId, name])
+  @@unique([id, venueId])
+  @@map("seating_areas")
+}
+
+model Guest {
+  id                 String    @id @default(uuid(7)) @db.Uuid
+  venueId            String    @map("venue_id") @db.Uuid
+  fullName           String    @map("full_name")
+  phone              String?
+  email              String?
+  country            String?
+  allergies          String[]
+  accessibility      String?
+  seatingPreference  String?   @map("seating_preference")
+  notes              String?
+  marketingConsent   Boolean   @default(false) @map("marketing_consent")
+  marketingConsentAt DateTime? @map("marketing_consent_at") @db.Timestamptz(6)
+  anonymizedAt       DateTime? @map("anonymized_at") @db.Timestamptz(6)
+  createdAt          DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt          DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  venue        Venue         @relation(fields: [venueId], references: [id])
+  reservations Reservation[]
+
+  @@unique([venueId, phone])
+  @@unique([id, venueId])
+  @@map("guests")
+}
+
+model Reservation {
+  id             String            @id @default(uuid(7)) @db.Uuid
+  venueId        String            @map("venue_id") @db.Uuid
+  bookingCode    String            @unique @map("booking_code")
+  guestId        String            @map("guest_id") @db.Uuid
+  seatingAreaId  String            @map("seating_area_id") @db.Uuid
+  startsAt       DateTime          @map("starts_at") @db.Timestamptz(6)
+  partySize      Int               @map("party_size") @db.SmallInt
+  occasion       String?
+  guestNotes     String?           @map("guest_notes")
+  internalNotes  String?           @map("internal_notes")
+  source         Channel
+  status         ReservationStatus
+  idempotencyKey String?           @unique @map("idempotency_key") @db.Uuid
+  createdById    String?           @map("created_by_id") @db.Uuid
+  updatedById    String?           @map("updated_by_id") @db.Uuid
+  createdAt      DateTime          @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt      DateTime          @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  venue        Venue                    @relation(fields: [venueId], references: [id])
+  guest        Guest                    @relation(fields: [guestId, venueId], references: [id, venueId])
+  seatingArea  SeatingArea              @relation(fields: [seatingAreaId, venueId], references: [id, venueId])
+  createdBy    User?                    @relation("ReservationCreatedBy", fields: [createdById], references: [id])
+  updatedBy    User?                    @relation("ReservationUpdatedBy", fields: [updatedById], references: [id])
+  statusEvents ReservationStatusEvent[]
+  feedback     Feedback?
+
+  @@index([venueId, startsAt])
+  @@index([seatingAreaId, startsAt])
+  @@index([guestId, startsAt])
+  @@map("reservations")
+}
+
+model ReservationStatusEvent {
+  id            String             @id @default(uuid(7)) @db.Uuid
+  reservationId String             @map("reservation_id") @db.Uuid
+  fromStatus    ReservationStatus? @map("from_status")
+  toStatus      ReservationStatus  @map("to_status")
+  actorType     ActorType          @map("actor_type")
+  actorUserId   String?            @map("actor_user_id") @db.Uuid
+  reason        String?
+  at            DateTime           @default(now()) @db.Timestamptz(6)
+
+  reservation Reservation @relation(fields: [reservationId], references: [id])
+  actorUser   User?       @relation(fields: [actorUserId], references: [id])
+
+  @@index([reservationId, at])
+  @@map("reservation_status_events")
+}
+
+model Feedback {
+  id            String   @id @default(uuid(7)) @db.Uuid
+  venueId       String   @map("venue_id") @db.Uuid
+  reservationId String   @unique @map("reservation_id") @db.Uuid
+  rating        Int      @db.SmallInt
+  comments      String
+  serviceTags   String[] @map("service_tags")
+  submittedAt   DateTime @default(now()) @map("submitted_at") @db.Timestamptz(6)
+
+  venue       Venue       @relation(fields: [venueId], references: [id])
+  reservation Reservation @relation(fields: [reservationId], references: [id])
+
+  @@index([venueId, submittedAt])
+  @@map("feedback")
+}
+
+model User {
+  id           String    @id @default(uuid(7)) @db.Uuid
+  name         String
+  login        String    @unique
+  passwordHash String    @map("password_hash")
+  isSuperAdmin Boolean   @default(false) @map("is_super_admin")
+  active       Boolean   @default(true)
+  lastLoginAt  DateTime? @map("last_login_at") @db.Timestamptz(6)
+  createdAt    DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt    DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  venues              UserVenue[]
+  sessions            Session[]
+  createdReservations Reservation[]            @relation("ReservationCreatedBy")
+  updatedReservations Reservation[]            @relation("ReservationUpdatedBy")
+  statusEvents        ReservationStatusEvent[]
+  auditEvents         AuditEvent[]
+
+  @@map("users")
+}
+
+model UserVenue {
+  userId  String    @map("user_id") @db.Uuid
+  venueId String    @map("venue_id") @db.Uuid
+  role    VenueRole
+
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  venue Venue @relation(fields: [venueId], references: [id], onDelete: Cascade)
+
+  @@id([userId, venueId])
+  @@index([venueId])
+  @@map("user_venues")
+}
+
+model Session {
+  tokenHash String   @id @map("token_hash")
+  userId    String   @map("user_id") @db.Uuid
+  expiresAt DateTime @map("expires_at") @db.Timestamptz(6)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+  @@map("sessions")
+}
+
+model AuditEvent {
+  id          String   @id @default(uuid(7)) @db.Uuid
+  venueId     String?  @map("venue_id") @db.Uuid
+  actorType   ActorType @map("actor_type")
+  actorUserId String?  @map("actor_user_id") @db.Uuid
+  action      String
+  entityType  String   @map("entity_type")
+  entityId    String?  @map("entity_id") @db.Uuid
+  changes     Json?    @map("changes")
+  note        String?
+  requestId   String?  @map("request_id")
+  at          DateTime @default(now()) @db.Timestamptz(6)
+
+  venue     Venue? @relation(fields: [venueId], references: [id])
+  actorUser User?  @relation(fields: [actorUserId], references: [id])
+
+  @@index([venueId, at])
+  @@index([actorUserId])
+  @@map("audit_events")
+}
