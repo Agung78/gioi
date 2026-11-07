@@ -13,7 +13,8 @@
     "typecheck": "tsc --noEmit",
     "prisma:generate": "node --env-file=.env node_modules/prisma/build/index.js generate",
     "prisma:migrate": "node --env-file=.env node_modules/prisma/build/index.js migrate deploy",
-    "prisma:seed": "tsx --env-file=.env prisma/seed.ts"
+    "prisma:seed": "tsx --env-file=.env prisma/seed.ts",
+    "bundle": "esbuild src/index.ts --bundle --platform=node --format=esm --target=node22 --packages=external --alias:@gioi/domain=../../packages/domain/src/index.ts --outfile=dist/app.mjs"
   },
   "dependencies": {
     "@fastify/cookie": "^11.0.0",
@@ -26,6 +27,7 @@
   },
   "devDependencies": {
     "@types/node": "^22",
+    "esbuild": "^0.28.2",
     "supertest": "^7.0.0",
     "tsx": "^4.0.0",
     "typescript": "^5.7.2",
