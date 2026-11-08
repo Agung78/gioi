@@ -32,6 +32,12 @@ function staffVenue(session: AuthedSession, venueId?: string): string {
 	return id
 }
 
+function normalizeLogin(raw: string): string {
+	const login = raw.trim().toLowerCase()
+	if (!login || /\s/.test(login)) throw unprocessable('login must not contain spaces')
+	return login
+}
+
 function asJson(v: unknown): Prisma.InputJsonValue | null {
 	return v as unknown as Prisma.InputJsonValue | null
 }
@@ -830,7 +836,7 @@ export function registerStaffRoutes(app: FastifyInstance, prisma: PrismaClient):
 			const session = await requireAuth(prisma, request.cookies as Record<string, string>)
 			if (!session.user.isSuperAdmin) throw forbidden('super admin required')
 			const { venueId, name, password, role } = request.body
-			const login = request.body.login.trim().toLowerCase()
+			const login = normalizeLogin(request.body.login)
 			if (await prisma.user.findUnique({ where: { login } })) throw conflict('login already exists')
 			const passwordHash = await hash(password)
 			const user = await prisma.user.create({
@@ -882,7 +888,8 @@ export function registerStaffRoutes(app: FastifyInstance, prisma: PrismaClient):
 						create: { userId: row.userId, venueId: row.venueId, role: row.role as VenueRole },
 					})
 					const { name, active, password } = row
-					const login = row.login?.trim().toLowerCase()
+					const login = row.login === undefined ? undefined : normalizeLogin(row.login)
+					if (login !== undefined && (await tx.user.findFirst({ where: { login, NOT: { id: row.userId } }, select: { id: true } }))) throw conflict('login already exists')
 					if (name !== undefined || login !== undefined || active !== undefined || password !== undefined) {
 						const passwordHash = password === undefined ? undefined : await hash(password)
 						await tx.user.update({ where: { id: row.userId }, data: { name, login, active, passwordHash } })

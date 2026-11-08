@@ -13,9 +13,9 @@ Derived from the journey diagrams in [`docs/diagrams/`](./diagrams/) (`customer-
 | Web | `http://localhost:3000` (Nuxt dev; `/api/**` proxies to `127.0.0.1:3001`) |
 | API | `http://127.0.0.1:3001` (`pnpm --filter api dev`) |
 | DB | Seeded (`pnpm --filter api prisma:seed`) |
-| Super admin | `admin` / `password` (isSuperAdmin, venue role `admin`) |
-| Host | `host` / `password` (venue role **`host`**; confirm in Settings → Users before testing) |
-| Venue admin | create `venueadmin`: not super admin, venue role `admin` |
+| Super admin | `admin` / `password` (isSuperAdmin; manages Venues + Accounts in Settings; seed links it to the venue as `admin`) |
+| Host | `host` / `password` (venue role **`host`**; confirm in Settings → Accounts before testing) |
+| Venue admin | create `venueadmin` in Settings → Accounts as super admin (T-16): not super admin, venue role `admin` |
 | Browsers | Desktop Chrome at 100%, plus mobile 390×844. Run the public booking flow (G-*) in both |
 | Two-device tests | Two separate browser profiles (or normal + incognito) |
 
@@ -39,6 +39,8 @@ Reset between runs: re-seed, or `TRUNCATE venues, users CASCADE` on the **test**
 | Admin 2 Dashboard | D-01…D-12 |
 | Admin 3 Settings (+ every save audited) | T-01…T-12 |
 | Audit log | L-01…L-06 |
+| Super admin venues & accounts | T-13…T-26, R-14 |
+| Bootstrap, prod, CI | B-01…B-06, D-13 |
 
 ---
 
@@ -98,6 +100,7 @@ Reset between runs: re-seed, or `TRUNCATE venues, users CASCADE` on the **test**
 |---|---|---|---|---|---|
 | G-28 | P2 | Theme toggle | Click the theme button | Smooth cross-fade (no per-element flicker); persists on reload; follows OS when unset; reduced-motion = instant | ☐ |
 | G-29 | P2 | Theme button vs summary bar | Mobile `/bali/book` | Button sits above the sticky summary | ☐ |
+| G-30 | P1 | No staff-login link | Scroll to the landing footer on `/bali` | Footer reads "GIOI Ocean Gourmet · Kuta, Bali" with no "Staff login" link; `/login` still opens by URL | ✔ |
 
 ---
 
@@ -129,18 +132,19 @@ Expected is shown as **host / venue admin / super admin**.
 | R-01 | P0 | `/admin` | Type URL | → `/host` / loads / loads | ✔ |
 | R-02 | P0 | `/admin/settings` | Type URL | → `/host` / loads / loads | ✔ |
 | R-03 | P0 | `/admin/audit` | Type URL | → `/host` / → `/host` / loads | ✔ |
-| R-04 | P0 | Settings content | Open Settings | — / loads, **no Users section** (no endless "Loading settings…") / all sections | ✔ |
+| R-04 | P0 | Settings content | Open Settings | — / loads venue sections only (Restaurant, hours, feedback, seating, export), **no Venues/Accounts** / Venues + Accounts only | ☐ (venue admin ✔, super admin ✔; host not re-run) |
 | R-05 | P0 | API settings reads (`GET /api/admin/venues/:id`, `/opening-hours`, `/closed-dates`, `/seating-areas`) | DevTools/curl with session cookie | 403 / 200 / 200 | ✔ |
 | R-06 | P0 | API settings writes (`PATCH`/`PUT`) | same | 403 / 200 / 200 | ✔ |
 | R-07 | P0 | `/api/admin/analytics`, `/api/admin/venues/:id/export.csv` | same | 403 / 200 / 200 | ✔ |
-| R-08 | P0 | `/api/admin/users`, `/api/admin/audit-log` | same | 403 / 403 / 200 | ✔ |
+| R-08 | P0 | `/api/admin/users`, `/api/admin/venues` (list/create), `/api/admin/audit-log` | same | 403 / 403 / 200 | ☐ |
 | R-09 | P0 | Cross-venue access | Second venue: request its day view / guest / reservation by ID | 403 for non-super users | ✔ |
 | R-10 | P1 | Front-of-house works for host | Day view, walk-in, edit reservation, status change, guest search/profile | All allowed | ✔ |
 | R-11 | P1 | Venue admin can edit reservations | `PATCH /staff/reservations/:id` as `venueadmin` | Allowed (regression: was 403) | ✔ |
-| R-12 | P1 | Role change takes effect | Change a role in Settings → Users; log in again | Nav/redirect match the new role | ✔ |
+| R-12 | P1 | Role change takes effect | Change a role in Settings → Accounts; log in again | Nav/redirect match the new role | ✔ |
 | R-13 | P1 | Dashboard for venue admin | `/admin` as `venueadmin` | Loads; no 403 on audit-log (removed dead fetch) | ✔ |
+| R-14 | P1 | Super admin Settings scope | Open Settings as super admin | Only Venues + Accounts cards; no Restaurant, hours, feedback, seating, export (UI only; API would still allow edits) | ✔ |
 
-> **Doc/code difference:** the diagrams say `/admin` is SUPER_ADMIN only. The code now lets **venue admins** use Dashboard + Settings (not Users or Audit). Confirm that is intended; if not, tighten the `admin` middleware and API `requireRole`.
+> **Doc/code difference:** the diagrams say `/admin` is SUPER_ADMIN only. The code lets **venue admins** use Dashboard + Settings (not Users, Venues or Audit). The **super admin** Settings page now shows only Venues + Accounts; venue details are edited by the venue admin. Confirm that is intended; if not, tighten the `admin` middleware and API `requireRole`.
 
 ---
 
@@ -211,29 +215,52 @@ Expected is shown as **host / venue admin / super admin**.
 | D-10 | P1 | Reservations pagination | >25 matches | 25/page (was "first 50"); shrinking results clamps the page | ✔ |
 | D-11 | P1 | Export CSV button | Click in the table header | Currently rendered without a handler — verify intent (use Settings → Data export) | ✘ |
 | D-12 | P2 | Empty range | Range with no data | Empty states, no NaN | ✔ |
+| D-13 | P1 | New venue, no data | Dashboard on a venue with zero reservations | Zeros/empty states; no NaN, no "Invalid Date", no 500 | ✔ (found + fixed: "peak 0 on Invalid Date") |
+| D-14 | P1 | API down on dashboard | Stop the API, reload `/admin` | The real error message shows (not "Invalid date range"); no crash | ☐ |
 
 ## 7. Admin journey — Settings (`/admin/settings`, every save audited)
 
 | ID | P | Scenario | Steps | Expected | Status |
 |---|---|---|---|---|---|
-| T-01 | P0 | Load | Open as venue admin and super admin | All cards load; Users only for super admin | ✔ |
+| T-01 | P0 | Load | Open as venue admin and super admin | Venue admin: venue cards. Super admin: Venues + Accounts cards only | ✔ |
 | T-02 | P0 | **Restaurant** | Edit tagline/intro/address/maps URL/phone/WhatsApp/policy → Save | "Saved at …"; persists; shown on `/bali`; audit event | ✔ |
 | T-03 | P1 | Name read-only | Restaurant name | Disabled (not in the API whitelist) | ✔ |
 | T-04 | P1 | **Opening hours & rules** | Hours per weekday, interval, party limits, lead time, cut-off, closed dates | Public availability follows each | ✔ |
 | T-05 | P1 | **Guest feedback** | Title, subtitle, tags, WhatsApp template | Used on feedback page and the host's feedback link | ✔ |
 | T-06 | P1 | **Seating areas** | Name, capacity, party min/max, bookable, add/remove | Public + walk-in options follow | ✔ |
-| T-07 | P1 | **Users** (super admin) | name, login, role, active | Persists; effective on next login; audit event | ✔ |
+| T-07 | P1 | **Accounts** (super admin) | See 7.1 (T-13…T-28) | Replaced by the Venues/Accounts scenarios | ✔ |
 | T-08 | P0 | **Data export** | Download reservations CSV | File downloads with guest contact + allergy/accessibility notes; 403 for hosts | ✔ |
 | T-09 | P1 | Save is diffed | Change one field, save | Audit event lists only the changed field(s) | ✔ |
 | T-10 | P1 | Failed save | Stop the API, Save | "Save failed…" message, no silent success | ☐ |
 | T-11 | P1 | Concurrent edit | Two tabs edit the same card | Last save wins; no crash; no stale data after reload | ☐ |
 | T-12 | P2 | Validation | Negative capacity, min > max, bad time ranges | Rejected with a clear message | ✔ |
 
+### 7.1 Super admin: venues and accounts (Settings → Venues / Accounts)
+
+| ID | P | Scenario | Steps | Expected | Status |
+|---|---|---|---|---|---|
+| T-13 | P0 | Create venue | Venues → name + slug → Create venue | Appears selected in the picker; audit `venue.created`; blank details for its admin to fill | ✔ (audit entry not checked in the UI) |
+| T-14 | P1 | Slug rules | Uppercase, spaces, duplicate slug | Rejected with a clear message (400 pattern / 409 "venue slug already exists"); nothing created | ✔ |
+| T-15 | P1 | Switch venue | Pick another venue in the picker | Accounts list reloads for that venue only | ✔ |
+| T-16 | P0 | Add account | Accounts → name, login, password (12+), role → Add account | Listed; user can log in; lands on `/admin` (admin) or `/host` (host); sees only that venue | ☐ (admin ✔ lands `/admin`; host login ✔ via API; host landing page and venue isolation not run) |
+| T-17 | P1 | Login rules | Duplicate login; login typed with capitals/spaces | 409 "login already exists"; stored trimmed + lowercase; login form accepts any case | ✔ |
+| T-18 | P1 | Password length | Password under 12 chars | Blocked in the form; API 400 | ✔ (form; API 400 seen in the earlier curl run) |
+| T-19 | P1 | Edit account | Change name, login, role → Save accounts | Persists; role effective on next login; audit event | ☐ (name + login ✔; role change and audit entry not checked) |
+| T-20 | P0 | Reset password | Type a new password → Save accounts | New password works, old fails; that user's open sessions get 401; blank field keeps the old password | ✔ |
+| T-21 | P1 | Deactivate | Untick Active → Save | User signed out on next request; cannot log in | ✔ |
+| T-22 | P0 | Remove | Remove → confirm; also test Cancel on the prompt | Cancel changes nothing; confirm removes from the list; user with no other venue cannot log in; audit `user.removed` | ✔ (audit entry not checked in the UI) |
+| T-23 | P1 | Super admin hidden | Look at the Accounts list | The super admin's own row is not listed | ✔ |
+| T-24 | P1 | Empty states | No venues; venue with no accounts | Picker disabled and no Accounts card; "No admin or host accounts for this venue yet." | ☐ (no-accounts half ✔; zero-venue state not run) |
+| T-25 | P0 | API authorization | As host / venue admin / logged out: `GET`/`POST /api/admin/venues`, `POST`/`PUT /api/admin/users`, `DELETE /api/admin/users/:id?venueId=` | 403 / 403 / 401; `DELETE` on a super admin id → 404; bad UUID → 400 | ✔ |
+| T-26 | P0 | Venue admin first run | Log in as the new venue admin on a blank venue | Settings loads; fill Restaurant, hours, seating areas; saved; `/<slug>` shows them; multi-venue isolation holds (R-09) | ✔ (Restaurant only; hours/seating not filled) |
+| T-27 | P1 | No spaces in logins | Create or edit a login containing a space, or only spaces | 422 "login must not contain spaces"; leading/trailing spaces are trimmed | ✔ |
+| T-28 | P1 | Rename to an existing login | Edit an account's login to another user's login → Save | 409 "login already exists" (was a 500); renaming to its own login is a no-op | ✔ |
+
 ## 8. Audit log (`/admin/audit`, super admin)
 
 | ID | P | Scenario | Steps | Expected | Status |
 |---|---|---|---|---|---|
-| L-01 | P1 | Events recorded | Status change, settings save, users save, feedback link sent, seating-area change | One event each with actor, entity, changed fields, time | ✔ |
+| L-01 | P1 | Events recorded | Status change, settings save, users save, feedback link sent, seating-area change, venue created, user created, user removed | One event each with actor, entity, changed fields, time; check whether the entity filter (L-03) lists the new `venue.created` / `user.created` / `user.removed` types | ☐ |
 | L-02 | P1 | Newest first | Inspect order | Newest at top | ✔ |
 | L-03 | P1 | Filter | Entity dropdown: reservations / status changes / settings / seating areas / feedback links | List narrows; page clamps | ✔ |
 | L-04 | P1 | Pagination | >25 events | 25/page, Previous/Next | ✔ |
@@ -268,6 +295,17 @@ Expected is shown as **host / venue admin / super admin**.
 | X-07 | P1 | Garbage or oversized bodies to public booking | 4xx, never 500 | ✔ |
 | X-08 | P1 | Error shape / headers | `{ error, message }`; no stack traces | ✔ |
 
+## 11. Bootstrap, production and CI
+
+| ID | P | Scenario | Steps | Expected | Status |
+|---|---|---|---|---|---|
+| B-01 | P0 | Venue-only bootstrap | `DATABASE_URL=… ADMIN_LOGIN=admin npx tsx prisma/create-super-admin.ts` (no `ADMIN_PASSWORD`) on a DB with an admin and no venue | Prints `super admin ready: admin, venue: bali`; admin password unchanged; `GET /api/public/venues/bali` 200; safe to run twice | ✔ (local DB) |
+| B-02 | P1 | Bootstrap guards | Unknown `ADMIN_LOGIN` without password; `ADMIN_PASSWORD` shorter than 12 | Stops with a clear error; nothing written | ☐ |
+| B-03 | P0 | No venue yet (prod symptom) | Log in as super admin on a DB with no venue | Host day and Dashboard show empty data or a real error message (not 403 / "Invalid date range"); Settings shows Venues + "create venue", not a blank page | ☐ (empty-venue half ✔ as venue admin; zero-venue DB not run) |
+| B-04 | P1 | Re-login after bootstrap | Run the script while logged in, reload | Venue links appear only after logging in again (session holds old venue list) | ☐ |
+| B-05 | P1 | Empty-venue public page | Open `/<slug>` for a venue with blank address/phone/hours | Page renders without crash; missing values degrade gracefully | ✔ |
+| B-06 | P1 | CI | Push to a PR | Setup pnpm (no version conflict), install, prisma generate/validate without `.env`, `nuxt prepare`, typecheck, tests all green | ☐ (steps ✔ locally; GitHub run pending) |
+
 ---
 
 ## Known gaps worth a ticket (not scenarios)
@@ -278,6 +316,11 @@ Expected is shown as **host / venue admin / super admin**.
 - Sessions have a fixed 7-day life (no sliding expiry).
 - Pagination is client-side; only the audit endpoint accepts `limit`.
 - Diagrams are out of date on: venue-admin access, pagination (diagram says "first 50 rows"), and single-session login.
+- Settings hides venue sections from the super admin in the UI only; the API still lets a super admin edit venue settings.
+- No hard delete of users: "Remove" unlinks from the venue and deactivates when no venue is left (audit rows reference users).
+- No venue rename/delete, and no email field in Settings (email is only set at bootstrap/seed).
+- Super admin's own Host/Dashboard use the first linked venue only; no venue switcher there.
+- Public staff-login link was removed from the landing footer; `/login` is reachable by URL only.
 
 ## Run notes (2026-11-07, managed Chromium + curl, dev DB)
 
@@ -286,3 +329,16 @@ Expected is shown as **host / venue admin / super admin**.
 - ✘ **U-05** Dev-only `Hydration completed but contains mismatches` on `/bali` (cause not isolated).
 - ☐ not run: G-05, G-15b (no Turnstile key), G-17, G-28, G-29, H-04, L-05, S-11 (no guest with >10 visits), T-10, T-11, U-02 (no overflow at 390/768/1280; tap-target count not reviewed), U-03, U-04, U-06 (API down: pages show "Venue not found." / "couldn't find that booking code" instead of an unavailable state).
 - A-13 verified on a temp API with `CORS_ORIGIN` set: foreign Origin → 403, same origin → 200.
+
+## Run notes (2026-11-07, later: venues/accounts, localhost browser run)
+
+Managed Chromium (the user's Chrome relay was unusable: the relay on :9224 and this OMP session were different versions) against local web `:3000` + local API `:3001` + dev DB. Accounts and venues created by the run (`qa-mw6ffk7e`, `qava…`) remain in the dev DB, deactivated where possible (audit rows block deleting them). No prod access.
+
+- ✔ run in the browser: G-30, R-04 (venue admin + super admin), R-14, T-01, T-07, T-13 to T-17 (dup login 409 shown in the UI), T-18, T-20 to T-23, D-13, B-05.
+- ✔ run through the API: T-25 (host / venue admin / anon / super admin edge cases), T-27, T-28.
+- ☐ partial or not run: T-16 (host landing page, venue isolation), T-19 (role change, audit entry), T-24 (zero-venue state), T-26 (hours and seating not filled), D-14, B-02 (password-length guard), B-03 (zero-venue DB), B-04, B-06 (GitHub run), L-01 (audit entries for `venue.created` / `user.created` / `user.removed` not viewed in the Audit page), R-08 (`/api/admin/audit-log` not re-run).
+- **Found and fixed during this run:**
+  - D-13: the new-venue dashboard showed "peak 0 on Invalid Date" (empty peak date). The peak is now shown only when there is one.
+  - T-27: logins with spaces inside were accepted (`qaadminm  qahostr…`). They now return 422.
+  - T-28: renaming a login to an existing one returned 500. It now returns 409.
+- **Behaviour to remember when testing:** logging in as a user through the API replaces that user's browser session (single device per user, A-07). Use a separate user, or log in again after API calls.

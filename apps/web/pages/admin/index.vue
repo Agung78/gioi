@@ -225,7 +225,7 @@ definePageMeta({ middleware: ['auth', 'admin'] })
 			<section class="card lg:col-span-3">
 				<h3 class="font-display text-lg font-semibold text-ink">Next 30 days — covers per day <span class="ml-1 text-xs font-normal text-muted">unfiltered</span></h3>
 				<p v-if="dashboard" class="mt-1 text-xs text-muted">
-					{{ dashboard.upcoming30.totalCovers }} covers · avg {{ Math.round(dashboard.upcoming30.totalCovers / 30) }}/day · peak {{ upcoming30Peak.covers }} on {{ describeDayLabel(upcoming30Peak.date, today) }}
+					{{ dashboard.upcoming30.totalCovers }} covers · avg {{ Math.round(dashboard.upcoming30.totalCovers / 30) }}/day<template v-if="upcoming30Peak.date"> · peak {{ upcoming30Peak.covers }} on {{ describeDayLabel(upcoming30Peak.date, today) }}</template>
 				</p>
 				<Sparkline v-if="dashboard" class="mt-3" :values="upcoming30Covers" :height="120" />
 				<div class="grid text-center text-[10px] leading-tight text-muted" style="grid-template-columns: repeat(30, minmax(0, 1fr))">
