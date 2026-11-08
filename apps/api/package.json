@@ -23,6 +23,7 @@
     "@prisma/adapter-pg": "^7.0.0",
     "@prisma/client": "7.10.1",
     "fastify": "^5.0.0",
+    "posthog-node": "^5.63.1",
     "prisma": "^7.0.0"
   },
   "devDependencies": {

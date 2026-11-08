@@ -57,6 +57,12 @@ const showDetails = ref(false)
 const DIET = ['Vegetarian', 'Vegan', 'Halal', 'Gluten-free', 'Nut allergy', 'Shellfish allergy']
 const OCCASIONS = ['Birthday', 'Anniversary', 'Business dinner', 'Date night', 'Celebration']
 
+const posthog = usePostHog()
+
+function capture(event: string, props: Record<string, unknown> = {}) {
+  posthog?.capture(event, props)
+}
+
 const bookableAreas = computed(() => settings.value?.seatingAreas.filter((a: any) => a.bookable) ?? [])
 
 function toggleDiet(d: string) {
@@ -91,6 +97,13 @@ async function fetchSlots() {
     const res = await fetch(`/api/public/venues/${venue}/availability?date=${date.value}&party=${partySize.value}`, { credentials: 'include' })
     const json = await res.json()
     slots.value = json.slots ?? []
+    capture('slots_viewed', {
+      date: date.value,
+      party_size: partySize.value,
+      slots_total: slots.value.length,
+      slots_available: slots.value.filter((s) => s.open && (s.remaining == null || s.remaining >= partySize.value)).length,
+      days_ahead: Math.ceil((new Date(date.value).getTime() - new Date(today).getTime()) / 86400000),
+    })
   } finally {
     slotPending.value = false
   }
@@ -99,6 +112,10 @@ async function fetchSlots() {
 watch([date, partySize], () => {
   time.value = null
   fetchSlots()
+})
+
+watch(time, (t) => {
+  if (t) capture('slot_selected', { time: t, date: date.value, party_size: partySize.value })
 })
 
 const slotGrid = computed(() => slots.value)
@@ -147,12 +164,14 @@ async function submit() {
   if (!time.value) return
   const r = checkResult.value
   if (!r?.ok) {
+    capture('booking_submit_failed', { reason: 'slot_taken', date: date.value, party_size: partySize.value })
     error.value = 'That time just filled up. Pick another slot above.'
     time.value = null
     document.getElementById('when')?.scrollIntoView({ behavior: 'smooth' })
     return
   }
   if (turnstileSiteKey && !turnstileToken.value) {
+    capture('booking_submit_failed', { reason: 'turnstile', date: date.value, party_size: partySize.value })
     error.value = 'Please complete the verification.'
     return
   }
@@ -174,14 +193,16 @@ async function submit() {
       idempotencyKey: crypto.randomUUID(),
       ...(turnstileToken.value ? { turnstileToken: turnstileToken.value } : {}),
     }
-    const res = await createReservation(venue, body)
+    const res = await createReservation(venue, body, posthog?.get_distinct_id())
     router.push(`/${venue}/confirmation/${res.bookingCode}`)
   } catch (e: any) {
     if (e?.statusCode === 409) {
+      capture('booking_submit_failed', { reason: 'slot_taken', date: date.value, party_size: partySize.value })
       error.value = 'That time just filled up. Pick another slot above.'
       time.value = null
       fetchSlots()
     } else {
+      capture('booking_submit_failed', { reason: 'other', date: date.value, party_size: partySize.value })
       error.value = e.message || 'Booking failed. Try again.'
     }
   } finally {
@@ -218,7 +239,7 @@ onMounted(() => {
     <h1 class="mt-3 text-3xl font-extrabold md:text-4xl">Book a table</h1>
 
     <div class="mt-8 grid gap-8 lg:grid-cols-[1fr_320px]">
-      <form id="book-form" class="min-w-0 space-y-10" @submit.prevent="submit">
+      <form id="book-form" class="min-w-0 space-y-10" @submit.prevent="submit" @focusin.once="capture('booking_form_started')">
         <section id="when" class="space-y-5">
           <h2 class="text-xl font-bold">1. When</h2>
           <div>
@@ -250,7 +271,8 @@ onMounted(() => {
             </div>
             <p v-if="partySize >= partyOptions[partyOptions.length - 1]" class="mt-2 text-sm text-muted">
               Groups over {{ partySize }}? <a class="font-medium text-accent underline underline-offset-4"
-                :href="`https://wa.me/${settings.restaurant.whatsapp.replace(/\D/g, '')}`">Message us on WhatsApp</a>.
+                :href="`https://wa.me/${settings.restaurant.whatsapp.replace(/\D/g, '')}`"
+                @click="capture('whatsapp_clicked', { from: 'large_party' })">Message us on WhatsApp</a>.
             </p>
           </div>
           <div v-if="bookableAreas.length > 1">

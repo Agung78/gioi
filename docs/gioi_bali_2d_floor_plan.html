@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GIOI Bali — 2D Floor Plan</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-black min-h-screen py-10">
+<div class="relative w-full max-w-4xl mx-auto bg-slate-950 p-6 rounded-2xl shadow-2xl border border-slate-800">
+  <div class="flex justify-between items-center mb-4">
+    <div>
+      <h3 class="text-white font-semibold text-lg tracking-wide">Base Architectural Footprint</h3>
+      <p class="text-xs text-slate-400">Normalisasi Citra Satelit • Denah Dasar Tapak & Bangunan</p>
+    </div>
+    <div class="flex gap-3 text-xs">
+      <span class="flex items-center gap-1.5 text-slate-300"><span class="w-3 h-3 rounded-sm bg-blue-500/30 border border-blue-400"></span> Bangunan (Indoor)</span>
+      <span class="flex items-center gap-1.5 text-slate-300"><span class="w-3 h-3 rounded-sm bg-emerald-500/20 border border-emerald-400/50"></span> Courtyard / Open Area</span>
+      <span class="flex items-center gap-1.5 text-slate-300"><span class="w-3 h-3 rounded-sm bg-slate-800 border border-slate-600"></span> Boundary</span>
+    </div>
+  </div>
+
+  <svg viewBox="0 0 800 1100" class="w-full h-auto select-none" xmlns="http://www.w3.org/2000/svg" shape-rendering="geometricPrecision">
+    <defs>
+      <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+        <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#334155" stroke-width="0.7" stroke-dasharray="2 2" opacity="0.3"/>
+      </pattern>
+      <pattern id="paving" width="16" height="16" patternUnits="userSpaceOnUse">
+        <path d="M 0 8 L 16 8 M 8 0 L 8 16" stroke="#10b981" stroke-width="0.6" opacity="0.2"/>
+      </pattern>
+      <pattern id="tiles" width="14" height="14" patternUnits="userSpaceOnUse">
+        <path d="M 0 7 L 14 7 M 7 0 L 7 14" stroke="#60a5fa" stroke-width="0.6" opacity="0.25"/>
+      </pattern>
+    </defs>
+
+    <rect width="800" height="1100" fill="#090d16"/>
+    <rect width="800" height="1100" fill="url(#grid)"/>
+
+    <!-- 1. LAND BOUNDARY (rectangle) -->
+    <rect x="80" y="60" width="640" height="1000" fill="#0f172a" stroke="#3b82f6" stroke-width="2.5" stroke-dasharray="8 5" opacity="0.85"/>
+
+    <!-- OCEAN VIEW side (west) -->
+    <g fill="#38bdf8" font-family="monospace" font-size="13" letter-spacing="4">
+      <text x="45" y="560" text-anchor="middle" transform="rotate(-90 45 560)">OCEAN VIEW</text>
+      <path d="M 60,470 L 60,650" stroke="#38bdf8" stroke-width="1" stroke-dasharray="3 3" opacity="0.6"/>
+    </g>
+
+    <!-- 2. CENTRAL COURTYARD -->
+    <polygon points="145,195 310,360 430,240 545,310 655,200 655,315 535,435 535,630 145,630"
+             fill="url(#paving)" stroke="#10b981" stroke-width="1.5" stroke-linejoin="miter" opacity="0.9"/>
+    <text x="340" y="510" fill="#34d399" font-size="13" font-family="monospace" letter-spacing="2" text-anchor="middle">CENTRAL COURTYARD</text>
+
+    <!-- 3. PAVILION A (north) -->
+    <g stroke-linejoin="miter">
+      <polygon points="145,105 655,105 655,200 545,310 430,240 310,360 145,195"
+               fill="#1e293b" stroke="#60a5fa" stroke-width="3"/>
+      <polygon points="145,105 655,105 655,200 545,310 430,240 310,360 145,195" fill="url(#tiles)"/>
+      <path d="M 145,105 L 225,165 L 580,165 L 655,105 M 225,165 L 145,195 M 580,165 L 655,200"
+            stroke="#93c5fd" stroke-width="1.2" stroke-dasharray="4 2" opacity="0.6" fill="none"/>
+      <rect x="335" y="185" width="130" height="28" rx="4" fill="#0f172a" stroke="#3b82f6"/>
+      <text x="400" y="204" fill="#93c5fd" font-size="13" font-weight="600" font-family="sans-serif" text-anchor="middle">PAVILION A</text>
+    </g>
+
+    <!-- 4. MAIN HALL + EAST WING (L-shape) -->
+    <g stroke-linejoin="miter">
+      <polygon points="145,630 535,630 535,435 655,315 655,955 145,955"
+               fill="#1e293b" stroke="#60a5fa" stroke-width="3"/>
+      <polygon points="145,630 535,630 535,435 655,315 655,955 145,955" fill="url(#tiles)"/>
+      <path d="M 145,630 L 307,792 L 145,955 M 307,792 L 493,792 L 655,955 M 493,792 L 595,690 L 595,375 M 535,630 L 595,690"
+            stroke="#93c5fd" stroke-width="1.2" stroke-dasharray="4 2" opacity="0.6" fill="none"/>
+      <rect x="260" y="840" width="140" height="28" rx="4" fill="#0f172a" stroke="#3b82f6"/>
+      <text x="330" y="859" fill="#93c5fd" font-size="13" font-weight="600" font-family="sans-serif" text-anchor="middle">MAIN HALL (B)</text>
+      <g transform="rotate(-90 595 520)">
+        <rect x="545" y="508" width="100" height="24" rx="4" fill="#0f172a" stroke="#3b82f6"/>
+        <text x="595" y="524" fill="#93c5fd" font-size="11" font-weight="600" font-family="sans-serif" text-anchor="middle">EAST WING</text>
+      </g>
+    </g>
+
+    <!-- COMPASS: sketch "up" ≈ satellite NE, so north tilts left -->
+    <g transform="translate(760, 60) rotate(-35)">
+      <circle r="22" fill="#0f172a" stroke="#475569" stroke-width="1.5"/>
+      <path d="M 0,-16 L 6,0 L -6,0 Z" fill="#ef4444"/>
+      <path d="M 0,16 L 6,0 L -6,0 Z" fill="#94a3b8"/>
+      <text y="-26" fill="#f87171" font-size="10" font-weight="bold" text-anchor="middle">N</text>
+    </g>
+  </svg>
+</div>
+</body>
+</html>
