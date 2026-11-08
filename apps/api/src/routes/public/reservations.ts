@@ -2,6 +2,7 @@ import type { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify'
 import type { PrismaClient } from '@prisma/client'
 import { notFound, conflict, forbidden, unprocessable } from '../../lib/errors'
 import { randomBookingCode } from '../../lib/crypto'
+import { track } from '../../lib/analytics'
 import { addDays, canTransition, dayOfWeek, localDate, localTime, toMinutes, toUtc } from '@gioi/domain'
 
 interface CreateReservationBody {
@@ -92,7 +93,7 @@ export function registerPublicReservationRoutes(app: FastifyInstance, prisma: Pr
 			if (diffMin < venue.leadTimeMinutes || diffMin <= venue.cutoffMinutes) throw unprocessable('too soon to book')
 			if (body.date > addDays(localDate(new Date(), venue.timeZone), 90)) throw unprocessable('date too far ahead')
 
-			await prisma.$transaction(async (tx) => {
+			const { reservation, areaId } = await prisma.$transaction(async (tx) => {
 				// Lock the chosen (or candidate) seating area(s) to serialize capacity checks.
 				let areaId = body.seatingAreaId
 				const venueAreas = await tx.seatingArea.findMany({
@@ -183,11 +184,24 @@ export function registerPublicReservationRoutes(app: FastifyInstance, prisma: Pr
 					},
 				})
 
-				return reply.status(201).send({
-					bookingCode: reservation.bookingCode,
-					reservationId: reservation.id,
-					status: reservation.status,
-				})
+				return { reservation, areaId: areaId! }
+			})
+
+			await track('reservation created', distinctIdOf(request, reservation.id), {
+				reservation_id: reservation.id,
+				venue: slug,
+				source: 'website',
+				party_size: body.partySize,
+				seating_area_id: areaId,
+				days_ahead: Math.floor((startsAt.getTime() - Date.now()) / 86400000),
+				lead_hours: Math.floor((startsAt.getTime() - Date.now()) / 3600000),
+				has_occasion: !!body.occasion,
+				has_dietary: (body.allergies?.length ?? 0) > 0,
+			})
+			return reply.status(201).send({
+				bookingCode: reservation.bookingCode,
+				reservationId: reservation.id,
+				status: reservation.status,
 			})
 		},
 	)
@@ -264,6 +278,15 @@ export function registerPublicReservationRoutes(app: FastifyInstance, prisma: Pr
 				})
 				return u
 			})
+			await track(
+				'reservation cancelled',
+				distinctIdOf(request, reservation.id),
+				{
+					reservation_id: reservation.id,
+					from_status: reservation.status,
+					actor_type: 'guest',
+				},
+			)
 			return { bookingCode: updated.bookingCode, status: updated.status }
 		},
 	)
@@ -315,9 +338,23 @@ export function registerPublicReservationRoutes(app: FastifyInstance, prisma: Pr
 				return f
 			})
 
+			await track(
+				'feedback submitted',
+				distinctIdOf(request, reservation.id),
+				{
+					reservation_id: reservation.id,
+					rating,
+				},
+			)
 			return { id: feedback.id, rating: feedback.rating, submittedAt: feedback.submittedAt }
 		},
 	)
+}
+function distinctIdOf(request: FastifyRequest, fallback: string): string {
+	const raw = request.headers['x-posthog-distinct-id']
+	if (typeof raw !== 'string') return fallback
+	const trimmed = raw.trim().slice(0, 200)
+	return trimmed || fallback
 }
 
 async function pickAreaForParty(

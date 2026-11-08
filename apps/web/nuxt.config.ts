@@ -40,7 +40,22 @@ export default defineNuxtConfig({
 		'@pinia/nuxt',
 		'@nuxtjs/tailwindcss',
 		'@vercel/analytics/nuxt',
+		'@posthog/nuxt',
 	],
+	posthogConfig: {
+		publicKey: process.env.NUXT_PUBLIC_POSTHOG_KEY ?? '',
+		host: process.env.NUXT_PUBLIC_POSTHOG_HOST ?? 'https://us.i.posthog.com',
+		clientConfig: {
+			autocapture: false,
+			capture_pageleave: false,
+			person_profiles: 'identified_only',
+			disable_session_recording: true,
+			opt_out_capturing_by_default: !process.env.NUXT_PUBLIC_POSTHOG_KEY, // no key (dev/CI): capture() is a silent no-op
+			ui_host: 'https://us.posthog.com',
+			// Prod: first-party proxy (see vercel.json) so ad blockers don't drop events. Conditional spread: clientConfig overrides api_host.
+			...(process.env.NODE_ENV === 'production' ? { api_host: '/ingest' } : {}),
+		},
+	},
 	tailwindcss: {
 		configPath: 'tailwind.config.js',
 	},

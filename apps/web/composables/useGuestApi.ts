@@ -1,10 +1,11 @@
 import type { PublicReservation } from '@gioi/domain'
 import type { CreateReservationBody, CreateReservationResponse, FeedbackBody, FeedbackResponse } from '@/types/venue'
 
-export async function createReservation(slug: string, body: CreateReservationBody) {
+export async function createReservation(slug: string, body: CreateReservationBody, distinctId?: string) {
 	return $fetch<CreateReservationResponse>(`/api/public/venues/${slug}/reservations`, {
 		method: 'POST',
 		body,
+		headers: distinctId ? { 'X-POSTHOG-DISTINCT-ID': distinctId } : undefined,
 		credentials: 'include',
 	})
 }
