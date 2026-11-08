@@ -20,7 +20,7 @@
     </div>
   </div>
 
-  <svg viewBox="0 0 800 1100" class="w-full h-auto select-none" xmlns="http://www.w3.org/2000/svg" shape-rendering="geometricPrecision">
+  <svg viewBox="-50 0 850 1100" class="w-full h-auto select-none" xmlns="http://www.w3.org/2000/svg" shape-rendering="geometricPrecision">
     <defs>
       <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
         <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#334155" stroke-width="0.7" stroke-dasharray="2 2" opacity="0.3"/>
@@ -31,18 +31,33 @@
       <pattern id="tiles" width="14" height="14" patternUnits="userSpaceOnUse">
         <path d="M 0 7 L 14 7 M 7 0 L 7 14" stroke="#60a5fa" stroke-width="0.6" opacity="0.25"/>
       </pattern>
+      <!-- GIOI table icons (top view). Brand palette: Sand #D6C4A3 top, Navy #1F4A6B chairs, Deep Navy #102638 ink, Sunset Orange #E87A3A candle.
+           Ink weights follow illustration-outlined-cartoon (2.5/2/1.5 scaled): table 1.2, chair 0.9, details 0.6. Centred on origin. -->
+      <g id="chair"><rect width="9" height="8" x="-4.5" y="-4" rx="3.5" fill="#1F4A6B" stroke="#D6C4A3" stroke-width="0.9"/></g>
+      <g id="t4">
+        <use href="#chair" x="-11" y="-16"/><use href="#chair" x="11" y="-16"/><use href="#chair" x="-11" y="16"/><use href="#chair" x="11" y="16"/>
+        <rect x="-19" y="-12" width="38" height="24" rx="6" fill="#D6C4A3" stroke="#102638" stroke-width="1.2"/>
+        <rect x="-16" y="-9" width="32" height="18" rx="4" fill="none" stroke="#F1E8D4" stroke-width="0.6"/>
+        <circle r="2.6" fill="#E87A3A" stroke="#102638" stroke-width="0.8"/>
+      </g>
+      <g id="t8">
+        <g transform="rotate(90)"><use href="#chair" x="-16" y="-24"/><use href="#chair" x="16" y="-24"/><use href="#chair" x="-16" y="24"/><use href="#chair" x="16" y="24"/></g>
+        <rect x="-19" y="-32" width="38" height="64" rx="6" fill="#D6C4A3" stroke="#102638" stroke-width="1.2"/>
+        <rect x="-16" y="-29" width="32" height="58" rx="4" fill="none" stroke="#F1E8D4" stroke-width="0.6"/>
+        <circle cy="-14" r="2.6" fill="#E87A3A" stroke="#102638" stroke-width="0.8"/><circle cy="14" r="2.6" fill="#E87A3A" stroke="#102638" stroke-width="0.8"/>
+      </g>
     </defs>
 
-    <rect width="800" height="1100" fill="#090d16"/>
-    <rect width="800" height="1100" fill="url(#grid)"/>
+    <rect x="-50" width="850" height="1100" fill="#090d16"/>
+    <rect x="-50" width="850" height="1100" fill="url(#grid)"/>
 
     <!-- 1. LAND BOUNDARY (rectangle) -->
-    <rect x="80" y="60" width="640" height="1000" fill="#0f172a" stroke="#3b82f6" stroke-width="2.5" stroke-dasharray="8 5" opacity="0.85"/>
+    <rect x="10" y="60" width="710" height="1000" fill="#0f172a" stroke="#3b82f6" stroke-width="2.5" stroke-dasharray="8 5" opacity="0.85"/>
 
     <!-- OCEAN VIEW side (west) -->
     <g fill="#38bdf8" font-family="monospace" font-size="13" letter-spacing="4">
-      <text x="45" y="560" text-anchor="middle" transform="rotate(-90 45 560)">OCEAN VIEW</text>
-      <path d="M 60,470 L 60,650" stroke="#38bdf8" stroke-width="1" stroke-dasharray="3 3" opacity="0.6"/>
+      <text x="-25" y="560" text-anchor="middle" transform="rotate(-90 -25 560)">OCEAN VIEW</text>
+      <path d="M -8,470 L -8,650" stroke="#38bdf8" stroke-width="1" stroke-dasharray="3 3" opacity="0.6"/>
     </g>
 
     <!-- 2. CENTRAL COURTYARD -->
@@ -57,8 +72,8 @@
       <polygon points="145,105 655,105 655,200 545,310 430,240 310,360 145,195" fill="url(#tiles)"/>
       <path d="M 145,105 L 225,165 L 580,165 L 655,105 M 225,165 L 145,195 M 580,165 L 655,200"
             stroke="#93c5fd" stroke-width="1.2" stroke-dasharray="4 2" opacity="0.6" fill="none"/>
-      <rect x="335" y="185" width="130" height="28" rx="4" fill="#0f172a" stroke="#3b82f6"/>
-      <text x="400" y="204" fill="#93c5fd" font-size="13" font-weight="600" font-family="sans-serif" text-anchor="middle">PAVILION A</text>
+      <rect x="520" y="150" width="125" height="28" rx="4" fill="#0f172a" stroke="#3b82f6"/>
+      <text x="582" y="169" fill="#93c5fd" font-size="13" font-weight="600" font-family="sans-serif" text-anchor="middle">PAVILION A</text>
     </g>
 
     <!-- 4. MAIN HALL + EAST WING (L-shape) -->
@@ -68,9 +83,9 @@
       <polygon points="145,630 535,630 535,435 655,315 655,955 145,955" fill="url(#tiles)"/>
       <path d="M 145,630 L 307,792 L 145,955 M 307,792 L 493,792 L 655,955 M 493,792 L 595,690 L 595,375 M 535,630 L 595,690"
             stroke="#93c5fd" stroke-width="1.2" stroke-dasharray="4 2" opacity="0.6" fill="none"/>
-      <rect x="260" y="840" width="140" height="28" rx="4" fill="#0f172a" stroke="#3b82f6"/>
-      <text x="330" y="859" fill="#93c5fd" font-size="13" font-weight="600" font-family="sans-serif" text-anchor="middle">MAIN HALL (B)</text>
-      <g transform="rotate(-90 595 520)">
+      <rect x="260" y="785" width="140" height="28" rx="4" fill="#0f172a" stroke="#3b82f6"/>
+      <text x="330" y="804" fill="#93c5fd" font-size="13" font-weight="600" font-family="sans-serif" text-anchor="middle">MAIN HALL (B)</text>
+      <g transform="translate(0 -75) rotate(-90 595 520)">
         <rect x="545" y="508" width="100" height="24" rx="4" fill="#0f172a" stroke="#3b82f6"/>
         <text x="595" y="524" fill="#93c5fd" font-size="11" font-weight="600" font-family="sans-serif" text-anchor="middle">EAST WING</text>
       </g>
@@ -82,6 +97,58 @@
       <path d="M 0,-16 L 6,0 L -6,0 Z" fill="#ef4444"/>
       <path d="M 0,16 L 6,0 L -6,0 Z" fill="#94a3b8"/>
       <text y="-26" fill="#f87171" font-size="10" font-weight="bold" text-anchor="middle">N</text>
+    </g>
+
+    <!-- MAIN STAGE -->
+    <path d="M 62,618 L 62,648" stroke="#64748b" stroke-width="1" stroke-dasharray="3 3"/>
+    <rect x="25" y="463" width="104" height="155" rx="18" fill="#E87A3A" stroke="#102638" stroke-width="1.2"/>
+    <text x="77" y="535" fill="#fff" font-size="17" font-weight="800" font-family="sans-serif" text-anchor="middle">MAIN</text>
+    <text x="77" y="555" fill="#fff" font-size="17" font-weight="800" font-family="sans-serif" text-anchor="middle">STAGE</text>
+
+    <!-- TABLES: ocean-view side (west), two tidy columns -->
+    <g>
+      <use href="#t4" transform="translate(50 121) scale(0.85)"/><use href="#t4" transform="translate(105 121) scale(0.85)"/>
+      <use href="#t4" transform="translate(105 211) scale(0.85)"/>
+      <use href="#t4" transform="translate(105 282) scale(0.85)"/>
+      <use href="#t4" transform="translate(50 417) scale(0.85)"/>
+      <use href="#t4" transform="translate(50 703) scale(0.85)"/><use href="#t4" transform="translate(105 703) scale(0.85)"/>
+      <use href="#t4" transform="translate(50 772) scale(0.85)"/><use href="#t4" transform="translate(105 772) scale(0.85)"/>
+      <use href="#t4" transform="translate(50 846) scale(0.85)"/><use href="#t4" transform="translate(105 846) scale(0.85)"/>
+      <use href="#t4" transform="translate(50 914) scale(0.85)"/><use href="#t4" transform="translate(105 914) scale(0.85)"/>
+    </g>
+
+    <!-- TABLES: Pavilion A top row -->
+    <g>
+      <use href="#t4" transform="translate(311 135) scale(0.85)"/><use href="#t4" transform="translate(357 135) scale(0.85)"/><use href="#t4" transform="translate(403 135) scale(0.85)"/><use href="#t4" transform="translate(449 135) scale(0.85)"/><use href="#t4" transform="translate(495 135) scale(0.85)"/>
+    </g>
+
+    <!-- TABLES: Pavilion A diagonal (parallel to the 45° edge) -->
+    <g>
+      <use href="#t4" transform="translate(174 186) rotate(-45) scale(0.85)"/>
+      <use href="#t4" transform="translate(219 230) rotate(-45) scale(0.85)"/>
+      <use href="#t4" transform="translate(169 284) rotate(-45) scale(0.85)"/>
+      <use href="#t4" transform="translate(206 321) rotate(-45) scale(0.85)"/>
+      <use href="#t4" transform="translate(245 360) rotate(-45) scale(0.85)"/>
+      <use href="#t4" transform="translate(249 203) rotate(-45) scale(0.85)"/>
+      <use href="#t4" transform="translate(273 225) rotate(-45) scale(0.85)"/>
+      <use href="#t4" transform="translate(297 249) rotate(-45) scale(0.85)"/>
+      <use href="#t4" transform="translate(264 275) rotate(-45) scale(0.85)"/>
+      <use href="#t4" transform="translate(303 313) rotate(-45) scale(0.85)"/>
+      <use href="#t4" transform="translate(321 271) rotate(-45) scale(0.85)"/>
+      <use href="#t4" transform="translate(346 293) rotate(-45) scale(0.85)"/>
+      <use href="#t4" transform="translate(334 206) rotate(-45) scale(0.85)"/>
+      <use href="#t4" transform="translate(358 228) rotate(-45) scale(0.85)"/>
+      <use href="#t4" transform="translate(382 251) rotate(-45) scale(0.85)"/>
+      <use href="#t4" transform="translate(392 194) rotate(-45) scale(0.85)"/>
+      <use href="#t4" transform="translate(415 218) rotate(-45) scale(0.85)"/>
+      <use href="#t4" transform="translate(445 182) rotate(-45) scale(0.85)"/>
+    </g>
+
+    <!-- TABLES: East Wing + Main Hall (B) -->
+    <g>
+      <use href="#t8" transform="translate(594 540)"/><use href="#t8" transform="translate(594 604)"/>
+      <use href="#t8" transform="translate(215 743)"/><use href="#t8" transform="translate(339 743)"/><use href="#t8" transform="translate(463 743)"/><use href="#t8" transform="translate(596 743)"/>
+      <use href="#t8" transform="translate(215 850)"/><use href="#t8" transform="translate(339 850)"/><use href="#t8" transform="translate(463 850)"/><use href="#t8" transform="translate(596 850)"/>
     </g>
   </svg>
 </div>
