@@ -15,6 +15,9 @@ export default defineNuxtConfig({
 		'/host': { ssr: false },
 		'/guests/**': { ssr: false },
 		'/admin/**': { ssr: false },
+		// PostHog first-party proxy. vercel.json rewrites miss trailing-slash URLs (/ingest/i/v0/e/ -> Nuxt 404), so Nitro handles them.
+		'/ingest/static/**': { proxy: 'https://us-assets.i.posthog.com/static/**' } as never,
+		'/ingest/**': { proxy: 'https://us.i.posthog.com/**' } as never,
 	},
 	// Local only: production rewrites /api to the API project in vercel.json.
 	$development: {
