@@ -6,7 +6,6 @@ import {
 	canTransition,
 	nextStatuses,
 	dashboardData,
-	defaultDashboardFilters,
 	type ReservationStatus,
 	type Channel,
 	type Settings,
@@ -14,7 +13,8 @@ import {
 } from '@gioi/domain'
 import { notFound, conflict, forbidden, unprocessable, AppError } from '../../lib/errors'
 import { hash } from '@node-rs/argon2'
-import { requireAuth, requireRole, requireVenueAccess } from '../../lib/middleware'
+import { venueToSettings } from '../../lib/settings'
+import { requireAuth, requireAdmin, requireVenueAccess } from '../../lib/middleware'
 import {
 	localDate,
 	localTime,
@@ -23,6 +23,7 @@ import {
 	addDays,
 	dayOfWeek,
 	toMinutes,
+	fromMinutes,
 	toUtc,
 } from '@gioi/domain'
 
@@ -472,7 +473,7 @@ export function registerStaffRoutes(app: FastifyInstance, prisma: PrismaClient):
 		async (request: FastifyRequest<{ Params: { id: string } }>) => {
 			const session = await requireAuth(prisma, request.cookies as Record<string, string>)
 			requireVenueAccess(session, request.params.id)
-			requireRole('admin')(session, request.params.id)
+			requireAdmin(session, request.params.id)
 			const venue = await prisma.venue.findUnique({ where: { id: request.params.id } })
 			if (!venue) throw notFound('venue not found')
 			return venue
@@ -540,7 +541,7 @@ export function registerStaffRoutes(app: FastifyInstance, prisma: PrismaClient):
 		async (request: FastifyRequest<{ Params: { id: string } }>) => {
 			const session = await requireAuth(prisma, request.cookies as Record<string, string>)
 			requireVenueAccess(session, request.params.id)
-			requireRole('admin')(session, request.params.id)
+			requireAdmin(session, request.params.id)
 			return prisma.openingHours.findMany({ where: { venueId: request.params.id }, orderBy: { weekday: 'asc' } })
 		},
 	)
@@ -593,7 +594,7 @@ export function registerStaffRoutes(app: FastifyInstance, prisma: PrismaClient):
 		async (request: FastifyRequest<{ Params: { id: string } }>) => {
 			const session = await requireAuth(prisma, request.cookies as Record<string, string>)
 			requireVenueAccess(session, request.params.id)
-			requireRole('admin')(session, request.params.id)
+			requireAdmin(session, request.params.id)
 			return prisma.closedDate.findMany({ where: { venueId: request.params.id }, orderBy: { date: 'asc' } })
 		},
 	)
@@ -655,7 +656,7 @@ export function registerStaffRoutes(app: FastifyInstance, prisma: PrismaClient):
 		async (request: FastifyRequest<{ Params: { id: string } }>) => {
 			const session = await requireAuth(prisma, request.cookies as Record<string, string>)
 			requireVenueAccess(session, request.params.id)
-			requireRole('admin')(session, request.params.id)
+			requireAdmin(session, request.params.id)
 			return prisma.seatingArea.findMany({ where: { venueId: request.params.id }, orderBy: { name: 'asc' } })
 		},
 	)
@@ -998,7 +999,7 @@ export function registerStaffRoutes(app: FastifyInstance, prisma: PrismaClient):
 			const venueId = request.query.venueId ?? session.user.venueIds[0]
 			if (!venueId) throw forbidden('no venue associated with this user')
 			requireVenueAccess(session, venueId)
-			requireRole('admin')(session, venueId)
+			requireAdmin(session, venueId)
 			const { from, to } = request.query
 			if (from && to && (from > to || (Date.parse(to) - Date.parse(from)) / 864e5 > 366)) throw new AppError(400, 'invalid date range', 'ERR_BAD_REQUEST')
 
@@ -1008,49 +1009,7 @@ export function registerStaffRoutes(app: FastifyInstance, prisma: PrismaClient):
 			})
 			if (!venue) throw notFound('venue not found')
 
-			const settings: Settings = {
-				restaurant: {
-					name: venue.name,
-					tagline: venue.tagline,
-					intro: venue.intro,
-					address: venue.address,
-					phone: venue.phone,
-					whatsapp: venue.whatsapp,
-					email: venue.email,
-					mapsUrl: venue.mapsUrl,
-				},
-				timeZone: venue.timeZone,
-				openingHours: Object.fromEntries(
-					venue.openingHours.map((oh) => {
-						const day = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'][oh.weekday]
-						return [
-							day,
-							{
-								open: String(Math.floor(oh.openMinute / 60)).padStart(2, '0') + ':' + String(oh.openMinute % 60).padStart(2, '0'),
-								close: String(Math.floor(oh.closeMinute / 60)).padStart(2, '0') + ':' + String(oh.closeMinute % 60).padStart(2, '0'),
-							},
-						]
-					}),
-				) as Settings['openingHours'],
-				closedDates: venue.closedDates.map((cd) => cd.date.toISOString().slice(0, 10)),
-				bookingIntervalMinutes: venue.bookingIntervalMinutes,
-				partySizeLimits: { min: venue.partyMin, max: venue.partyMax },
-				diningMinutes: venue.diningMinutes,
-				leadTimeMinutes: venue.leadTimeMinutes,
-				cutoffMinutes: venue.cutoffMinutes,
-				noShowTargetPercent: venue.noShowTargetPercent,
-				overCapacityAlertPercent: venue.overCapacityAlertPercent,
-				seatingAreas: venue.seatingAreas.map((a) => ({
-					id: a.id,
-					name: a.name,
-					capacity: a.capacity,
-					bookable: a.bookable,
-					minParty: a.minParty ?? undefined,
-					maxParty: a.maxParty ?? undefined,
-				})),
-				cancellationPolicy: venue.cancellationPolicy,
-				feedbackMessageTemplate: venue.feedbackMessageTemplate,
-			}
+			const settings = venueToSettings(venue)
 
 			const today = localDate(new Date(), settings.timeZone)
 			const rangeStart = request.query.from ?? addDays(today, -30)
@@ -1200,7 +1159,7 @@ export function registerStaffRoutes(app: FastifyInstance, prisma: PrismaClient):
 		async (request: FastifyRequest<{ Params: { id: string } }>, reply) => {
 			const session = await requireAuth(prisma, request.cookies as Record<string, string>)
 			requireVenueAccess(session, request.params.id)
-			requireRole('admin')(session, request.params.id)
+			requireAdmin(session, request.params.id)
 			const venue = await prisma.venue.findUniqueOrThrow({ where: { id: request.params.id }, select: { timeZone: true } })
 
 			const reservations = await prisma.reservation.findMany({

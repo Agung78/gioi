@@ -4,14 +4,14 @@ import { useRoute } from '#app'
 import { PhCheckCircle, PhCopy, PhCalendarPlus, PhMapPin, PhWhatsappLogo } from '@phosphor-icons/vue'
 import StatusChip from '@/components/StatusChip.vue'
 import { useVenue } from '@/composables/useVenue'
-import type { ReservationPublic } from '@/types/venue'
+import type { PublicReservation } from '@gioi/domain'
 
 const route = useRoute()
 const venueSlug = String(route.params.venue)
 const { venue: info } = await useVenue()
 const code = computed(() => String(route.params.code))
 
-const { data: reservation, pending, error } = await useFetch<ReservationPublic>(`/api/public/reservations/${code.value}`, {
+const { data: reservation, pending, error } = await useFetch<PublicReservation>(`/api/public/reservations/${code.value}`, {
   server: true,
 })
 
@@ -73,7 +73,7 @@ const icsHref = computed(() => {
           <div><dt class="text-muted">Guests</dt><dd class="text-base font-semibold">{{ reservation.partySize }}</dd></div>
           <div><dt class="text-muted">Seating</dt><dd class="text-base font-semibold">{{ reservation.seatingArea }}</dd></div>
         </dl>
-        <StatusChip :status="reservation.status as any" />
+        <StatusChip :status="reservation.status" />
       </div>
 
       <div class="mt-6 flex flex-wrap gap-3">

@@ -1,4 +1,5 @@
-import type { CreateReservationBody, CreateReservationResponse, ReservationPublic, FeedbackBody, FeedbackResponse } from '@/types/venue'
+import type { PublicReservation } from '@gioi/domain'
+import type { CreateReservationBody, CreateReservationResponse, FeedbackBody, FeedbackResponse } from '@/types/venue'
 
 export async function createReservation(slug: string, body: CreateReservationBody) {
 	return $fetch<CreateReservationResponse>(`/api/public/venues/${slug}/reservations`, {
@@ -9,7 +10,7 @@ export async function createReservation(slug: string, body: CreateReservationBod
 }
 
 export async function getReservation(code: string) {
-	return $fetch<ReservationPublic>(`/api/public/reservations/${code}`, {
+	return $fetch<PublicReservation>(`/api/public/reservations/${code}`, {
 		credentials: 'include',
 	})
 }

@@ -31,12 +31,9 @@ export async function requireAuth(
 	return session
 }
 
-export function requireRole(role: string) {
-	return (session: AuthedSession, venueId: string): void => {
-		const r = userRole(session, venueId)
-		if (!session.user.isSuperAdmin && r !== role) {
-			throw forbidden('insufficient role')
-		}
+export function requireAdmin(session: AuthedSession, venueId: string): void {
+	if (!session.user.isSuperAdmin && userRole(session, venueId) !== 'admin') {
+		throw forbidden('insufficient role')
 	}
 }
 
