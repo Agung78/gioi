@@ -90,7 +90,7 @@ Reset between runs: re-seed, or `TRUNCATE venues, users CASCADE` on the **test**
 | G-22 | P1 | Only completed | Open feedback for a non-completed booking, submit | Rejected (409) | ✔ |
 | G-23 | P0 | Happy path | Complete a booking as host; open the feedback link; rate, pick tags, comment, submit | Saved; thank-you state; appears in Admin → Guest feedback | ✔ |
 | G-24 | P1 | Stars required | Submit with no rating | Blocked (1–5 required) | ✔ |
-| G-25 | P1 | Tags offered | Check tag list | Food, Service, Atmosphere, Value (or the tags configured in Settings) | ☐ |
+| G-25 | P1 | Tags offered | Check tag list | Food, Service, Atmosphere, Value (fixed list; the Settings tags field is read-only) | ☐ |
 | G-26 | P1 | One feedback per booking | Submit twice | Second rejected | ✔ |
 | G-27 | P1 | Unknown code | `/bali/feedback/BADCODE` | Not-found state, no crash | ✔ |
 
@@ -144,7 +144,7 @@ Expected is shown as **host / venue admin / super admin**.
 | R-13 | P1 | Dashboard for venue admin | `/admin` as `venueadmin` | Loads; no 403 on audit-log (removed dead fetch) | ✔ |
 | R-14 | P1 | Super admin Settings scope | Open Settings as super admin | Only Venues + Accounts cards; no Restaurant, hours, feedback, seating, export (UI only; API would still allow edits) | ✔ |
 
-> **Doc/code difference:** the diagrams say `/admin` is SUPER_ADMIN only. The code lets **venue admins** use Dashboard + Settings (not Users, Venues or Audit). The **super admin** Settings page now shows only Venues + Accounts; venue details are edited by the venue admin. Confirm that is intended; if not, tighten the `admin` middleware and API `requireRole`.
+> **Diagrams match the code (updated 2026-11-08):** venue admins use Dashboard + Settings (not Venues, Accounts or Audit); the super admin Settings page shows only Venues + Accounts and has the Audit log. API `requireRole` still lets a super admin edit venue settings (see Known gaps).
 
 ---
 
@@ -226,7 +226,7 @@ Expected is shown as **host / venue admin / super admin**.
 | T-02 | P0 | **Restaurant** | Edit tagline/intro/address/maps URL/phone/WhatsApp/policy → Save | "Saved at …"; persists; shown on `/bali`; audit event | ✔ |
 | T-03 | P1 | Name read-only | Restaurant name | Disabled (not in the API whitelist) | ✔ |
 | T-04 | P1 | **Opening hours & rules** | Hours per weekday, interval, party limits, lead time, cut-off, closed dates | Public availability follows each | ✔ |
-| T-05 | P1 | **Guest feedback** | Title, subtitle, tags, WhatsApp template | Used on feedback page and the host's feedback link | ✔ |
+| T-05 | P1 | **Guest feedback** | Title, subtitle, WhatsApp template (tags field is read-only) | Used on feedback page and the host's feedback link | ✔ |
 | T-06 | P1 | **Seating areas** | Name, capacity, party min/max, bookable, add/remove | Public + walk-in options follow | ✔ |
 | T-07 | P1 | **Accounts** (super admin) | See 7.1 (T-13…T-28) | Replaced by the Venues/Accounts scenarios | ✔ |
 | T-08 | P0 | **Data export** | Download reservations CSV | File downloads with guest contact + allergy/accessibility notes; 403 for hosts | ✔ |
@@ -315,7 +315,6 @@ Expected is shown as **host / venue admin / super admin**.
 - Login rate limiting is in-memory per serverless instance; needs a shared store for real brute-force protection.
 - Sessions have a fixed 7-day life (no sliding expiry).
 - Pagination is client-side; only the audit endpoint accepts `limit`.
-- Diagrams are out of date on: venue-admin access, pagination (diagram says "first 50 rows"), and single-session login.
 - Settings hides venue sections from the super admin in the UI only; the API still lets a super admin edit venue settings.
 - No hard delete of users: "Remove" unlinks from the venue and deactivates when no venue is left (audit rows reference users).
 - No venue rename/delete, and no email field in Settings (email is only set at bootstrap/seed).
