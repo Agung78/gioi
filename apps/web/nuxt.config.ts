@@ -39,6 +39,7 @@ export default defineNuxtConfig({
 	modules: [
 		'@pinia/nuxt',
 		'@nuxtjs/tailwindcss',
+		'@vercel/analytics/nuxt',
 	],
 	tailwindcss: {
 		configPath: 'tailwind.config.js',
