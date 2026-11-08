@@ -41,15 +41,6 @@ export interface SlotAvailability {
   remaining?: number
 }
 
-export interface ReservationPublic {
-  bookingCode: string
-  date: string
-  time: string
-  partySize: number
-  seatingArea: string
-  status: string
-}
-
 export interface CreateReservationBody {
   guestName: string
   phone: string

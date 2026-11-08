@@ -1,7 +1,8 @@
 import type { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify'
 import type { PrismaClient, OpeningHours, ClosedDate, SeatingArea, Reservation } from '@prisma/client'
 import { notFound } from '../../lib/errors'
-import { getDayAvailability, localDate, localTime, toUtc, type Settings } from '@gioi/domain'
+import { venueToSettings } from '../../lib/settings'
+import { fromMinutes, getDayAvailability, localDate, localTime, toUtc } from '@gioi/domain'
 
 export function registerPublicVenueRoutes(app: FastifyInstance, prisma: PrismaClient): void {
 	app.get(
@@ -26,15 +27,7 @@ export function registerPublicVenueRoutes(app: FastifyInstance, prisma: PrismaCl
 
 			const openingHours: Record<string, { open: string; close: string }> = {}
 			for (const oh of venue.openingHours as OpeningHours[]) {
-				const h = Math.floor(oh.openMinute / 60)
-					.toString()
-					.padStart(2, '0')
-				const m = String(oh.openMinute % 60).padStart(2, '0')
-				const ch = Math.floor(oh.closeMinute / 60)
-					.toString()
-					.padStart(2, '0')
-				const cm = String(oh.closeMinute % 60).padStart(2, '0')
-				openingHours[String(oh.weekday)] = { open: `${h}:${m}`, close: `${ch}:${cm}` }
+				openingHours[String(oh.weekday)] = { open: fromMinutes(oh.openMinute), close: fromMinutes(oh.closeMinute) }
 			}
 
 			return {
@@ -115,46 +108,7 @@ export function registerPublicVenueRoutes(app: FastifyInstance, prisma: PrismaCl
 				return startsAt >= dayStart && startsAt <= dayEnd
 			})
 
-			const settings: Settings = {
-				restaurant: {
-					name: venue.name,
-					tagline: venue.tagline,
-					intro: venue.intro,
-					address: venue.address,
-					phone: venue.phone,
-					whatsapp: venue.whatsapp,
-					email: venue.email,
-					mapsUrl: venue.mapsUrl,
-				},
-				timeZone: venue.timeZone,
-				openingHours: Object.fromEntries(
-					venue.openingHours.map((oh: OpeningHours) => {
-						const day = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'][oh.weekday]
-						return [day, {
-							open: String(Math.floor(oh.openMinute / 60)).padStart(2, '0') + ':' + String(oh.openMinute % 60).padStart(2, '0'),
-							close: String(Math.floor(oh.closeMinute / 60)).padStart(2, '0') + ':' + String(oh.closeMinute % 60).padStart(2, '0'),
-						}]
-					}),
-				) as Settings['openingHours'],
-				closedDates: venue.closedDates.map((cd: ClosedDate) => cd.date.toISOString().slice(0, 10)),
-				bookingIntervalMinutes: venue.bookingIntervalMinutes,
-				partySizeLimits: { min: venue.partyMin, max: venue.partyMax },
-				diningMinutes: venue.diningMinutes,
-				leadTimeMinutes: venue.leadTimeMinutes,
-				cutoffMinutes: venue.cutoffMinutes,
-				noShowTargetPercent: venue.noShowTargetPercent,
-				overCapacityAlertPercent: venue.overCapacityAlertPercent,
-				seatingAreas: venue.seatingAreas.map((a: SeatingArea) => ({
-					id: a.id,
-					name: a.name,
-					capacity: a.capacity,
-					bookable: a.bookable,
-					minParty: a.minParty ?? undefined,
-					maxParty: a.maxParty ?? undefined,
-				})) as Settings['seatingAreas'],
-				cancellationPolicy: venue.cancellationPolicy,
-				feedbackMessageTemplate: venue.feedbackMessageTemplate,
-			}
+			const settings = venueToSettings(venue)
 
 			const reservations = dayReservations.map((r: Reservation) => ({
 				id: r.id,
