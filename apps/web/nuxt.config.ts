@@ -14,9 +14,10 @@ export default defineNuxtConfig({
 		'/': { redirect: { to: '/bali', statusCode: 301 } } as never,
 		'/bali': { prerender: true },
 		// Booking flow stays out of search results. Header (not robots.txt Disallow) so Google can crawl and see it.
-		'/*/book/**': { ssr: false, headers: { 'X-Robots-Tag': 'noindex' } },
-		'/*/confirmation/**': { headers: { 'X-Robots-Tag': 'noindex' } },
-		'/*/feedback/**': { headers: { 'X-Robots-Tag': 'noindex' } },
+		// `as never`: keys that match a page pattern get Nuxt's narrow page-rule type, which omits `headers`; Nitro applies them (verified via curl).
+		'/*/book/**': { ssr: false, headers: { 'X-Robots-Tag': 'noindex' } } as never,
+		'/*/confirmation/**': { headers: { 'X-Robots-Tag': 'noindex' } } as never,
+		'/*/feedback/**': { headers: { 'X-Robots-Tag': 'noindex' } } as never,
 		'/privacy': { prerender: true },
 		'/login': { ssr: false },
 		'/host': { ssr: false },
