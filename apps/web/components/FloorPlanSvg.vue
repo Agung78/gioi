@@ -94,11 +94,18 @@ const tip = computed(() => {
 			@blur="hovered = null"
 		>
 			<rect v-if="pickable" :x="-t.shape.width / 2 - 12" y="-30" :width="t.shape.width + 24" height="60" rx="14" fill="transparent" class="floor-hit" />
-			<rect v-if="pickable && (selected === `t:${i}` || chosen === i)" :x="-t.shape.width / 2 - 8" y="-22" :width="t.shape.width + 16" height="44" rx="12" fill="none" stroke="#e87a3a" stroke-width="2" class="floor-ring" pointer-events="none" />
+			<rect v-if="pickable && (selected === `t:${i}` || chosen === i)" :x="-t.shape.width / 2 - 8" y="-22" :width="t.shape.width + 16" height="44" rx="12" fill="none" stroke="#e87a3a" stroke-width="2.5" vector-effect="non-scaling-stroke" class="floor-ring" pointer-events="none" />
 			<g class="floor-body">
 				<rect v-for="(c, j) in t.shape.chairs" :key="j" :x="c.x - 4.5" :y="c.y - 4" width="9" height="8" rx="3.5" fill="#1F4A6B" stroke="#F6F1E6" stroke-width=".9" />
-				<rect :x="-t.shape.width / 2" y="-12" :width="t.shape.width" height="24" rx="6" :fill="t.fill" stroke="#102638" stroke-width="1.2" />
-				<circle v-for="(cx, j) in t.shape.candles" :key="`c${j}`" :cx="cx" r="2.6" fill="#E87A3A" stroke="#102638" stroke-width=".8" />
+				<rect :x="-t.shape.width / 2" y="-12" :width="t.shape.width" height="24" rx="6" :fill="chosen === i ? '#E87A3A' : t.fill" stroke="#102638" stroke-width="1.2" class="floor-top" />
+				<circle v-for="(cx, j) in t.shape.candles" :key="`c${j}`" :cx="cx" r="2.6" :fill="chosen === i ? '#fff' : '#E87A3A'" stroke="#102638" stroke-width=".8" />
+			</g>
+		</g>
+		<!-- "Your table" badge: upright, not rotated/scaled with the table -->
+		<g v-if="pickable && chosen != null && tables[chosen]" :transform="`translate(${tables[chosen].x} ${tables[chosen].y - 30 * TABLE_SCALE - 12})`" pointer-events="none">
+			<g class="floor-badge">
+				<circle r="10" fill="#E87A3A" stroke="#fff" stroke-width="2" />
+				<path d="M-4.5 0.5 L-1.5 3.5 L4.5 -3" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
 			</g>
 		</g>
 	</svg>
@@ -130,7 +137,10 @@ const tip = computed(() => {
 .floor-ring { animation: floor-ring 200ms cubic-bezier(0.23, 1, 0.32, 1) backwards; transform-box: fill-box; transform-origin: center; }
 @keyframes floor-in { from { opacity: 0; } }
 @keyframes floor-ring { from { opacity: 0; transform: scale(0.92); } }
-@media (prefers-reduced-motion: reduce) { .floor-pick, .floor-ring { animation: none; } .floor-body { transition: none; } }
+.floor-top { transition: fill 200ms ease; }
+.floor-badge { transform-box: fill-box; transform-origin: center; animation: floor-badge 220ms cubic-bezier(0.23, 1, 0.32, 1) backwards; }
+@keyframes floor-badge { from { opacity: 0; transform: scale(0.6); } }
+@media (prefers-reduced-motion: reduce) { .floor-pick, .floor-ring, .floor-badge { animation: none; } .floor-body { transition: none; } }
 </style>
 <style>
 .floor-tip { translate: -50% calc(-100% - 22px); transform-origin: bottom center; }
