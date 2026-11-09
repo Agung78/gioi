@@ -86,7 +86,7 @@ export async function useVenueSeo(venue = (useRoute().params.venue as string)) {
             target: {
               '@type': 'EntryPoint',
               urlTemplate: bookUrl,
-              inLanguage: 'en',
+              inLanguage: seo.languages ?? 'en',
               actionPlatform: [
                 'http://schema.org/DesktopWebPlatform',
                 'http://schema.org/MobileWebPlatform',

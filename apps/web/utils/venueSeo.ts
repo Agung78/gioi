@@ -12,6 +12,7 @@ export interface VenueSeo {
   sameAs: string[]
   menus?: { label: string; path: string }[]
   tzLabel: string
+  languages?: string[] // bilingual copy only; defaults to en
   // default [venue] template only; custom-designed venue pages omit it
   page?: {
     badge: string
@@ -28,8 +29,8 @@ export interface VenueSeo {
 
 export const VENUE_SEO: Record<string, VenueSeo> = {
   bali: {
-    title: 'GIOI Ocean Gourmet Bali | Beachfront Seafood in Kuta',
-    description: 'Beachfront seafood and modern Asian dining at Discovery Mall, Kuta Beach, Bali. Reserve a table online at GIOI Ocean Gourmet.',
+    title: 'GIOI Ocean Gourmet Bali | Seafood & Reservasi Meja di Kuta',
+    description: 'Beachfront seafood and modern Asian dining at Discovery Mall, Kuta Beach, Bali. Reserve a table online. Reservasi meja online di GIOI Ocean Gourmet, restoran seafood tepi pantai Kuta.',
     city: 'Kuta',
     region: 'Bali',
     image: { url: '/images/venues/bali/outlet-06.webp', width: 1600, height: 900 },
@@ -42,6 +43,7 @@ export const VENUE_SEO: Record<string, VenueSeo> = {
       { label: 'Drinks menu (PDF)', path: '/menus/bali-alcohol-menu.pdf' },
     ],
     tzLabel: 'WITA',
+    languages: ['en', 'id'],
     page: {
       badge: 'Beachfront dining in Kuta',
       heroLines: ['Fresh from', 'the coast.', 'Made for sunset.'],
@@ -55,7 +57,7 @@ export const VENUE_SEO: Record<string, VenueSeo> = {
       ],
       visitTitle: 'On the beach at Discovery Mall.',
       ctaTitle: 'Make sunset your reservation.',
-      ctaNote: 'For sunset seating, booking ahead is recommended.',
+      ctaNote: 'For sunset seating, booking ahead is recommended. Reservasi online gratis, disarankan booking lebih awal untuk sunset.',
     },
   },
 }
