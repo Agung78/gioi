@@ -12,7 +12,8 @@ export interface VenueSeo {
   sameAs: string[]
   menus?: { label: string; path: string }[]
   tzLabel: string
-  page: {
+  // default [venue] template only; custom-designed venue pages omit it
+  page?: {
     badge: string
     heroLines: [string, string, string]
     intro: string
