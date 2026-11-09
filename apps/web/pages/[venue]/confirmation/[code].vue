@@ -1,11 +1,12 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import { useRoute } from '#app'
+import { useRoute, useHead } from '#app'
 import { PhCheckCircle, PhCopy, PhCalendarPlus, PhMapPin, PhWhatsappLogo } from '@phosphor-icons/vue'
 import StatusChip from '@/components/StatusChip.vue'
 import { useVenue } from '@/composables/useVenue'
 import type { PublicReservation } from '@gioi/domain'
 
+useHead({ title: 'Booking confirmation | GIOI Ocean Gourmet' })
 const route = useRoute()
 const venueSlug = String(route.params.venue)
 const { venue: info } = await useVenue()

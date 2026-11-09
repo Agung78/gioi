@@ -10,6 +10,7 @@ export async function useVenue() {
     key: `venue-${slug}`,
     server: true,
   })
+  if (import.meta.server && import.meta.prerender && !data.value) throw new Error(`Prerender: venue ${slug} not loaded. Set NUXT_PUBLIC_API_BASE.`)
 
   venue.value = data.value ?? null
   return { venue, pending, error, refresh }

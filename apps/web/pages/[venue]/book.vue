@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
-import { useRoute, useRouter } from '#app'
+import { useRoute, useRouter, useHead } from '#app'
 import { addDays, todayISO, isOpenOn, hoursFor, checkAvailability } from '@gioi/domain'
 import { PhArrowLeft, PhCaretDown, PhMinus, PhPlus } from '@phosphor-icons/vue'
 import DatePicker from '@/components/DatePicker.vue'
@@ -10,6 +10,7 @@ import FloorPlanSvg from '@/components/FloorPlanSvg.vue'
 import type { PublicFloorPlan } from '@gioi/domain'
 import type { CreateReservationBody } from '@/types/venue'
 
+useHead({ title: 'Reserve a table | GIOI Ocean Gourmet' })
 const route = useRoute()
 const router = useRouter()
 const venue = (route.params.venue as string) || 'bali'

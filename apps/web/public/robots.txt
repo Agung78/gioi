@@ -3,4 +3,6 @@ Allow: /
 Disallow: /login
 Disallow: /host
 Disallow: /admin
+Disallow: /guests
+Disallow: /ingest
 Sitemap: https://www.gioigroup.com/sitemap.xml

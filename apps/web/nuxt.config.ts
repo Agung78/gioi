@@ -9,12 +9,14 @@ export default defineNuxtConfig({
 		},
 	},
 	routeRules: {
-		'/': { redirect: '/bali' },
+		// Nitro reads redirect.statusCode; Nuxt's RouteRules type says `status`, which Nitro ignores (stays 307).
+		'/': { redirect: { to: '/bali', statusCode: 301 } } as never,
 		'/bali': { prerender: true },
 		// Booking flow stays out of search results. Header (not robots.txt Disallow) so Google can crawl and see it.
-		'/bali/book/**': { ssr: false, headers: { 'X-Robots-Tag': 'noindex' } },
-		'/bali/confirmation/**': { headers: { 'X-Robots-Tag': 'noindex' } },
-		'/bali/feedback/**': { headers: { 'X-Robots-Tag': 'noindex' } },
+		'/*/book/**': { ssr: false, headers: { 'X-Robots-Tag': 'noindex' } },
+		'/*/confirmation/**': { headers: { 'X-Robots-Tag': 'noindex' } },
+		'/*/feedback/**': { headers: { 'X-Robots-Tag': 'noindex' } },
+		'/privacy': { prerender: true },
 		'/login': { ssr: false },
 		'/host': { ssr: false },
 		'/guests/**': { ssr: false },
