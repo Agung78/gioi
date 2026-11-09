@@ -2,9 +2,20 @@
   "regions": ["sin1"],
   "redirects": [
     {
-      "source": "/bali",
+      "source": "/",
       "has": [{ "type": "host", "value": "book.gioigroup.com" }],
-      "destination": "https://gioigroup.com/bali",
+      "destination": "https://gioigroup.com/",
+      "permanent": false
+    },
+    {
+      "source": "/:venue((?!ingest|api|_nuxt|login|host|admin|guests|privacy)[^/]+)",
+      "has": [{ "type": "host", "value": "book.gioigroup.com" }],
+      "destination": "https://gioigroup.com/:venue",
+      "permanent": true
+    },
+    {
+      "source": "/:venue((?!ingest|api|_nuxt)[^/]+)/",
+      "destination": "/:venue",
       "permanent": true
     }
   ],
@@ -14,6 +25,18 @@
     { "source": "/api/:path*", "destination": "https://gioi-api.vercel.app/:path*" }
   ],
   "headers": [
+    {
+      "source": "/images/(.*)",
+      "headers": [
+        { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
+      ]
+    },
+    {
+      "source": "/menus/(.*)",
+      "headers": [
+        { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
+      ]
+    },
     {
       "source": "/(.*)",
       "headers": [

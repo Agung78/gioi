@@ -5,6 +5,13 @@ import { useSeoMeta, useHead } from '#app'
 useSeoMeta({
   title: 'Privacy policy | GIOI Ocean Gourmet',
   description: 'How GIOI Ocean Gourmet collects, uses, and protects your personal data when you book a table.',
+  robots: 'noindex, follow',
+  ogTitle: 'Privacy policy | GIOI Ocean Gourmet',
+  ogDescription: 'How GIOI Ocean Gourmet collects, uses, and protects your personal data when you book a table.',
+  ogType: 'website',
+  ogUrl: `${useRuntimeConfig().public.siteUrl}/privacy`,
+  twitterTitle: 'Privacy policy | GIOI Ocean Gourmet',
+  twitterDescription: 'How GIOI Ocean Gourmet collects, uses, and protects your personal data when you book a table.',
 })
 
 useHead({
