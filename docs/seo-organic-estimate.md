@@ -59,7 +59,7 @@ Do these in order; each one affects indexing.
 
 1. Point DNS at the Vercel project; choose **www or apex** and 301-redirect the other to it. All venue images are self-hosted, so nothing on the page depends on the old `gioigroup.com` site.
 2. Set `NUXT_PUBLIC_SITE_URL` to the final host (canonical, `og:url`, JSON-LD, booking and menu URLs all derive from it).
-3. Set `NUXT_PUBLIC_API_BASE=https://gioi-api.vercel.app` (config, not secret). Without it the build now fails at prerender instead of shipping an empty page.
+3. `NUXT_PUBLIC_API_BASE` defaults to `https://gioi-api.vercel.app`; override it only if the API moves. If the API is unreachable at build time, the build fails at prerender instead of shipping an empty page.
 4. Remove the `'/' -> '/bali'` 301 redirect in `nuxt.config.ts` if the company homepage will live at `/`. A 301 is cached by browsers, so decide before going live.
 5. Confirm `sitemap.xml` and `robots.txt` are served from the final host. Add `/privacy` to the sitemap. If the company site owns the root, add the venue URLs to its sitemap.
 6. Verify the host in Google Search Console, submit the sitemap, request indexing of `/bali`.

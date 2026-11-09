@@ -3,7 +3,8 @@ export default defineNuxtConfig({
 	devtools: { enabled: true },
 	runtimeConfig: {
 		public: {
-			apiBase: process.env.NUXT_PUBLIC_API_BASE ?? '',
+			// Server-only (prerender/SSR fetch of venue data); same origin as the /api rewrite in vercel.json.
+			apiBase: process.env.NUXT_PUBLIC_API_BASE ?? 'https://gioi-api.vercel.app',
 			siteUrl: process.env.NUXT_PUBLIC_SITE_URL ?? 'https://www.gioigroup.com',
 			turnstileSiteKey: process.env.NUXT_PUBLIC_TURNSTILE_SITE_KEY ?? '',
 		},
