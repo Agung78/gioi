@@ -14,6 +14,7 @@ useHead({ title: 'Reserve a table | GIOI Ocean Gourmet' })
 const route = useRoute()
 const router = useRouter()
 const venue = (route.params.venue as string) || 'bali'
+const venueHome = useVenueHome(venue)
 
 const { data: venueData, pending, error: venueError } = await useFetch<any>(`/api/public/venues/${venue}`, { server: true })
 
@@ -267,7 +268,7 @@ onMounted(() => {
   </div>
   <div v-else class="mx-auto max-w-5xl px-4 pb-32 pt-8 md:px-8 lg:pb-16">
     <div class="flex items-center justify-between">
-      <NuxtLink :to="`/${venue}`" class="btn-ghost !min-h-10 !px-3 -ml-3 gap-2 text-sm text-ink">
+      <NuxtLink :to="venueHome" class="btn-ghost !min-h-10 !px-3 -ml-3 gap-2 text-sm text-ink">
         <PhArrowLeft :size="16" aria-hidden="true" />
         Back to GIOI
       </NuxtLink>
