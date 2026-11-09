@@ -126,7 +126,7 @@ One subdomain per outlet (`bali.gioigroup.com`, `jakarta.gioigroup.com`) was rej
 
 Moving DNS to Cloudflare is not needed. Vercel provides the CDN, and Vercel accepts an apex domain through an `A` record at any DNS host.
 
-Backlinks for the SEO deliverable point to `gioigroup.com/bali`. In phase 1 that URL redirects to `book.gioigroup.com/bali`. In phase 2 it becomes the outlet page on the group site. The links keep their value in both phases.
+Backlinks for the SEO deliverable point to `www.gioigroup.com/bali`, the canonical landing page of each venue (`www.gioigroup.com/<venue>`). The booking form lives at `book.gioigroup.com/<venue>/book`, and `book.gioigroup.com/<venue>` canonicalizes to the `www` page. The phase 1 redirect from `gioigroup.com/bali` to `book.gioigroup.com/bali` conflicts with a canonical on `www`, so it must be replaced by a page served on `www` before the canonical goes live. Bali is the only venue for now.
 
 ## Decision 6: Group readiness in the data model only
 

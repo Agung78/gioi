@@ -3,14 +3,22 @@ export default defineNuxtConfig({
 	devtools: { enabled: true },
 	runtimeConfig: {
 		public: {
-			apiBase: process.env.NUXT_PUBLIC_API_BASE ?? '',
+			// Server-only (prerender/SSR fetch of venue data); same origin as the /api rewrite in vercel.json.
+			apiBase: process.env.NUXT_PUBLIC_API_BASE ?? 'https://gioi-api.vercel.app',
+			siteUrl: process.env.NUXT_PUBLIC_SITE_URL ?? 'https://www.gioigroup.com',
 			turnstileSiteKey: process.env.NUXT_PUBLIC_TURNSTILE_SITE_KEY ?? '',
 		},
 	},
 	routeRules: {
-		'/': { redirect: '/bali' },
+		// Nitro reads redirect.statusCode; Nuxt's RouteRules type says `status`, which Nitro ignores (stays 307).
+		'/': { redirect: { to: '/bali', statusCode: 301 } } as never,
 		'/bali': { prerender: true },
-		'/bali/book/**': { ssr: false },
+		// Booking flow stays out of search results. Header (not robots.txt Disallow) so Google can crawl and see it.
+		// `as never`: keys that match a page pattern get Nuxt's narrow page-rule type, which omits `headers`; Nitro applies them (verified via curl).
+		'/*/book/**': { ssr: false, headers: { 'X-Robots-Tag': 'noindex' } } as never,
+		'/*/confirmation/**': { headers: { 'X-Robots-Tag': 'noindex' } } as never,
+		'/*/feedback/**': { headers: { 'X-Robots-Tag': 'noindex' } } as never,
+		'/privacy': { prerender: true },
 		'/login': { ssr: false },
 		'/host': { ssr: false },
 		'/guests/**': { ssr: false },

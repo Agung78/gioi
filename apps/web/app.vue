@@ -1,5 +1,10 @@
 <template>
   <div class="min-h-screen flex flex-col">
+    <a
+      href="#main"
+      class="sr-only focus:not-sr-only fixed top-4 left-4 z-50 px-4 py-2 text-sm font-medium bg-surface text-ink rounded shadow ring-1 ring-line"
+      >Skip to content</a
+    >
     <header
       v-if="!isPublic"
       class="[view-transition-name:app-header] sticky top-0 z-30 border-b border-line bg-surface/90 backdrop-blur-md"
@@ -37,7 +42,7 @@
       </nav>
     </header>
 
-    <main class="flex-1">
+    <main id="main" class="flex-1">
       <NuxtPage />
     </main>
     <button

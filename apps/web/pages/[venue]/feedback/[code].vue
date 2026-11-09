@@ -1,10 +1,11 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import { useRoute } from '#app'
+import { useRoute, useHead } from '#app'
 import { PhCheckCircle, PhStar } from '@phosphor-icons/vue'
 import { submitFeedback } from '@/composables/useGuestApi'
 import type { FeedbackBody } from '@/types/venue'
 
+useHead({ title: 'Feedback | GIOI Ocean Gourmet' })
 const route = useRoute()
 const venueSlug = String(route.params.venue)
 const code = String(route.params.code)
