@@ -133,11 +133,14 @@ watch([date, partySize, seatingAreaId], () => {
 const { data: floorPlan } = useFetch<PublicFloorPlan>(`/api/public/venues/${venue}/floor-plan`, { server: false, lazy: true })
 
 const pickedIdx = ref<number | null>(null)
-const picked = computed(() => {
-  const t = pickedIdx.value == null ? null : floorPlan.value?.tables[pickedIdx.value]
+const chosenIdx = ref<number | null>(null) // the table the guest clicked Choose on; booking itself is by area
+const chosen = computed(() => (seatingAreaId.value && chosenIdx.value != null && floorPlan.value?.tables[chosenIdx.value]?.seatingAreaId === seatingAreaId.value ? chosenIdx.value : null))
+const tableInfo = (i: number) => {
+  const t = floorPlan.value?.tables[i]
   const area = t && settings.value?.seatingAreas.find((a: any) => a.id === t.seatingAreaId)
   return t && area ? { table: t, area, fits: fits(area) } : null
-})
+}
+const picked = computed(() => (pickedIdx.value == null ? null : tableInfo(pickedIdx.value)))
 const onTablePick = (i: number) => { pickedIdx.value = i }
 onMounted(() => {
   const esc = (e: KeyboardEvent) => e.key === 'Escape' && (pickedIdx.value = null)
@@ -308,16 +311,26 @@ onMounted(() => {
           </div>
           <div v-if="floorPlan?.tables.length" class="max-w-xl">
             <span class="label">Pick a table area</span>
-            <FloorPlanSvg :plan="floorPlan" pickable :selected="pickedIdx != null ? `t:${pickedIdx}` : null"
-              :highlight-area-id="seatingAreaId" label="Venue floor plan" @table-pick="onTablePick" />
+            <FloorPlanSvg :plan="floorPlan" pickable :selected="pickedIdx != null ? `t:${pickedIdx}` : null" :chosen="chosen"
+              :highlight-area-id="seatingAreaId" label="Venue floor plan" @table-pick="onTablePick">
+              <template #tooltip="{ index }">
+                <template v-for="t in [tableInfo(index)]" :key="index">
+                  <template v-if="t">
+                    <strong>{{ t.area.name }}</strong> · seats {{ t.table.seats }}
+                    <span class="opacity-75"> · {{ !t.area.bookable ? 'not bookable online' : !t.fits ? `not for ${partySize}` : `fits ${partySize}` }}</span>
+                  </template>
+                </template>
+              </template>
+            </FloorPlanSvg>
             <p class="mt-1.5 text-xs text-muted">
-              <template v-if="seatingAreaName">Selected: <strong>{{ seatingAreaName }}</strong>. </template>Tap a table for details.
+              <template v-if="seatingAreaName">Selected: <strong>{{ seatingAreaName }}</strong>. </template>Hover or tap a table for details.
             </p>
             <Teleport to="body">
+              <Transition name="modal">
               <div v-if="picked" class="fixed inset-0 z-50 flex items-end justify-center bg-black/40 p-4 md:items-center"
                 @click.self="pickedIdx = null">
                 <div role="dialog" aria-modal="true" aria-labelledby="table-title"
-                  class="w-full max-w-sm space-y-4 rounded-surface border border-line bg-raised p-5 text-ink shadow-soft">
+                  class="modal-panel w-full max-w-sm space-y-4 rounded-surface border border-line bg-raised p-5 text-ink shadow-soft">
                   <div>
                     <p class="text-xs font-semibold uppercase tracking-widest text-muted">{{ picked.area.name }}</p>
                     <h3 id="table-title" class="text-xl font-extrabold">Table for {{ picked.table.seats }}</h3>
@@ -327,18 +340,19 @@ onMounted(() => {
                     Not available for a party of {{ partySize }}<span v-if="picked.area.minParty"> (parties of {{ picked.area.minParty }}+)</span><span v-else-if="picked.area.maxParty"> (up to {{ picked.area.maxParty }})</span>.
                   </p>
                   <p v-else-if="picked.table.seats < partySize" class="text-sm text-muted">
-                    This table seats {{ picked.table.seats }}. Your party of {{ partySize }} will be seated in {{ picked.area.name }}, not at this exact table.
+                    This table seats {{ picked.table.seats }}. Your party of {{ partySize }} will be seated in {{ picked.area.name }}<template v-if="partySize > picked.table.seats">, and our host will join {{ Math.ceil(partySize / picked.table.seats) }} tables for you</template>, not at this exact table.
                   </p>
                   <p v-else class="text-sm text-muted">Fits your party of {{ partySize }}. We'll seat you in {{ picked.area.name }}.</p>
                   <div class="flex gap-2">
                     <button type="button" class="pill flex-1" @click="pickedIdx = null">Close</button>
-                    <button v-if="seatingAreaId === picked.area.id" type="button" class="pill flex-1" @click="seatingAreaId = null; pickedIdx = null">Clear</button>
-                    <button v-else type="button" class="pill pill-on flex-1" :disabled="!picked.area.bookable || !picked.fits" @click="seatingAreaId = picked.area.id; pickedIdx = null">
+                    <button v-if="chosen === pickedIdx" type="button" class="pill flex-1" @click="seatingAreaId = null; pickedIdx = null">Clear</button>
+                    <button v-else type="button" class="pill pill-on flex-1" :disabled="!picked.area.bookable || !picked.fits" @click="seatingAreaId = picked.area.id; chosenIdx = pickedIdx; pickedIdx = null">
                       Choose {{ picked.area.name }}
                     </button>
                   </div>
                 </div>
               </div>
+              </Transition>
             </Teleport>
           </div>
           <div>
