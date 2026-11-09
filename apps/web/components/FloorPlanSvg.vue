@@ -11,11 +11,13 @@ const props = withDefaults(defineProps<{
 	selected?: string | null // 't:<index>' or 'o:<index>'
 	interactive?: boolean // grab cursors + no touch scrolling (editor)
 	label?: string
-}>(), { highlightAreaId: null, selected: null, interactive: false, label: 'Floor plan' })
+	pickable?: boolean // guest mode: tables are click/keyboard targets with a roomy hit area
+}>(), { highlightAreaId: null, selected: null, interactive: false, label: 'Floor plan', pickable: false })
 
 const emit = defineEmits<{
 	(e: 'item-down', kind: 't' | 'o', index: number, ev: PointerEvent): void
 	(e: 'background-down', ev: PointerEvent): void
+	(e: 'table-pick', index: number): void
 }>()
 
 const svg = ref<SVGSVGElement | null>(null)
@@ -37,6 +39,7 @@ const tables = computed(() => props.plan.tables.map((t) => ({
 	opacity: props.highlightAreaId && t.seatingAreaId !== props.highlightAreaId ? 0.22 : bookable.value.get(t.seatingAreaId) === false ? 0.5 : 1,
 })))
 const objects = computed(() => props.plan.objects.map((o) => ({ ...o, text: objectText(o) })))
+const areaName = (id: string) => props.plan.areas.find((a) => a.id === id)?.name ?? 'Table'
 </script>
 
 <template>
@@ -45,7 +48,7 @@ const objects = computed(() => props.plan.objects.map((o) => ({ ...o, text: obje
 		:viewBox="`0 0 ${plan.width} ${plan.height}`"
 		class="block h-auto w-full select-none rounded-surface bg-[#F6F1E6]"
 		:style="interactive ? 'touch-action: none' : undefined"
-		role="img"
+		:role="pickable ? 'group' : 'img'"
 		:aria-label="label"
 		@pointerdown.self="emit('background-down', $event)"
 	>
@@ -68,11 +71,17 @@ const objects = computed(() => props.plan.objects.map((o) => ({ ...o, text: obje
 			v-for="(t, i) in tables"
 			:key="`t${i}`"
 			:transform="`translate(${t.x} ${t.y}) rotate(${t.rotation}) scale(${TABLE_SCALE})`"
-			:class="[interactive && 'cursor-grab', selected === `t:${i}` && 'floor-sel']"
+			:class="[interactive && 'cursor-grab', pickable && 'floor-pick', selected === `t:${i}` && 'floor-sel']"
 			:opacity="t.opacity"
 			class="transition-opacity motion-reduce:transition-none"
+			:role="pickable ? 'button' : undefined"
+			:tabindex="pickable ? 0 : undefined"
+			:aria-label="pickable ? `Table for ${t.seats}, ${areaName(t.seatingAreaId)}` : undefined"
 			@pointerdown="emit('item-down', 't', i, $event)"
+			@click="pickable && emit('table-pick', i)"
+			@keydown.enter.space.prevent="pickable && emit('table-pick', i)"
 		>
+			<rect v-if="pickable" :x="-t.shape.width / 2 - 12" y="-30" :width="t.shape.width + 24" height="60" rx="14" fill="transparent" class="floor-hit" />
 			<rect v-for="(c, j) in t.shape.chairs" :key="j" :x="c.x - 4.5" :y="c.y - 4" width="9" height="8" rx="3.5" fill="#1F4A6B" stroke="#F6F1E6" stroke-width=".9" />
 			<rect :x="-t.shape.width / 2" y="-12" :width="t.shape.width" height="24" rx="6" :fill="t.fill" stroke="#102638" stroke-width="1.2" />
 			<circle v-for="(cx, j) in t.shape.candles" :key="`c${j}`" :cx="cx" r="2.6" fill="#E87A3A" stroke="#102638" stroke-width=".8" />
@@ -84,4 +93,7 @@ const objects = computed(() => props.plan.objects.map((o) => ({ ...o, text: obje
 .floor-sel {
 	filter: drop-shadow(0 0 4px #e87a3a) drop-shadow(0 0 1px #e87a3a);
 }
+.floor-pick { cursor: pointer; outline: none; }
+.floor-pick:hover .floor-hit,
+.floor-pick:focus-visible .floor-hit { fill: rgba(232, 122, 58, 0.18); stroke: #e87a3a; stroke-width: 1.5; }
 </style>

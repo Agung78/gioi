@@ -1,14 +1,14 @@
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from '#app'
 import { addDays, todayISO, isOpenOn, hoursFor, checkAvailability } from '@gioi/domain'
 import { PhArrowLeft, PhCaretDown, PhMinus, PhPlus } from '@phosphor-icons/vue'
 import DatePicker from '@/components/DatePicker.vue'
 import AvailabilityGrid from '@/components/AvailabilityGrid.vue'
 import { createReservation } from '@/composables/useGuestApi'
-import type { CreateReservationBody } from '@/types/venue'
 import FloorPlanSvg from '@/components/FloorPlanSvg.vue'
 import type { PublicFloorPlan } from '@gioi/domain'
+import type { CreateReservationBody } from '@/types/venue'
 
 const route = useRoute()
 const router = useRouter()
@@ -132,12 +132,18 @@ watch([date, partySize, seatingAreaId], () => {
 
 const { data: floorPlan } = useFetch<PublicFloorPlan>(`/api/public/venues/${venue}/floor-plan`, { server: false, lazy: true })
 
-function onMapPick(kind: 't' | 'o', i: number) {
-  if (kind !== 't') return
-  const table = floorPlan.value?.tables[i]
-  const area = table && bookableAreas.value.find((a: any) => a.id === table.seatingAreaId)
-  if (area && fits(area)) seatingAreaId.value = area.id
-}
+const pickedIdx = ref<number | null>(null)
+const picked = computed(() => {
+  const t = pickedIdx.value == null ? null : floorPlan.value?.tables[pickedIdx.value]
+  const area = t && settings.value?.seatingAreas.find((a: any) => a.id === t.seatingAreaId)
+  return t && area ? { table: t, area, fits: fits(area) } : null
+})
+const onTablePick = (i: number) => { pickedIdx.value = i }
+onMounted(() => {
+  const esc = (e: KeyboardEvent) => e.key === 'Escape' && (pickedIdx.value = null)
+  window.addEventListener('keydown', esc)
+  onBeforeUnmount(() => window.removeEventListener('keydown', esc))
+})
 
 watch(time, (t) => {
   if (t) capture('slot_selected', { time: t, date: date.value, party_size: partySize.value })
@@ -300,24 +306,40 @@ onMounted(() => {
                 @click="capture('whatsapp_clicked', { from: 'large_party' })">Message us on WhatsApp</a>.
             </p>
           </div>
-          <div v-if="bookableAreas.length > 1">
-            <span class="label">Seating</span>
-            <div class="flex flex-wrap gap-2">
-              <button type="button" class="pill" :class="seatingAreaId === null ? 'pill-on' : ''"
-                :aria-pressed="seatingAreaId === null" @click="seatingAreaId = null">Anywhere</button>
-              <button v-for="a in bookableAreas" :key="a.id" type="button" class="pill flex-col"
-                :class="[seatingAreaId === a.id ? 'pill-on' : '', fits(a) ? '' : 'cursor-not-allowed opacity-40']"
-                :aria-pressed="seatingAreaId === a.id" :disabled="!fits(a)" :aria-disabled="!fits(a)"
-                @click="seatingAreaId = a.id">
-                <span>{{ a.name }}</span>
-                <span v-if="a.maxParty && partySize > a.maxParty" class="text-xs font-normal">Up to {{ a.maxParty }} guests</span>
-                <span v-else-if="a.minParty && partySize < a.minParty" class="text-xs font-normal">Parties of {{ a.minParty }}+</span>
-              </button>
-            </div>
-            <div v-if="floorPlan?.tables.length" class="mt-3 max-w-xl">
-              <FloorPlanSvg :plan="floorPlan" :highlight-area-id="seatingAreaId" label="Map of seating areas" @item-down="onMapPick" />
-              <p class="mt-1.5 text-xs text-muted">Tap a table to choose its area.</p>
-            </div>
+          <div v-if="floorPlan?.tables.length" class="max-w-xl">
+            <span class="label">Pick a table area</span>
+            <FloorPlanSvg :plan="floorPlan" pickable :selected="pickedIdx != null ? `t:${pickedIdx}` : null"
+              :highlight-area-id="seatingAreaId" label="Venue floor plan" @table-pick="onTablePick" />
+            <p class="mt-1.5 text-xs text-muted">
+              <template v-if="seatingAreaName">Selected: <strong>{{ seatingAreaName }}</strong>. </template>Tap a table for details.
+            </p>
+            <Teleport to="body">
+              <div v-if="picked" class="fixed inset-0 z-50 flex items-end justify-center bg-black/40 p-4 md:items-center"
+                @click.self="pickedIdx = null">
+                <div role="dialog" aria-modal="true" aria-labelledby="table-title"
+                  class="w-full max-w-sm space-y-4 rounded-surface bg-white p-5 shadow-xl">
+                  <div>
+                    <p class="text-xs font-semibold uppercase tracking-widest text-muted">{{ picked.area.name }}</p>
+                    <h3 id="table-title" class="text-xl font-extrabold">Table for {{ picked.table.seats }}</h3>
+                  </div>
+                  <p v-if="!picked.area.bookable" class="text-sm text-muted">This area isn't open for online booking. Message us to request it.</p>
+                  <p v-else-if="!picked.fits" class="text-sm text-muted">
+                    Not available for a party of {{ partySize }}<span v-if="picked.area.minParty"> (parties of {{ picked.area.minParty }}+)</span><span v-else-if="picked.area.maxParty"> (up to {{ picked.area.maxParty }})</span>.
+                  </p>
+                  <p v-else-if="picked.table.seats < partySize" class="text-sm text-muted">
+                    Seats {{ picked.table.seats }}; we'll pair nearby tables for your party of {{ partySize }}.
+                  </p>
+                  <p v-else class="text-sm text-muted">Fits your party of {{ partySize }}. We'll seat you in {{ picked.area.name }}.</p>
+                  <div class="flex gap-2">
+                    <button type="button" class="pill flex-1" @click="pickedIdx = null">Close</button>
+                    <button v-if="seatingAreaId === picked.area.id" type="button" class="pill flex-1" @click="seatingAreaId = null; pickedIdx = null">Clear</button>
+                    <button v-else type="button" class="pill pill-on flex-1" :disabled="!picked.area.bookable || !picked.fits" @click="seatingAreaId = picked.area.id; pickedIdx = null">
+                      Choose {{ picked.area.name }}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </Teleport>
           </div>
           <div>
             <span class="label">Time</span>
