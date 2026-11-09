@@ -307,7 +307,7 @@ describe('API integration', () => {
 		expect((await me(deviceA)).status).toBe(401)
 	})
 
-	it('venue admin saves a layout; seating-areas capacity follows plan seats', async () => {
+	it('venue admin saves a layout with areas; capacity is the seat count and unsent areas are deleted', async () => {
 		const venue = await prisma.venue.findUnique({ where: { slug: 'bali' } })
 		const area = await prisma.seatingArea.findFirst({ where: { venueId: venue!.id, name: 'Main Hall' } })
 
@@ -329,10 +329,15 @@ describe('API integration', () => {
 		expect(r.status).toBe(200)
 		const cookie = r.headers.get('set-cookie')!.split(';')[0]
 
+		const newId = '0199aaaa-0000-7000-8000-000000000001'
 		const put = await fetch(`${baseUrl}/admin/venues/${venue!.id}/floor-plan/layout`, {
 			method: 'PUT',
 			headers: { 'Content-Type': 'application/json', cookie },
 			body: JSON.stringify({
+				areas: [
+					{ id: area!.id, name: 'Main Hall', bookable: true, minParty: null, maxParty: 8 },
+					{ id: newId, name: 'Rooftop', bookable: true, minParty: 2, maxParty: null },
+				],
 				tables: [
 					{ seatingAreaId: area!.id, seats: 4, x: 100, y: 100, rotation: 0 },
 					{ seatingAreaId: area!.id, seats: 6, x: 300, y: 100, rotation: 0 },
@@ -340,16 +345,26 @@ describe('API integration', () => {
 				objects: [],
 			}),
 		})
-		expect(put.status).toBe(200)
+		expect(put.status, await put.clone().text()).toBe(200)
+		const plan = await put.json()
+		expect(plan.areas.map((a: { name: string }) => a.name).sort()).toEqual(['Main Hall', 'Rooftop'])
 
-		const get = await fetch(`${baseUrl}/admin/venues/${venue!.id}/seating-areas`, {
-			headers: { cookie },
+		const rows = await prisma.seatingArea.findMany({ where: { venueId: venue!.id } })
+		expect(rows.find((a) => a.id === area!.id)).toMatchObject({ capacity: 10, maxParty: 8 })
+		expect(rows.find((a) => a.id === newId)).toMatchObject({ capacity: 0, minParty: 2 })
+		expect(rows).toHaveLength(2) // every other seeded area was not sent, so it is gone
+
+		// A table pointing at an area that was not sent is rejected.
+		const bad = await fetch(`${baseUrl}/admin/venues/${venue!.id}/floor-plan/layout`, {
+			method: 'PUT',
+			headers: { 'Content-Type': 'application/json', cookie },
+			body: JSON.stringify({
+				areas: [{ id: area!.id, name: 'Main Hall', bookable: true }],
+				tables: [{ seatingAreaId: newId, seats: 2, x: 10, y: 10, rotation: 0 }],
+				objects: [],
+			}),
 		})
-		expect(get.status).toBe(200)
-		const areas = await get.json()
-		const main = areas.find((a: { id: string }) => a.id === area!.id)
-		expect(main.capacity).toBe(10)
-		expect(main.planSeats).toBe(10)
+		expect(bad.status).toBe(422)
 	})
 
 	it('super admin without a user_venues row for the venue cannot save a layout', async () => {
@@ -377,7 +392,7 @@ describe('API integration', () => {
 		const put = await fetch(`${baseUrl}/admin/venues/${venue!.id}/floor-plan/layout`, {
 			method: 'PUT',
 			headers: { 'Content-Type': 'application/json', cookie },
-			body: JSON.stringify({ tables: [], objects: [] }),
+			body: JSON.stringify({ areas: [], tables: [], objects: [] }),
 		})
 		expect(put.status).toBe(403)
 	})

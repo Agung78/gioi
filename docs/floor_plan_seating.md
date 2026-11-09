@@ -1,6 +1,6 @@
 # Floor plan & seating
 
-Production port of the prototype `docs/gioi_bali_2d_floor_plan.html`: a per-venue 2D floor plan whose tables drive seating-area capacity, plus a read-only map on the guest booking page.
+Production port of the prototype `docs/gioi_bali_2d_floor_plan.html`: a per-venue 2D floor plan whose tables drive seating-area capacity, plus the guest booking map.
 
 Booking stays **area-level** (design doc §4, "start with seating-area capacity"). Tables do not get reservations; they define how many covers each area holds.
 
@@ -15,7 +15,7 @@ Booking stays **area-level** (design doc §4, "start with seating-area capacity"
 
 "Venue admin" means `user_venues.role = 'admin'` for that venue. The layout save checks `userRole(session, venueId) === 'admin'` and does **not** let super admin through by global rights. That is the one place this feature departs from `requireAdmin`.
 
-## Data model (migration `0002_floor_plan`)
+## Data model (migrations `0002_floor_plan`, `0003_seating_area_zero_capacity`)
 
 ```mermaid
 erDiagram
@@ -47,25 +47,25 @@ flowchart LR
   C --> B[Booking engine: public + walk-in, unchanged]
 ```
 
-- When the layout is saved, in the **same transaction**, every area that has tables gets `capacity = SUM(seats)`. That row update takes the same row lock that booking transactions take (`SELECT … FOR UPDATE`).
-- Areas with **no tables** keep their manually set capacity.
-- The seating-areas settings save ignores a submitted capacity for any area that has tables. `GET /admin/venues/:id/seating-areas` returns `planSeats` (`null` when the area has no tables), and the settings UI makes the capacity box read-only when that is set.
-- Lowering capacity never cancels existing bookings. It only blocks new ones, just like editing capacity by hand.
-- Audit: `floor_plan.updated` (with table and object counts plus per-area capacity changes), `floor_plan.image_uploaded`, and `floor_plan.image_removed`.
+- **The floor plan is the only place seating areas are managed.** A layout save carries the areas too: create (client-made uuid), rename, party limits, bookable, and delete. There is no separate seating-areas settings card or endpoint.
+- When the layout is saved, in the **same transaction**, every area gets `capacity = SUM(seats)` of its tables; an area with no tables gets **0** and can't take bookings (migration `0003_seating_area_zero_capacity` relaxes the check to `capacity >= 0`). The row update takes the same row lock that booking transactions take (`SELECT … FOR UPDATE`).
+- Deleting an area also deletes its tables. It is refused (409) while any reservation references it, so existing bookings are never orphaned.
+- Lowering capacity never cancels existing bookings. It only blocks new ones.
+- Audit: `floor_plan.updated` (table and object counts, per-area capacity changes, deleted area names), `floor_plan.image_uploaded`, and `floor_plan.image_removed`.
 
 ## API
 
 | Method & path | Who | Body / query | Returns |
 |---|---|---|---|
 | `GET /admin/venues/:id/floor-plan` | venue admin, super admin | – | `AdminFloorPlan` |
-| `PUT /admin/venues/:id/floor-plan/layout` | **venue admin only** | `{ tables: FloorTable[], objects: FloorObject[] }` (≤ 500 tables, ≤ 200 objects) | `AdminFloorPlan` |
+| `PUT /admin/venues/:id/floor-plan/layout` | **venue admin only** | `{ areas: { id, name, bookable, minParty?, maxParty? }[], tables: FloorTable[], objects: FloorObject[] }` (≤ 50 areas, ≤ 500 tables, ≤ 200 objects). New areas use a client-made uuid. Areas not sent are deleted (blocked if they have reservations) | `AdminFloorPlan` |
 | `PUT /admin/venues/:id/floor-plan/image` | **super admin only** | `{ image: string \| null, width?, height? }` (natural size of the drawing; required when `image` is set). Body limit 4.5 MB | `AdminFloorPlan` |
 | `GET /public/venues/:slug/floor-plan` | public | – | `PublicFloorPlan` |
 | `GET /public/venues/:slug/availability` | public | `date`, `party`, **`area` (optional uuid)** | slots for that area only, or across all areas when omitted |
 
 The shared types live in `packages/domain/src/types.ts`: `FloorTable`, `FloorObject`, `FloorPlanArea`, `PublicFloorPlan`, `AdminFloorPlan`.
 
-Errors: 403 `venue admin required` / `super admin required`; 422 `unknown seating area`, `item is outside the floor plan`, `drawing must be an SVG, PNG, JPEG or WebP under 3 MB`.
+Errors: 403 `venue admin required` / `super admin required`; 409 `<area> has reservations and cannot be deleted`; 422 `unknown seating area`, `area name is required`, `area names must be unique`, `minParty must not exceed maxParty`, `item is outside the floor plan`, `drawing must be an SVG, PNG, JPEG or WebP under 3 MB`.
 
 Uploaded SVGs are only ever rendered through SVG `<image href>`, which doesn't run scripts. They are never served or inlined as a document.
 
@@ -76,10 +76,11 @@ Uploaded SVGs are only ever rendered through SVG `<image href>`, which doesn't r
   - Add a table (it goes into the area picked in the toolbar) or an object (presets Stage, Bar, DJ booth, Entrance, Planter, Custom; label, W and H are editable).
   - Each table has a seating-area dropdown.
   - Side panel lists each area with its table count and seats; hover or click highlights that area. Total seats.
+  - **+ Add area** creates an area. Click an area to edit its name, min/max party and Bookable, or to **Delete area** (also removes its tables; the save is refused if it has reservations). With no areas, + Table is disabled.
   - Explicit **Save layout** with an unsaved-changes indicator and **Revert** to reload.
   - Users without venue admin rights see the plan read-only.
 - **`/admin/settings`** for super admins: "Floor plan drawing" upload, preview and remove for the venue chosen in the venue picker. Super admins have no "Floor plan" nav link, and `/admin/floor-plan` redirects them to Settings: laying out tables is the venue admin's job.
-- **`/admin/settings`** for venue admins: the capacity box is read-only and shows "from floor plan" when `planSeats` is set.
+- **`/admin/settings`** for venue admins has **no** seating-areas card any more: names, party limits, bookable flags and capacity all live in the floor plan editor.
 
 QA scenarios for all of the above: [`qa-e2e-browser-scenarios.md`](./qa-e2e-browser-scenarios.md) §1.2a and §7.2.
 
@@ -105,22 +106,23 @@ QA scenarios for all of the above: [`qa-e2e-browser-scenarios.md`](./qa-e2e-brow
 | Confirm button disabled with no reason when the area's party rules failed | Pills that don't fit are disabled and show the reason |
 | The server didn't check an explicitly picked area's `minParty`/`maxParty` | Checked in the booking transaction (422) |
 | Availability loaded every reservation the venue ever had | Query filtered to the requested day |
-| Settings "Add seating area" created `area-xxxx` ids, which the uuid schema rejected | New rows are sent without an id |
+| Settings "Add seating area" created `area-xxxx` ids, which the uuid schema rejected | Areas are now created in the floor plan editor with real uuids; the settings card and its endpoints are gone |
 
 ## Operations
 
 ```sh
 cd apps/api
-pnpm prisma:migrate    # applies 0002_floor_plan
+pnpm prisma:migrate    # applies 0002_floor_plan and 0003_seating_area_zero_capacity
 pnpm prisma:generate   # regenerates src/generated/prisma
 pnpm prisma:seed       # stores the Bali drawing (prisma/floor-plans/bali.svg) only if Bali has none yet
 ```
 
 The seed does not create tables: production seating areas (Main Hall, Sunset Terrace, …) don't match the prototype's zones. The Bali venue admin lays out the tables once in `/admin/floor-plan`. Until then the guest map stays hidden.
 
+**Existing venues:** the first layout save sets every area's capacity to its seat count, so areas that had a typed capacity and no tables drop to 0 and stop taking bookings until tables are placed. Place the tables before saving, or the venue closes those areas.
+
 ## Known limits (ponytail)
 
 - A layout save replaces all rows, so table ids change on every save. Switch to per-id upsert once reservations reference tables.
 - Icon size is fixed in plan units. A drawing at a very different scale makes tables look too big or too small. Add a per-venue table scale only once a second real drawing needs it.
-- Removing a seating area in settings still doesn't delete it on the server (a bug that predates this feature).
 - No table-level assignment or host floor view. Both are deliberately out of scope until GIOI's floor rules ask for them.

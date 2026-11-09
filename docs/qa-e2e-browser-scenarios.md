@@ -154,8 +154,8 @@ Expected is shown as **host / venue admin / super admin**.
 | R-01 | P0 | `/admin` | Type URL | → `/host` / loads / loads | ✔ |
 | R-02 | P0 | `/admin/settings` | Type URL | → `/host` / loads / loads | ✔ |
 | R-03 | P0 | `/admin/audit` | Type URL | → `/host` / → `/host` / loads | ✔ |
-| R-04 | P0 | Settings content | Open Settings | — / loads venue sections only (Restaurant, hours, feedback, seating, export), **no Venues/Accounts** / Venues + Accounts only | ☐ (venue admin ✔, super admin ✔; host not re-run) |
-| R-05 | P0 | API settings reads (`GET /api/admin/venues/:id`, `/opening-hours`, `/closed-dates`, `/seating-areas`) | DevTools/curl with session cookie | 403 / 200 / 200 | ✔ |
+| R-04 | P0 | Settings content | Open Settings | — / loads venue sections only (Restaurant, hours, feedback, export), **no Venues/Accounts** / Venues + Accounts only | ☐ (venue admin ✔, super admin ✔; host not re-run) |
+| R-05 | P0 | API settings reads (`GET /api/admin/venues/:id`, `/opening-hours`, `/closed-dates`) | DevTools/curl with session cookie | 403 / 200 / 200 | ✔ |
 | R-06 | P0 | API settings writes (`PATCH`/`PUT`) | same | 403 / 200 / 200 | ✔ |
 | R-07 | P0 | `/api/admin/analytics`, `/api/admin/venues/:id/export.csv` | same | 403 / 200 / 200 | ✔ |
 | R-08 | P0 | `/api/admin/users`, `/api/admin/venues` (list/create), `/api/admin/audit-log` | same | 403 / 403 / 200 | ☐ |
@@ -249,7 +249,7 @@ Expected is shown as **host / venue admin / super admin**.
 | T-03 | P1 | Name read-only | Restaurant name | Disabled (not in the API whitelist) | ✔ |
 | T-04 | P1 | **Opening hours & rules** | Hours per weekday, interval, party limits, lead time, cut-off, closed dates | Public availability follows each | ✔ |
 | T-05 | P1 | **Guest feedback** | Title, subtitle, WhatsApp template (tags field is read-only) | Used on feedback page and the host's feedback link | ✔ |
-| T-06 | P1 | **Seating areas** | Name, capacity, party min/max, bookable, add/remove | Public + walk-in options follow; capacity box is read-only for areas with floor-plan tables (see F-06) | ✔ |
+| T-06 | P1 | **Seating areas** | Moved to the floor plan editor (F-06, F-13 to F-18) | Settings no longer has a Seating areas card | ✔ |
 | T-07 | P1 | **Accounts** (super admin) | See 7.1 (T-13…T-28) | Replaced by the Venues/Accounts scenarios | ✔ |
 | T-08 | P0 | **Data export** | Download reservations CSV | File downloads with guest contact + allergy/accessibility notes; 403 for hosts | ✔ |
 | T-09 | P1 | Save is diffed | Change one field, save | Audit event lists only the changed field(s) | ✔ |
@@ -289,13 +289,19 @@ Seed gives `admin` (super admin and venue admin of Bali) and `venueadmin` (venue
 | F-03 | P0 | Who can open the editor | Open `/admin/floor-plan` as host, venue admin, super admin | Host → `/host`; super admin → `/admin/settings` and no "Floor plan" nav link (it only uploads drawings); venue admin sees nav "Floor plan", plan, toolbar, area list with table counts and total seats | ✔ |
 | F-04 | P1 | Add table, chairs, Revert | Pick Terrace → + Table → + chair ×2 | New table in that area, 4 → 6 seats; unsaved indicator shows; Revert restores the saved layout | ✔ |
 | F-05 | P0 | Save layout sets capacity | Save a layout with tables in an area | Area capacity = sum of seats; survives reload; audit `floor_plan.updated` | ✔ |
-| F-06 | P1 | Capacity box in Settings | Settings → Seating areas as venue admin | Area with tables: read-only, "from floor plan". Area without tables: editable and saves | ✔ |
-| F-07 | P1 | Area without tables keeps capacity | Save a layout that has no tables for an area | That area's capacity unchanged | ✔ |
+| F-06 | P1 | Capacity is never typed | Settings and Floor plan as venue admin | No capacity input anywhere; the side panel's seats per area are the capacity | ✔ |
+| F-07 | P1 | Capacity follows tables on every save | Remove all tables of an area, save; add them back, save | Capacity goes to 0, then to the new seat sum | ✔ |
 | F-08 | P0 | Layout needs venue admin | `PUT …/floor-plan/layout` as host; as super admin on a venue where they are not admin | 403 "venue admin required" both; `GET …/floor-plan` as that super admin → 200, `canEdit: false` | ✔ |
 | F-09 | P1 | Layout validation | Save a table with an unknown area id; one at x = 99999 | 422 "unknown seating area"; 422 "item is outside the floor plan" | ✔ |
 | F-10 | P1 | Public plan is safe | `GET /api/public/venues/bali/floor-plan` | Only width, height, image, areas, tables, objects; tables carry id, seatingAreaId, seats, x, y, rotation; no guest or booking data | ✔ |
 | F-11 | P2 | Editor controls | Drag, arrow nudge (Shift ×10), R rotate, +/− chair, Delete key / button | Each updates the plan; clamped inside the plan | ☐ (Delete button ✔; drag / rotate / keys not run) |
 | F-12 | P2 | New drawing keeps positions | Replace the drawing with a different aspect ratio | Tables keep their positions; any outside the new box are clamped when the editor loads | ☐ |
+| F-13 | P0 | Create an area | Floor plan → + Add area → name "Rooftop", min party 2 → pick it in the toolbar → + Table, + chair → Save layout | Area listed with 1 table and 5 seats; DB row has capacity 5, min_party 2, bookable; survives reload | ✔ |
+| F-14 | P0 | Delete an area with reservations | Pin an area that has a booking (Sunset Terrace) → Delete area → Save layout | Save fails with "Sunset Terrace has reservations and cannot be deleted"; Revert brings it back; nothing changed in the DB | ✔ |
+| F-15 | P1 | Delete an empty area | Pin Rooftop (no bookings) → Delete area → Save layout | Area and its tables gone after save and reload | ✔ |
+| F-16 | P1 | No tables means no capacity | Save with an area that has no tables (Terrace) | Area stays in the list with 0 seats; its capacity is 0 so it takes no bookings; save succeeds | ✔ |
+| F-17 | P1 | Settings has no seating card | Settings as venue admin; `GET`/`PUT /api/admin/venues/:id/seating-areas` | No "Seating areas" card; both routes return 404 | ✔ |
+| F-18 | P1 | Area name and party rules | Duplicate names (case-insensitive), empty name, min > max (via API) | 422 "area names must be unique" / "area name is required" / "minParty must not exceed maxParty" | ✔ |
 
 ## 8. Audit log (`/admin/audit`, super admin)
 
@@ -396,3 +402,12 @@ Managed Chromium against web `:3000`, API `:3001`, Docker Postgres `gioi-pg`. La
 - **Dev DB fixes needed to run this:** the dev DB had no `0002_floor_plan` tables (applied the SQL as `gioi_owner`; `prisma migrate deploy` still fails with P3005 because the DB was never baselined), and `venueadmin` was missing (now in `prisma/seed.ts`).
 - Data left in the dev DB: bookings `GIOI-H9UEX2WC` (Sunset Terrace) and one Main Hall booking from G-39, venue `qa-floor` (drawing removed), 11 demo tables.
 - The map is a guide only: a booking stores the seating area, never a table.
+
+## Run notes (2026-11-09, later: seating areas moved into the floor plan editor)
+
+- ✔ run: F-13 to F-18 (browser + curl), `pnpm test:db` (13 passing, incl. the area create / capacity / delete test and the "table points at an unsent area" 422), `@gioi/domain` tests.
+- Areas are now created, renamed, limited and deleted in `/admin/floor-plan`; the Settings "Seating areas" card and `GET`/`PUT /admin/venues/:id/seating-areas` are gone. Capacity is only ever the seat sum.
+- Needs migration `0003_seating_area_zero_capacity` (an area with no tables has capacity 0). Applied to `gioi` and `gioi_test` as `gioi_owner`; prod needs `pnpm prisma:migrate` or the SQL run by the owner role.
+- **Found and fixed:** `slot_over_capacity` would have shown "Infinity%" for an area with bookings and capacity 0; it now reports 100%.
+- **Side effect to remember:** the first layout save on an existing venue sets every area to its seat count, so areas with a typed capacity and no tables drop to 0. In the dev DB, Terrace is now 0.
+- Test setup: `gioi_test` also lacked `0002_floor_plan`; applied by hand.

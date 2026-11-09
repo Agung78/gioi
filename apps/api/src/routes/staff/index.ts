@@ -15,7 +15,6 @@ import { notFound, conflict, forbidden, unprocessable, AppError } from '../../li
 import { hash } from '@node-rs/argon2'
 import { venueToSettings } from '../../lib/settings'
 import { requireAuth, requireAdmin, requireVenueAccess } from '../../lib/middleware'
-import { planSeatsByArea, areasWithPlanSeats } from './floorPlan'
 import {
 	localDate,
 	localTime,
@@ -648,105 +647,6 @@ export function registerStaffRoutes(app: FastifyInstance, prisma: PrismaClient):
 				})
 			})
 			return prisma.closedDate.findMany({ where: { venueId: request.params.id }, orderBy: { date: 'asc' } })
-		},
-	)
-
-	// ---- Admin: seating areas -----------------------------------------------
-	app.get(
-		'/admin/venues/:id/seating-areas',
-		async (request: FastifyRequest<{ Params: { id: string } }>) => {
-			const session = await requireAuth(prisma, request.cookies as Record<string, string>)
-			requireVenueAccess(session, request.params.id)
-			requireAdmin(session, request.params.id)
-			return areasWithPlanSeats(prisma, request.params.id)
-		},
-	)
-
-	app.put(
-		'/admin/venues/:id/seating-areas',
-		{
-			schema: {
-				body: {
-					type: 'array',
-					items: {
-						type: 'object',
-						required: ['name', 'capacity', 'bookable'],
-						properties: {
-							id: { type: 'string', format: 'uuid' },
-							name: { type: 'string', minLength: 1, maxLength: 80 },
-							capacity: { type: 'integer', minimum: 0, maximum: 1000 },
-							bookable: { type: 'boolean' },
-							minParty: { type: ['integer', 'null'], minimum: 1 },
-							maxParty: { type: ['integer', 'null'], minimum: 1 },
-						},
-					},
-				},
-			},
-		},
-		async (
-			request: FastifyRequest<{
-				Params: { id: string }
-				Body: Array<{
-					id?: string
-					name: string
-					capacity: number
-					bookable: boolean
-					minParty?: number | null
-					maxParty?: number | null
-				}>
-			}>,
-		) => {
-			const session = await requireAuth(prisma, request.cookies as Record<string, string>)
-			requireVenueAccess(session, request.params.id)
-			if (!session.user.isSuperAdmin && session.user.venueRoles[request.params.id] !== 'admin') {
-				throw forbidden('insufficient role')
-			}
-
-			for (const a of request.body) {
-				if (a.minParty != null && a.maxParty != null && a.minParty > a.maxParty) {
-					throw new AppError(422, 'minParty must not exceed maxParty', 'ERR_VALIDATION')
-				}
-			}
-			const planSeats = await planSeatsByArea(prisma, request.params.id)
-			await prisma.$transaction(async (tx) => {
-				for (const row of request.body) {
-					if (row.id) {
-						const { count } = await tx.seatingArea.updateMany({
-							where: { id: row.id, venueId: request.params.id },
-							data: {
-								name: row.name,
-								capacity: planSeats.get(row.id) ?? row.capacity,
-								bookable: row.bookable,
-								minParty: row.minParty ?? null,
-								maxParty: row.maxParty ?? null,
-							},
-						})
-						if (count === 0) throw notFound('seating area not found')
-					} else {
-						await tx.seatingArea.create({
-							data: {
-								venueId: request.params.id,
-								name: row.name,
-								capacity: row.capacity,
-								bookable: row.bookable,
-								minParty: row.minParty ?? null,
-								maxParty: row.maxParty ?? null,
-							},
-						})
-					}
-				}
-				await tx.auditEvent.create({
-					data: {
-						venueId: request.params.id,
-						actorType: 'user',
-						actorUserId: session.user.id,
-						action: 'seating_area.updated',
-						entityType: 'seating_area',
-						entityId: request.params.id,
-					},
-				})
-			})
-			return areasWithPlanSeats(prisma, request.params.id)
 		},
 	)
 

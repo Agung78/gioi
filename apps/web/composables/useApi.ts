@@ -1,6 +1,6 @@
 import { useAuthStore } from '@/stores/auth' // circular with the store, but only used at call time
 import type { Channel, ReservationStatus } from '@gioi/domain'
-import type { AdminFloorPlan, FloorObject, FloorTable } from '@gioi/domain'
+import type { AdminFloorPlan, FloorObject, FloorPlanArea, FloorTable } from '@gioi/domain'
 
 export interface StaffReservation {
 	id: string
@@ -355,24 +355,6 @@ export async function saveClosedDates(id: string, rows: ClosedDateRow[]): Promis
 	return apiFetch<ClosedDateRow[]>(`/admin/venues/${id}/closed-dates`, { method: 'PUT', body: rows })
 }
 
-export interface SeatingAreaRow {
-	id?: string
-	name: string
-	capacity: number
-	bookable: boolean
-	minParty?: number | null
-	maxParty?: number | null
-	planSeats?: number | null
-}
-
-export async function fetchSeatingAreas(id: string): Promise<SeatingAreaRow[]> {
-	return apiFetch<SeatingAreaRow[]>(`/admin/venues/${id}/seating-areas`)
-}
-
-export async function saveSeatingAreas(id: string, rows: SeatingAreaRow[]): Promise<SeatingAreaRow[]> {
-	return apiFetch<SeatingAreaRow[]>(`/admin/venues/${id}/seating-areas`, { method: 'PUT', body: rows })
-}
-
 export interface StaffUserRow {
 	id: string
 	name: string
@@ -424,7 +406,7 @@ export async function fetchFloorPlan(venueId: string): Promise<AdminFloorPlan> {
 	return apiFetch<AdminFloorPlan>(`/admin/venues/${venueId}/floor-plan`)
 }
 
-export async function saveFloorLayout(venueId: string, body: { tables: FloorTable[]; objects: FloorObject[] }): Promise<AdminFloorPlan> {
+export async function saveFloorLayout(venueId: string, body: { areas: FloorPlanArea[]; tables: FloorTable[]; objects: FloorObject[] }): Promise<AdminFloorPlan> {
 	return apiFetch<AdminFloorPlan>(`/admin/venues/${venueId}/floor-plan/layout`, { method: 'PUT', body })
 }
 

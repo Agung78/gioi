@@ -351,7 +351,7 @@ export function actionCues(
 		const used = reservedCovers(reservations, r.date, r.time, r.seatingAreaId)
 		const area = settings.seatingAreas.find((a) => a.id === r.seatingAreaId)
 		if (!area) continue
-		const pct = Math.round((used / area.capacity) * 100)
+		const pct = area.capacity > 0 ? Math.round((used / area.capacity) * 100) : 100 // an area emptied of tables but still holding bookings
 		if (pct >= settings.overCapacityAlertPercent) {
 			cues.push({
 				kind: 'slot_over_capacity',

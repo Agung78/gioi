@@ -285,6 +285,8 @@ export interface FloorPlanArea {
   id: string
   name: string
   bookable: boolean
+  minParty?: number | null
+  maxParty?: number | null
 }
 
 export interface PublicFloorPlan {

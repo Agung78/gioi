@@ -211,8 +211,8 @@ Use these scenarios to record a client-facing walkthrough of the GIOI Bali reser
 3. In **Opening hours & rules**, show opening/closing times, booking interval, minimum/maximum party size, lead time, cut-off, no-show target, and over-capacity alert threshold.
 4. In **Opening hours & rules**, pick a valid future date in the **Closed date** field, click **+ Add**, then click **Save hours & rules**. Remove it afterward if the recording continues with booking tests.
 5. In **Guest feedback**, review the native feedback title, subtitle, and WhatsApp message template configuration. Click **Save feedback settings**.
-6. In **Seating areas**, show names, capacities, party-size limits, bookable toggles, and total bookable capacity.
-7. Add a seating area, rename it, and click **Save seating areas**. Remove the temporary area afterward if desired.
+6. Seating areas now live in the **Floor plan** page (venue admin): show each area's table count, seats (its capacity), and the area panel with party-size limits and the bookable toggle.
+7. Click **+ Add area**, rename it, place a table in it, and click **Save layout**. Delete the temporary area afterward if desired.
 8. In **Users**, show name, login, role, and active state. Click **Save users** without changing access unless the client specifically wants that demonstration.
 9. In **Data export**, click **Download reservations CSV** and show the browser download confirmation.
 

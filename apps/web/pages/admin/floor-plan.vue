@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
-import { FLOOR_TABLE_MAX_SEATS, type AdminFloorPlan, type FloorObject, type FloorTable } from '@gioi/domain'
+import { FLOOR_TABLE_MAX_SEATS, type AdminFloorPlan, type FloorObject, type FloorPlanArea, type FloorTable } from '@gioi/domain'
 import { useAuthStore } from '@/stores/auth'
 import FloorPlanSvg from '@/components/FloorPlanSvg.vue'
 import { fetchFloorPlan, saveFloorLayout } from '@/composables/useApi'
@@ -14,6 +14,7 @@ const venueId = computed(() => auth.adminVenueId)
 
 const loading = ref(true)
 const plan = ref<AdminFloorPlan | null>(null)
+const areas = ref<FloorPlanArea[]>([])
 const tables = ref<FloorTable[]>([])
 const objects = ref<FloorObject[]>([])
 const selected = ref<string | null>(null) // 't:<index>' | 'o:<index>'
@@ -27,7 +28,8 @@ const svgRef = ref<InstanceType<typeof FloorPlanSvg> | null>(null)
 
 const canEdit = computed(() => !!plan.value?.canEdit)
 // Live draft rendered by the shared component (backdrop + areas from the server, items from the editor).
-const draft = computed(() => plan.value && { ...plan.value, tables: tables.value, objects: objects.value })
+const draft = computed(() => plan.value && { ...plan.value, areas: areas.value, tables: tables.value, objects: objects.value })
+const pinnedArea = computed(() => areas.value.find((a) => a.id === pinned.value) ?? null)
 const highlight = computed(() => hovered.value ?? pinned.value)
 
 const current = computed(() => {
@@ -38,7 +40,7 @@ const current = computed(() => {
 const selTable = computed(() => (current.value?.kind === 't' ? (current.value.item as FloorTable) : null))
 const selObj = computed(() => (current.value?.kind === 'o' ? (current.value.item as FloorObject) : null))
 
-const stats = computed(() => new Map((plan.value?.areas ?? []).map((a) => {
+const stats = computed(() => new Map(areas.value.map((a) => {
 	const ts = tables.value.filter((t) => t.seatingAreaId === a.id)
 	return [a.id, { count: ts.length, seats: ts.reduce((s, t) => s + t.seats, 0) }]
 })))
@@ -48,9 +50,10 @@ const touch = () => { dirty.value = true }
 
 function load(p: AdminFloorPlan) {
 	plan.value = p
+	areas.value = structuredClone(p.areas)
 	tables.value = structuredClone(p.tables).map((t) => clampToPlan(t, p))
 	objects.value = structuredClone(p.objects).map((o) => clampToPlan(o, p))
-	newTableArea.value ??= p.areas.find((a) => a.bookable)?.id ?? p.areas[0]?.id ?? null
+	if (!areas.value.some((a) => a.id === newTableArea.value)) newTableArea.value = areas.value.find((a) => a.bookable)?.id ?? areas.value[0]?.id ?? null
 	selected.value = null
 	dirty.value = false
 }
@@ -98,6 +101,33 @@ function addObject() {
 	if (!plan.value) return
 	objects.value.push({ ...OBJECT_PRESETS[objectType.value], x: plan.value.width / 2, y: plan.value.height / 2, rotation: 0 })
 	selected.value = `o:${objects.value.length - 1}`
+	touch()
+}
+
+function addArea() {
+	let name = 'New area'
+	for (let n = 2; areas.value.some((a) => a.name === name); n++) name = `New area ${n}`
+	const a = { id: crypto.randomUUID(), name, bookable: true, minParty: null, maxParty: null }
+	areas.value.push(a)
+	pinned.value = a.id
+	newTableArea.value ??= a.id
+	touch()
+}
+
+function removeArea(id: string) {
+	const n = tables.value.filter((t) => t.seatingAreaId === id).length
+	if (n && !confirm(`Delete this area and its ${n} table${n === 1 ? '' : 's'}?`)) return
+	tables.value = tables.value.filter((t) => t.seatingAreaId !== id)
+	areas.value = areas.value.filter((a) => a.id !== id)
+	if (pinned.value === id) pinned.value = null
+	if (newTableArea.value === id) newTableArea.value = areas.value.find((a) => a.bookable)?.id ?? areas.value[0]?.id ?? null
+	selected.value = null
+	touch()
+}
+
+function setParty(key: 'minParty' | 'maxParty', raw: string) {
+	if (!pinnedArea.value) return
+	pinnedArea.value[key] = Number(raw) > 0 ? Math.floor(Number(raw)) : null
 	touch()
 }
 
@@ -161,6 +191,7 @@ async function save() {
 	const r1 = (v: number) => Math.round(v * 10) / 10
 	try {
 		load(await saveFloorLayout(venueId.value, {
+			areas: areas.value.map((a) => ({ id: a.id, name: a.name.trim(), bookable: a.bookable, minParty: a.minParty ?? null, maxParty: a.maxParty ?? null })),
 			tables: tables.value.map((t) => ({ seatingAreaId: t.seatingAreaId, seats: t.seats, x: r1(t.x), y: r1(t.y), rotation: t.rotation })),
 			objects: objects.value.map((o) => ({ label: o.label, width: o.width, height: o.height, color: o.color, x: r1(o.x), y: r1(o.y), rotation: o.rotation })),
 		}))
@@ -208,10 +239,6 @@ definePageMeta({ middleware: ['auth', 'admin', () => (useAuthStore().isSuperAdmi
 			<p class="text-muted">Loading floor plan…</p>
 		</div>
 		<div v-else-if="!draft" class="alert-danger">{{ error }}</div>
-		<div v-else-if="!draft.areas.length" class="card py-16 text-center">
-			<p class="text-muted">Create seating areas in Settings first.</p>
-			<NuxtLink to="/admin/settings" class="btn-secondary mt-4">Go to Settings</NuxtLink>
-		</div>
 
 		<div v-else class="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_17rem]">
 			<div class="card min-w-0">
@@ -219,7 +246,7 @@ definePageMeta({ middleware: ['auth', 'admin', () => (useAuthStore().isSuperAdmi
 					<select v-model="newTableArea" class="field !w-auto" aria-label="Area for new tables">
 						<option v-for="a in draft.areas" :key="a.id" :value="a.id">{{ a.name }}</option>
 					</select>
-					<button class="btn-primary" type="button" @click="addTable">+ Table</button>
+					<button class="btn-primary" type="button" :disabled="!newTableArea" title="Add an area first" @click="addTable">+ Table</button>
 					<button class="btn-secondary" type="button" title="Fewer chairs (−)" :disabled="!selTable || selTable.seats <= 1" @click="chairs(-1)">− chair</button>
 					<button class="btn-secondary" type="button" title="More chairs (+)" :disabled="!selTable || selTable.seats >= FLOOR_TABLE_MAX_SEATS" @click="chairs(1)">+ chair</button>
 					<button class="btn-secondary" type="button" title="Rotate −15° (Shift −90°)" aria-label="Rotate left" :disabled="!current" @click="rotate(-1, $event)">⟲</button>
@@ -284,10 +311,26 @@ definePageMeta({ middleware: ['auth', 'admin', () => (useAuthStore().isSuperAdmi
 						</button>
 					</li>
 				</ul>
+				<button v-if="canEdit" class="btn-secondary mt-3 w-full" type="button" @click="addArea">+ Add area</button>
+				<div v-if="canEdit && pinnedArea" class="mt-3 grid gap-2 border-t border-line px-3 pt-3 text-sm">
+					<label class="grid gap-1">Name
+						<input v-model="pinnedArea.name" maxlength="80" class="field" @input="touch" />
+					</label>
+					<div class="grid grid-cols-2 gap-2">
+						<label class="grid gap-1">Min party
+							<input :value="pinnedArea.minParty ?? ''" type="number" min="1" class="field" @input="setParty('minParty', ($event.target as HTMLInputElement).value)" />
+						</label>
+						<label class="grid gap-1">Max party
+							<input :value="pinnedArea.maxParty ?? ''" type="number" min="1" class="field" @input="setParty('maxParty', ($event.target as HTMLInputElement).value)" />
+						</label>
+					</div>
+					<label class="flex items-center gap-2"><input v-model="pinnedArea.bookable" type="checkbox" @change="touch" /> Bookable</label>
+					<button class="btn-ghost justify-self-start" type="button" @click="removeArea(pinnedArea.id)">Delete area</button>
+				</div>
 				<div class="mt-3 flex justify-between border-t border-line px-3 pt-3 font-bold">
 					<span>Total seats</span><span class="tabular-nums">{{ totalSeats }}</span>
 				</div>
-				<p class="mt-3 px-3 text-xs text-muted">Seats per area become that area's bookable capacity when you save. Areas without tables keep their manual capacity.</p>
+				<p class="mt-3 px-3 text-xs text-muted">Seats per area are that area's bookable capacity. An area with no tables can't take bookings. Saving applies area changes too.</p>
 			</aside>
 		</div>
 	</div>

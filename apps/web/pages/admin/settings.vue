@@ -4,15 +4,14 @@ import { useAuthStore } from '@/stores/auth'
 import { useRoute } from '#app'
 import FloorPlanSvg from '@/components/FloorPlanSvg.vue'
 import type { AdminFloorPlan } from '@gioi/domain'
-import type { SeatingArea, User, DayOfWeek } from '@gioi/domain'
+import type { User, DayOfWeek } from '@gioi/domain'
 import {
 	fetchVenue, updateVenue,
 	fetchOpeningHours, saveOpeningHours,
 	fetchClosedDates, saveClosedDates,
-	fetchSeatingAreas, saveSeatingAreas,
 	fetchUsers, saveUsers, createUser, removeUser, fetchVenues, createVenue, fetchMe,
 	downloadExportCSV, fetchFloorPlan, saveFloorImage,
-	type VenueSettings, type OpeningHoursRow, type ClosedDateRow, type SeatingAreaRow, type StaffUserRow, type VenueSummary,
+	type VenueSettings, type OpeningHoursRow, type ClosedDateRow, type StaffUserRow, type VenueSummary,
 } from '@/composables/useApi'
 
 const DAYS_OF_WEEK: DayOfWeek[] = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun']
@@ -39,7 +38,6 @@ watch(() => venue.value, (val) => { if (val) draft.value = clone(val) }, { deep:
 
 const opening = ref<OpeningHoursRow[]>([])
 const closed = ref<ClosedDateRow[]>([])
-const areas = ref<SeatingAreaRow[]>([])
 const users = ref<StaffUserRow[]>([])
 const floorPlan = ref<AdminFloorPlan | null>(null)
 const imageError = ref<string | null>(null)
@@ -56,17 +54,15 @@ async function load() {
 			floorPlan.value = venueId ? await fetchFloorPlan(venueId) : null
 			return
 		}
-		const [v, oh, cd, ar] = await Promise.all([
+		const [v, oh, cd] = await Promise.all([
 			fetchVenue(venueId),
 			fetchOpeningHours(venueId),
 			fetchClosedDates(venueId),
-			fetchSeatingAreas(venueId),
 		])
 		venue.value = v
 		draft.value = clone(v)
 		opening.value = oh.map((r) => ({ weekday: r.weekday, openMinute: r.openMinute, closeMinute: r.closeMinute }))
 		closed.value = cd
-		areas.value = ar
 	} finally {
 		loading.value = false
 	}
@@ -149,7 +145,6 @@ async function saveHours() {
 	})
 }
 
-const saveAreas = () => run(() => saveSeatingAreas(venueId, areas.value))
 const saveUsersApi = () => run(async () => {
 	await saveUsers(users.value.map((u) => ({ userId: u.id, venueId: u.venueId, role: u.role, name: u.name, login: u.login, active: u.active, password: resetPasswords.value[u.id] || undefined })))
 	resetPasswords.value = {}
@@ -199,18 +194,6 @@ function updateDay(day: string, key: 'open' | 'close', val: string) {
 	cur[key === 'open' ? 'openMinute' : 'closeMinute'] = h * 60 + m
 }
 
-function updateArea(idx: number, patch: Partial<SeatingArea>) {
-	const next = [...areas.value]
-	next[idx] = { ...next[idx], ...patch }
-	areas.value = next
-}
-function addArea() {
-	areas.value = [...areas.value, { name: 'New area', capacity: 10, bookable: true }]
-}
-function removeArea(idx: number) {
-	areas.value = areas.value.filter((_, i) => i !== idx)
-}
-
 function updateUser(idx: number, patch: Partial<User>) {
 	const next = [...users.value]
 	next[idx] = { ...next[idx], ...patch }
@@ -228,8 +211,6 @@ function exportReservations() {
 		setTimeout(() => URL.revokeObjectURL(url), 1000)
 	}).catch(() => { saved.value = 'Export failed.' })
 }
-
-const totalCapacity = computed(() => areas.value.filter((a) => a.bookable).reduce((s, a) => s + a.capacity, 0))
 
 definePageMeta({ middleware: ['auth', 'admin'] })
 </script>
@@ -373,43 +354,6 @@ definePageMeta({ middleware: ['auth', 'admin'] })
 					</div>
 				</div>
 				<div class="mt-4 flex justify-end"><button class="btn-primary" type="button" @click="saveSettings">Save feedback settings</button></div>
-			</section>
-
-			<section v-if="!auth.isSuperAdmin" class="card mb-6">
-				<h2 class="font-display text-xl font-semibold text-ink">Seating areas</h2>
-				<p class="text-sm text-muted">Total bookable capacity: {{ totalCapacity }} covers</p>
-				<div class="mt-4 space-y-3">
-					<div v-for="(area, idx) in areas" :key="area.id ?? idx" class="grid items-end gap-3 sm:grid-cols-[2fr_1fr_1fr_1fr_auto]">
-						<div>
-							<label class="label">Name</label>
-							<input :value="area.name" class="field" @input="updateArea(idx, { name: ($event.target as HTMLInputElement).value })" />
-						</div>
-						<div>
-							<label class="label">Capacity</label>
-							<input type="number" min="0" :disabled="area.planSeats != null" :value="area.planSeats ?? area.capacity" class="field" @input="updateArea(idx, { capacity: Number(($event.target as HTMLInputElement).value) })" />
-							<p v-if="area.planSeats != null" class="mt-1 text-xs text-muted">from floor plan</p>
-						</div>
-						<div>
-							<label class="label">Min party</label>
-							<input type="number" min="0" :value="area.minParty ?? ''" class="field" @input="updateArea(idx, { minParty: Number(($event.target as HTMLInputElement).value) || undefined })" />
-						</div>
-						<div>
-							<label class="label">Max party</label>
-							<input type="number" min="0" :value="area.maxParty ?? ''" class="field" @input="updateArea(idx, { maxParty: Number(($event.target as HTMLInputElement).value) || undefined })" />
-						</div>
-						<div class="flex items-center gap-2">
-							<label class="flex items-center gap-2 text-sm">
-								<input type="checkbox" :checked="area.bookable" @change="updateArea(idx, { bookable: ($event.target as HTMLInputElement).checked })" />
-								Bookable
-							</label>
-							<button class="btn-ghost" type="button" @click="removeArea(idx)" aria-label="Remove area">Remove</button>
-						</div>
-					</div>
-					<button class="btn-secondary" type="button" @click="addArea">+ Add seating area</button>
-				</div>
-				<div class="mt-4 flex justify-end">
-					<button class="btn-primary" type="button" @click="saveAreas">Save seating areas</button>
-				</div>
 			</section>
 
 			<section v-if="auth.isSuperAdmin" class="card mb-6">
