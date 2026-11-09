@@ -11,7 +11,7 @@
     >
       <div class="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
         <NuxtLink to="/" class="flex items-center gap-2">
-          <img src="/logo.jpg" alt="GIOI Ocean Gourmet" class="h-10 w-10 rounded-full object-cover" />
+          <img src="/logo-96.webp" alt="GIOI Ocean Gourmet" width="96" height="96" class="h-10 w-10 rounded-full object-cover" />
         </NuxtLink>
         <nav v-if="navLinks.length > 1" class="hidden gap-1 sm:flex">
           <NuxtLink

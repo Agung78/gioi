@@ -2,13 +2,9 @@
 definePageMeta({ public: true })
 import { onBeforeUnmount, onMounted, ref } from 'vue'
 import { PhMapPin, PhClock, PhWhatsappLogo, PhPhone, PhInstagramLogo, PhSunHorizon, PhArrowUpRight, PhForkKnife } from '@phosphor-icons/vue'
-import { gsap } from 'gsap'
-import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { addDays, todayISO } from '@gioi/domain'
 import DatePicker from '@/components/DatePicker.vue'
 import { useVenueSeo } from '@/composables/useVenueSeo'
-
-gsap.registerPlugin(ScrollTrigger)
 
 const { venue, info, hours, seo, name, bookPath, phoneE164, wa, src } = await useVenueSeo()
 const p = seo.page
@@ -36,11 +32,13 @@ const ig = seo.sameAs.find((u) => u.includes('instagram.com'))
 const igHandle = ig ? new URL(ig).pathname.replace(/\//g, '') : ''
 
 const root = ref<HTMLElement>()
-let ctx: gsap.Context | undefined
+let ctx: ReturnType<typeof import('gsap').gsap.context> | undefined
 
-onMounted(() => {
+onMounted(async () => {
   if (typeof window !== 'undefined') { wita.value = witaFmt.format(new Date()); clockTimer.value = setInterval(() => { wita.value = witaFmt.format(new Date()) }, 1000) }
   if (matchMedia('(prefers-reduced-motion: reduce)').matches) return
+  const [{ gsap }, { ScrollTrigger }] = await Promise.all([import('gsap'), import('gsap/ScrollTrigger')])
+  gsap.registerPlugin(ScrollTrigger)
   ctx = gsap.context(() => {
     const ease = 'expo.out'
     gsap.timeline({ defaults: { ease } })
@@ -65,7 +63,7 @@ onBeforeUnmount(() => ctx?.revert())
     <section data-hero class="relative isolate z-10 flex min-h-[100svh] flex-col bg-navy text-white">
       <header class="relative z-20">
         <div class="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 md:px-8">
-          <NuxtLink :to="`/${venue}`" class="leading-none" aria-label="GIOI Ocean Gourmet, home"><img src="/logo.jpg" alt="GIOI Ocean Gourmet logo" width="1080" height="1080" class="h-12 w-12 rounded-full object-cover" /></NuxtLink>
+          <NuxtLink :to="`/${venue}`" class="leading-none" aria-label="GIOI Ocean Gourmet, home"><img src="/logo-96.webp" alt="GIOI Ocean Gourmet logo" width="96" height="96" class="h-12 w-12 rounded-full object-cover" /></NuxtLink>
           <nav class="flex items-center gap-1 sm:gap-2">
             <a href="#experience" class="hidden rounded-full px-4 py-2 text-sm font-medium text-white/80 transition hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-sand sm:inline-flex">Experience</a>
             <a href="#visit" class="hidden rounded-full px-4 py-2 text-sm font-medium text-white/80 transition hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-sand sm:inline-flex">Visit</a>

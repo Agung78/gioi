@@ -56,7 +56,7 @@ useHead({
   <div class="overflow-x-clip bg-navy text-white">
     <header class="relative z-20">
       <div class="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 md:px-8">
-        <NuxtLink to="/" class="leading-none" aria-label="GIOI Group home"><img src="/logo.jpg" alt="GIOI Group logo" width="1080" height="1080" class="h-12 w-12 rounded-full object-cover" /></NuxtLink>
+        <NuxtLink to="/" class="leading-none" aria-label="GIOI Group home"><img src="/logo-96.webp" alt="GIOI Group logo" width="96" height="96" class="h-12 w-12 rounded-full object-cover" /></NuxtLink>
         <nav class="flex items-center gap-1 sm:gap-2">
           <NuxtLink to="/privacy" class="hidden rounded-full px-4 py-2 text-sm font-medium text-white/80 transition hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-sand sm:inline-flex">Privacy</NuxtLink>
         </nav>
