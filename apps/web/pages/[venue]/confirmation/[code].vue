@@ -9,6 +9,7 @@ import type { PublicReservation } from '@gioi/domain'
 useHead({ title: 'Booking confirmation | GIOI Ocean Gourmet' })
 const route = useRoute()
 const venueSlug = String(route.params.venue)
+const venueHome = useVenueHome(venueSlug)
 const { venue: info } = await useVenue()
 const code = computed(() => String(route.params.code))
 
@@ -52,7 +53,7 @@ const icsHref = computed(() => {
   <div v-else-if="error || !reservation" class="mx-auto max-w-2xl px-4 py-12">
     <div class="card text-center">
       <p class="text-muted">We couldn't find that booking code.</p>
-      <NuxtLink :to="`/${venueSlug}`" class="btn-primary mt-4">Back to home</NuxtLink>
+      <NuxtLink :to="venueHome" class="btn-primary mt-4">Back to home</NuxtLink>
     </div>
   </div>
   <div v-else class="mx-auto max-w-2xl px-4 py-12 md:py-16">
@@ -82,7 +83,7 @@ const icsHref = computed(() => {
         <a :href="info?.mapsUrl" target="_blank" rel="noopener" class="btn-secondary"><PhMapPin :size="20" aria-hidden="true" /> Get directions</a>
         <a :href="`https://wa.me/${info?.whatsapp.replace(/\D/g, '')}`" class="btn-secondary"><PhWhatsappLogo :size="20" aria-hidden="true" /> Message us</a>
       </div>
-      <NuxtLink :to="`/${venueSlug}`" class="mt-8 inline-block text-sm font-medium text-accent underline underline-offset-4">Back to home</NuxtLink>
+      <NuxtLink :to="venueHome" class="mt-8 inline-block text-sm font-medium text-accent underline underline-offset-4">Back to home</NuxtLink>
     </div>
   </div>
 </template>

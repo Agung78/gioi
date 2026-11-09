@@ -151,6 +151,20 @@ describe('API integration', () => {
 		expect(body.bookingCode).toMatch(/^GIOI-/)
 	})
 
+	it('public booking stores a marketing source and rejects staff channels', async () => {
+		const post = (source: string, key: string) =>
+			fetch(`${baseUrl}/public/venues/bali/reservations`, {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ guestName: 'Ayu', phone: '+62 811 222 333', date: DATE, time: '13:00', partySize: 2, source, idempotencyKey: key }),
+			})
+		const ok = await post('instagram', '33333333-3333-4333-8333-333333333333')
+		expect(ok.status).toBe(201)
+		const row = await prisma.reservation.findUnique({ where: { id: (await ok.json()).reservationId } })
+		expect(row?.source).toBe('instagram')
+		expect((await post('host', '44444444-4444-4444-8444-444444444444')).status).toBe(400)
+	})
+
 	it('POST idempotency returns the same booking', async () => {
 		const booking = {
 			guestName: 'Ayu',

@@ -39,7 +39,9 @@ const { siteUrl, bookUrl: bookBase } = useRuntimeConfig().public
 const seo = VENUE_SEO[venue]
 const pageUrl = `${siteUrl}/${venue}`
 const bookUrl = `${bookBase || siteUrl}/${venue}/book`
-const bookHref = `${bookBase}/${venue}/book` // relative in dev
+const src = bookingSource(route.query.src)
+const bookPath = `${bookBase}/${venue}/book` // relative in dev
+const bookHref = src === 'website' ? bookPath : `${bookPath}?src=${src}` // the booking host is another origin, so the link carries the source
 const name = info?.name ?? 'GIOI'
 const title = seo?.title ?? name
 const description = seo?.description ?? info?.tagline ?? ''
@@ -123,7 +125,8 @@ useHead({
 
 function quickBook() {
   const q = new URLSearchParams({ date: qDate.value, party: String(qParty.value) })
-  navigateTo(`${bookHref}?${q}`, { external: true })
+  if (src !== 'website') q.set('src', src)
+  navigateTo(`${bookPath}?${q}`, { external: true })
 }
 
 const scenes = [

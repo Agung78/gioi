@@ -18,6 +18,7 @@ interface CreateReservationBody {
 	allergies?: string[]
 	accessibility?: string
 	idempotencyKey?: string
+	source?: 'website' | 'instagram' | 'google' | 'whatsapp'
 }
 
 interface FeedbackBody {
@@ -50,6 +51,8 @@ export function registerPublicReservationRoutes(app: FastifyInstance, prisma: Pr
 						allergies: { type: 'array', maxItems: 20, items: { type: 'string', minLength: 1, maxLength: 60 } },
 						accessibility: { type: 'string', maxLength: 300 },
 						idempotencyKey: { type: 'string', format: 'uuid' },
+						// Guests may only claim marketing channels, never staff ones (host, walk_in, ...).
+						source: { type: 'string', enum: ['website', 'instagram', 'google', 'whatsapp'] },
 						turnstileToken: { type: 'string' },
 					},
 				},
@@ -159,7 +162,7 @@ export function registerPublicReservationRoutes(app: FastifyInstance, prisma: Pr
 						partySize: body.partySize,
 						occasion: body.occasion ?? null,
 						guestNotes: body.guestNotes ?? null,
-						source: 'website',
+						source: body.source ?? 'website',
 						status: 'pending',
 						idempotencyKey: body.idempotencyKey ?? undefined,
 					},
@@ -193,7 +196,7 @@ export function registerPublicReservationRoutes(app: FastifyInstance, prisma: Pr
 			await track('reservation created', distinctIdOf(request, reservation.id), {
 				reservation_id: reservation.id,
 				venue: slug,
-				source: 'website',
+				source: body.source ?? 'website',
 				party_size: body.partySize,
 				seating_area_id: areaId,
 				days_ahead: Math.floor((startsAt.getTime() - Date.now()) / 86400000),

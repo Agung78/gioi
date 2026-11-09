@@ -8,6 +8,7 @@ import type { FeedbackBody } from '@/types/venue'
 useHead({ title: 'Feedback | GIOI Ocean Gourmet' })
 const route = useRoute()
 const venueSlug = String(route.params.venue)
+const venueHome = useVenueHome(venueSlug)
 const code = String(route.params.code)
 const exists = await $fetch(`/api/public/reservations/${encodeURIComponent(code)}`).then(() => true, () => false)
 
@@ -40,7 +41,7 @@ async function submit() {
     <div v-if="!exists" class="card text-center">
       <h1 class="text-3xl font-extrabold">Booking not found</h1>
       <p class="mt-2 text-muted">We couldn't find that booking. Check the link and try again.</p>
-      <NuxtLink :to="`/${venueSlug}`" class="mt-8 inline-block text-sm font-medium text-accent underline underline-offset-4">Back to GIOI</NuxtLink>
+      <NuxtLink :to="venueHome" class="mt-8 inline-block text-sm font-medium text-accent underline underline-offset-4">Back to GIOI</NuxtLink>
     </div>
     <form v-else-if="!submitted" class="card" @submit.prevent="submit">
       <p class="text-sm font-medium text-accent">GIOI Ocean Gourmet</p>
@@ -64,7 +65,7 @@ async function submit() {
       <PhCheckCircle :size="52" weight="fill" class="mx-auto text-accent" aria-hidden="true" />
       <h1 class="mt-4 text-3xl font-extrabold">Thank you.</h1>
       <p class="mt-2 text-muted">Your feedback helps GIOI improve the next visit.</p>
-      <NuxtLink :to="`/${venueSlug}`" class="mt-8 inline-block text-sm font-medium text-accent underline underline-offset-4">Back to GIOI</NuxtLink>
+      <NuxtLink :to="venueHome" class="mt-8 inline-block text-sm font-medium text-accent underline underline-offset-4">Back to GIOI</NuxtLink>
     </div>
   </div>
 </template>
