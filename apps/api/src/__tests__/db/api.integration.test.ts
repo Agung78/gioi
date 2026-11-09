@@ -8,6 +8,8 @@ import { PrismaClient } from '../../generated/prisma/client'
 import { registerPublicVenueRoutes } from '../../routes/public/venues'
 import { registerPublicReservationRoutes } from '../../routes/public/reservations'
 import { registerStaffAuthRoutes } from '../../routes/staff/auth'
+import { registerStaffRoutes } from '../../routes/staff'
+import { registerFloorPlanRoutes } from '../../routes/staff/floorPlan'
 
 const DATABASE_URL = process.env.TEST_DATABASE_URL || 'postgresql://gioi_app:password@localhost:5432/gioi_test'
 const ADMIN_URL = process.env.TEST_ADMIN_DATABASE_URL || 'postgresql://postgres:postgres@localhost:5432/gioi_test?sslmode=disable'
@@ -36,6 +38,8 @@ function buildApp(): BuiltApp {
 	registerPublicVenueRoutes(app, prisma)
 	registerPublicReservationRoutes(app, prisma)
 	registerStaffAuthRoutes(app, prisma)
+	registerStaffRoutes(app, prisma)
+	registerFloorPlanRoutes(app, prisma)
 
 	return { app, prisma }
 }
@@ -301,5 +305,103 @@ describe('API integration', () => {
 		const deviceB = await login()
 		expect((await me(deviceB)).status).toBe(200)
 		expect((await me(deviceA)).status).toBe(401)
+	})
+
+	it('venue admin saves a layout; seating-areas capacity follows plan seats', async () => {
+		const venue = await prisma.venue.findUnique({ where: { slug: 'bali' } })
+		const area = await prisma.seatingArea.findFirst({ where: { venueId: venue!.id, name: 'Main Hall' } })
+
+		await prisma.user.create({
+			data: {
+				name: 'Venue Admin',
+				login: 'venueadmin',
+				passwordHash: await hash('pw-12345'),
+				active: true,
+				venues: { create: { venueId: venue!.id, role: 'admin' } },
+			},
+		})
+
+		const r = await fetch(`${baseUrl}/staff/login`, {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify({ login: 'venueadmin', password: 'pw-12345' }),
+		})
+		expect(r.status).toBe(200)
+		const cookie = r.headers.get('set-cookie')!.split(';')[0]
+
+		const put = await fetch(`${baseUrl}/admin/venues/${venue!.id}/floor-plan/layout`, {
+			method: 'PUT',
+			headers: { 'Content-Type': 'application/json', cookie },
+			body: JSON.stringify({
+				tables: [
+					{ seatingAreaId: area!.id, seats: 4, x: 100, y: 100, rotation: 0 },
+					{ seatingAreaId: area!.id, seats: 6, x: 300, y: 100, rotation: 0 },
+				],
+				objects: [],
+			}),
+		})
+		expect(put.status).toBe(200)
+
+		const get = await fetch(`${baseUrl}/admin/venues/${venue!.id}/seating-areas`, {
+			headers: { cookie },
+		})
+		expect(get.status).toBe(200)
+		const areas = await get.json()
+		const main = areas.find((a: { id: string }) => a.id === area!.id)
+		expect(main.capacity).toBe(10)
+		expect(main.planSeats).toBe(10)
+	})
+
+	it('super admin without a user_venues row for the venue cannot save a layout', async () => {
+		const venue = await prisma.venue.findUnique({ where: { slug: 'bali' } })
+
+		// Super admin with NO user_venues row for this venue.
+		await prisma.user.create({
+			data: {
+				name: 'Super Admin',
+				login: 'superadmin',
+				passwordHash: await hash('pw-12345'),
+				active: true,
+				isSuperAdmin: true,
+			},
+		})
+
+		const r = await fetch(`${baseUrl}/staff/login`, {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify({ login: 'superadmin', password: 'pw-12345' }),
+		})
+		expect(r.status).toBe(200)
+		const cookie = r.headers.get('set-cookie')!.split(';')[0]
+
+		const put = await fetch(`${baseUrl}/admin/venues/${venue!.id}/floor-plan/layout`, {
+			method: 'PUT',
+			headers: { 'Content-Type': 'application/json', cookie },
+			body: JSON.stringify({ tables: [], objects: [] }),
+		})
+		expect(put.status).toBe(403)
+	})
+
+	it('booking with explicit area below minParty gets 422', async () => {
+		const venue = await prisma.venue.findUnique({ where: { slug: 'bali' } })
+		const smallArea = await prisma.seatingArea.create({
+			data: { venueId: venue!.id, name: 'Chef\'s Counter', capacity: 6, bookable: true, maxParty: 4 },
+		})
+
+		const res = await fetch(`${baseUrl}/public/venues/bali/reservations`, {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify({
+				guestName: 'Ayu',
+				phone: '+62 811 222 333',
+				date: DATE,
+				time: '13:00',
+				partySize: 5,
+				seatingAreaId: smallArea.id,
+			}),
+		})
+		expect(res.status).toBe(422)
+		const body = await res.json()
+		expect(body.message).toBe('party size not allowed in this area')
 	})
 })

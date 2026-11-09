@@ -258,6 +258,7 @@ export type SeatingAreaWhereInput = {
   updatedAt?: Prisma.DateTimeFilter<"SeatingArea"> | Date | string
   venue?: Prisma.XOR<Prisma.VenueScalarRelationFilter, Prisma.VenueWhereInput>
   reservations?: Prisma.ReservationListRelationFilter
+  floorTables?: Prisma.FloorTableListRelationFilter
 }
 
 export type SeatingAreaOrderByWithRelationInput = {
@@ -272,6 +273,7 @@ export type SeatingAreaOrderByWithRelationInput = {
   updatedAt?: Prisma.SortOrder
   venue?: Prisma.VenueOrderByWithRelationInput
   reservations?: Prisma.ReservationOrderByRelationAggregateInput
+  floorTables?: Prisma.FloorTableOrderByRelationAggregateInput
 }
 
 export type SeatingAreaWhereUniqueInput = Prisma.AtLeast<{
@@ -291,6 +293,7 @@ export type SeatingAreaWhereUniqueInput = Prisma.AtLeast<{
   updatedAt?: Prisma.DateTimeFilter<"SeatingArea"> | Date | string
   venue?: Prisma.XOR<Prisma.VenueScalarRelationFilter, Prisma.VenueWhereInput>
   reservations?: Prisma.ReservationListRelationFilter
+  floorTables?: Prisma.FloorTableListRelationFilter
 }, "id" | "venueId_name" | "id_venueId">
 
 export type SeatingAreaOrderByWithAggregationInput = {
@@ -336,6 +339,7 @@ export type SeatingAreaCreateInput = {
   updatedAt?: Date | string
   venue: Prisma.VenueCreateNestedOneWithoutSeatingAreasInput
   reservations?: Prisma.ReservationCreateNestedManyWithoutSeatingAreaInput
+  floorTables?: Prisma.FloorTableCreateNestedManyWithoutSeatingAreaInput
 }
 
 export type SeatingAreaUncheckedCreateInput = {
@@ -349,6 +353,7 @@ export type SeatingAreaUncheckedCreateInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   reservations?: Prisma.ReservationUncheckedCreateNestedManyWithoutSeatingAreaInput
+  floorTables?: Prisma.FloorTableUncheckedCreateNestedManyWithoutSeatingAreaInput
 }
 
 export type SeatingAreaUpdateInput = {
@@ -362,6 +367,7 @@ export type SeatingAreaUpdateInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   venue?: Prisma.VenueUpdateOneRequiredWithoutSeatingAreasNestedInput
   reservations?: Prisma.ReservationUpdateManyWithoutSeatingAreaNestedInput
+  floorTables?: Prisma.FloorTableUpdateManyWithoutSeatingAreaNestedInput
 }
 
 export type SeatingAreaUncheckedUpdateInput = {
@@ -375,6 +381,7 @@ export type SeatingAreaUncheckedUpdateInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   reservations?: Prisma.ReservationUncheckedUpdateManyWithoutSeatingAreaNestedInput
+  floorTables?: Prisma.FloorTableUncheckedUpdateManyWithoutSeatingAreaNestedInput
 }
 
 export type SeatingAreaCreateManyInput = {
@@ -539,6 +546,20 @@ export type NullableIntFieldUpdateOperationsInput = {
   divide?: number
 }
 
+export type SeatingAreaCreateNestedOneWithoutFloorTablesInput = {
+  create?: Prisma.XOR<Prisma.SeatingAreaCreateWithoutFloorTablesInput, Prisma.SeatingAreaUncheckedCreateWithoutFloorTablesInput>
+  connectOrCreate?: Prisma.SeatingAreaCreateOrConnectWithoutFloorTablesInput
+  connect?: Prisma.SeatingAreaWhereUniqueInput
+}
+
+export type SeatingAreaUpdateOneRequiredWithoutFloorTablesNestedInput = {
+  create?: Prisma.XOR<Prisma.SeatingAreaCreateWithoutFloorTablesInput, Prisma.SeatingAreaUncheckedCreateWithoutFloorTablesInput>
+  connectOrCreate?: Prisma.SeatingAreaCreateOrConnectWithoutFloorTablesInput
+  upsert?: Prisma.SeatingAreaUpsertWithoutFloorTablesInput
+  connect?: Prisma.SeatingAreaWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.SeatingAreaUpdateToOneWithWhereWithoutFloorTablesInput, Prisma.SeatingAreaUpdateWithoutFloorTablesInput>, Prisma.SeatingAreaUncheckedUpdateWithoutFloorTablesInput>
+}
+
 export type SeatingAreaCreateNestedOneWithoutReservationsInput = {
   create?: Prisma.XOR<Prisma.SeatingAreaCreateWithoutReservationsInput, Prisma.SeatingAreaUncheckedCreateWithoutReservationsInput>
   connectOrCreate?: Prisma.SeatingAreaCreateOrConnectWithoutReservationsInput
@@ -563,6 +584,7 @@ export type SeatingAreaCreateWithoutVenueInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   reservations?: Prisma.ReservationCreateNestedManyWithoutSeatingAreaInput
+  floorTables?: Prisma.FloorTableCreateNestedManyWithoutSeatingAreaInput
 }
 
 export type SeatingAreaUncheckedCreateWithoutVenueInput = {
@@ -575,6 +597,7 @@ export type SeatingAreaUncheckedCreateWithoutVenueInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   reservations?: Prisma.ReservationUncheckedCreateNestedManyWithoutSeatingAreaInput
+  floorTables?: Prisma.FloorTableUncheckedCreateNestedManyWithoutSeatingAreaInput
 }
 
 export type SeatingAreaCreateOrConnectWithoutVenueInput = {
@@ -618,6 +641,74 @@ export type SeatingAreaScalarWhereInput = {
   updatedAt?: Prisma.DateTimeFilter<"SeatingArea"> | Date | string
 }
 
+export type SeatingAreaCreateWithoutFloorTablesInput = {
+  id?: string
+  name: string
+  capacity: number
+  bookable?: boolean
+  minParty?: number | null
+  maxParty?: number | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  venue: Prisma.VenueCreateNestedOneWithoutSeatingAreasInput
+  reservations?: Prisma.ReservationCreateNestedManyWithoutSeatingAreaInput
+}
+
+export type SeatingAreaUncheckedCreateWithoutFloorTablesInput = {
+  id?: string
+  venueId: string
+  name: string
+  capacity: number
+  bookable?: boolean
+  minParty?: number | null
+  maxParty?: number | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  reservations?: Prisma.ReservationUncheckedCreateNestedManyWithoutSeatingAreaInput
+}
+
+export type SeatingAreaCreateOrConnectWithoutFloorTablesInput = {
+  where: Prisma.SeatingAreaWhereUniqueInput
+  create: Prisma.XOR<Prisma.SeatingAreaCreateWithoutFloorTablesInput, Prisma.SeatingAreaUncheckedCreateWithoutFloorTablesInput>
+}
+
+export type SeatingAreaUpsertWithoutFloorTablesInput = {
+  update: Prisma.XOR<Prisma.SeatingAreaUpdateWithoutFloorTablesInput, Prisma.SeatingAreaUncheckedUpdateWithoutFloorTablesInput>
+  create: Prisma.XOR<Prisma.SeatingAreaCreateWithoutFloorTablesInput, Prisma.SeatingAreaUncheckedCreateWithoutFloorTablesInput>
+  where?: Prisma.SeatingAreaWhereInput
+}
+
+export type SeatingAreaUpdateToOneWithWhereWithoutFloorTablesInput = {
+  where?: Prisma.SeatingAreaWhereInput
+  data: Prisma.XOR<Prisma.SeatingAreaUpdateWithoutFloorTablesInput, Prisma.SeatingAreaUncheckedUpdateWithoutFloorTablesInput>
+}
+
+export type SeatingAreaUpdateWithoutFloorTablesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  capacity?: Prisma.IntFieldUpdateOperationsInput | number
+  bookable?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  minParty?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  maxParty?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  venue?: Prisma.VenueUpdateOneRequiredWithoutSeatingAreasNestedInput
+  reservations?: Prisma.ReservationUpdateManyWithoutSeatingAreaNestedInput
+}
+
+export type SeatingAreaUncheckedUpdateWithoutFloorTablesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  venueId?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  capacity?: Prisma.IntFieldUpdateOperationsInput | number
+  bookable?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  minParty?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  maxParty?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  reservations?: Prisma.ReservationUncheckedUpdateManyWithoutSeatingAreaNestedInput
+}
+
 export type SeatingAreaCreateWithoutReservationsInput = {
   id?: string
   name: string
@@ -628,6 +719,7 @@ export type SeatingAreaCreateWithoutReservationsInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   venue: Prisma.VenueCreateNestedOneWithoutSeatingAreasInput
+  floorTables?: Prisma.FloorTableCreateNestedManyWithoutSeatingAreaInput
 }
 
 export type SeatingAreaUncheckedCreateWithoutReservationsInput = {
@@ -640,6 +732,7 @@ export type SeatingAreaUncheckedCreateWithoutReservationsInput = {
   maxParty?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  floorTables?: Prisma.FloorTableUncheckedCreateNestedManyWithoutSeatingAreaInput
 }
 
 export type SeatingAreaCreateOrConnectWithoutReservationsInput = {
@@ -668,6 +761,7 @@ export type SeatingAreaUpdateWithoutReservationsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   venue?: Prisma.VenueUpdateOneRequiredWithoutSeatingAreasNestedInput
+  floorTables?: Prisma.FloorTableUpdateManyWithoutSeatingAreaNestedInput
 }
 
 export type SeatingAreaUncheckedUpdateWithoutReservationsInput = {
@@ -680,6 +774,7 @@ export type SeatingAreaUncheckedUpdateWithoutReservationsInput = {
   maxParty?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  floorTables?: Prisma.FloorTableUncheckedUpdateManyWithoutSeatingAreaNestedInput
 }
 
 export type SeatingAreaCreateManyVenueInput = {
@@ -703,6 +798,7 @@ export type SeatingAreaUpdateWithoutVenueInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   reservations?: Prisma.ReservationUpdateManyWithoutSeatingAreaNestedInput
+  floorTables?: Prisma.FloorTableUpdateManyWithoutSeatingAreaNestedInput
 }
 
 export type SeatingAreaUncheckedUpdateWithoutVenueInput = {
@@ -715,6 +811,7 @@ export type SeatingAreaUncheckedUpdateWithoutVenueInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   reservations?: Prisma.ReservationUncheckedUpdateManyWithoutSeatingAreaNestedInput
+  floorTables?: Prisma.FloorTableUncheckedUpdateManyWithoutSeatingAreaNestedInput
 }
 
 export type SeatingAreaUncheckedUpdateManyWithoutVenueInput = {
@@ -735,10 +832,12 @@ export type SeatingAreaUncheckedUpdateManyWithoutVenueInput = {
 
 export type SeatingAreaCountOutputType = {
   reservations: number
+  floorTables: number
 }
 
 export type SeatingAreaCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   reservations?: boolean | SeatingAreaCountOutputTypeCountReservationsArgs
+  floorTables?: boolean | SeatingAreaCountOutputTypeCountFloorTablesArgs
 }
 
 /**
@@ -758,6 +857,13 @@ export type SeatingAreaCountOutputTypeCountReservationsArgs<ExtArgs extends runt
   where?: Prisma.ReservationWhereInput
 }
 
+/**
+ * SeatingAreaCountOutputType without action
+ */
+export type SeatingAreaCountOutputTypeCountFloorTablesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.FloorTableWhereInput
+}
+
 
 export type SeatingAreaSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -771,6 +877,7 @@ export type SeatingAreaSelect<ExtArgs extends runtime.Types.Extensions.InternalA
   updatedAt?: boolean
   venue?: boolean | Prisma.VenueDefaultArgs<ExtArgs>
   reservations?: boolean | Prisma.SeatingArea$reservationsArgs<ExtArgs>
+  floorTables?: boolean | Prisma.SeatingArea$floorTablesArgs<ExtArgs>
   _count?: boolean | Prisma.SeatingAreaCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["seatingArea"]>
 
@@ -816,6 +923,7 @@ export type SeatingAreaOmit<ExtArgs extends runtime.Types.Extensions.InternalArg
 export type SeatingAreaInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   venue?: boolean | Prisma.VenueDefaultArgs<ExtArgs>
   reservations?: boolean | Prisma.SeatingArea$reservationsArgs<ExtArgs>
+  floorTables?: boolean | Prisma.SeatingArea$floorTablesArgs<ExtArgs>
   _count?: boolean | Prisma.SeatingAreaCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type SeatingAreaIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -830,6 +938,7 @@ export type $SeatingAreaPayload<ExtArgs extends runtime.Types.Extensions.Interna
   objects: {
     venue: Prisma.$VenuePayload<ExtArgs>
     reservations: Prisma.$ReservationPayload<ExtArgs>[]
+    floorTables: Prisma.$FloorTablePayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1237,6 +1346,7 @@ export interface Prisma__SeatingAreaClient<T, Null = never, ExtArgs extends runt
   readonly [Symbol.toStringTag]: "PrismaPromise"
   venue<T extends Prisma.VenueDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.VenueDefaultArgs<ExtArgs>>): Prisma.Prisma__VenueClient<runtime.Types.Result.GetResult<Prisma.$VenuePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   reservations<T extends Prisma.SeatingArea$reservationsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.SeatingArea$reservationsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ReservationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  floorTables<T extends Prisma.SeatingArea$floorTablesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.SeatingArea$floorTablesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$FloorTablePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1697,6 +1807,30 @@ export type SeatingArea$reservationsArgs<ExtArgs extends runtime.Types.Extension
   take?: number
   skip?: number
   distinct?: Prisma.ReservationScalarFieldEnum | Prisma.ReservationScalarFieldEnum[]
+}
+
+/**
+ * SeatingArea.floorTables
+ */
+export type SeatingArea$floorTablesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the FloorTable
+   */
+  select?: Prisma.FloorTableSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the FloorTable
+   */
+  omit?: Prisma.FloorTableOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.FloorTableInclude<ExtArgs> | null
+  where?: Prisma.FloorTableWhereInput
+  orderBy?: Prisma.FloorTableOrderByWithRelationInput | Prisma.FloorTableOrderByWithRelationInput[]
+  cursor?: Prisma.FloorTableWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.FloorTableScalarFieldEnum | Prisma.FloorTableScalarFieldEnum[]
 }
 
 /**

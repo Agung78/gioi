@@ -270,4 +270,29 @@ describe('getDayAvailability', () => {
     })
     expect(slots.every((s) => !s.open)).toBe(true)
   })
+
+  it('honours seatingAreaId: full area A closed while area B stays open', () => {
+    const settings = {
+      ...baseSettings,
+      seatingAreas: [
+        { id: 'areaA', name: 'Area A', capacity: 2, bookable: true },
+        { id: 'areaB', name: 'Area B', capacity: 8, bookable: true },
+      ],
+    }
+    const reservations = [res({ seatingAreaId: 'areaA', partySize: 2, status: 'confirmed' })]
+    // 12:00 booking (120 min dining) fills area A at 13:00; area B has room. 13:00 clears the 120 min cutoff.
+    const withArea = getDayAvailability(settings, reservations, '2026-06-15', 1, {
+      now: fixedNow,
+      seatingAreaId: 'areaA',
+    })
+    const fullSlot = withArea.find((s) => s.time === '13:00')
+    expect(fullSlot?.open).toBe(false)
+    expect(fullSlot?.reason).toBe('full')
+    // Without an area filter the same slot stays open (area B can take it).
+    const withoutArea = getDayAvailability(settings, reservations, '2026-06-15', 1, {
+      now: fixedNow,
+    })
+    const openSlot = withoutArea.find((s) => s.time === '13:00')
+    expect(openSlot?.open).toBe(true)
+  })
 })

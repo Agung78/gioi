@@ -2,6 +2,8 @@
 import { computed, onMounted, ref, watch } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import { useRoute } from '#app'
+import FloorPlanSvg from '@/components/FloorPlanSvg.vue'
+import type { AdminFloorPlan } from '@gioi/domain'
 import type { SeatingArea, User, DayOfWeek } from '@gioi/domain'
 import {
 	fetchVenue, updateVenue,
@@ -9,7 +11,7 @@ import {
 	fetchClosedDates, saveClosedDates,
 	fetchSeatingAreas, saveSeatingAreas,
 	fetchUsers, saveUsers, createUser, removeUser, fetchVenues, createVenue, fetchMe,
-	downloadExportCSV,
+	downloadExportCSV, fetchFloorPlan, saveFloorImage,
 	type VenueSettings, type OpeningHoursRow, type ClosedDateRow, type SeatingAreaRow, type StaffUserRow, type VenueSummary,
 } from '@/composables/useApi'
 
@@ -39,6 +41,8 @@ const opening = ref<OpeningHoursRow[]>([])
 const closed = ref<ClosedDateRow[]>([])
 const areas = ref<SeatingAreaRow[]>([])
 const users = ref<StaffUserRow[]>([])
+const floorPlan = ref<AdminFloorPlan | null>(null)
+const imageError = ref<string | null>(null)
 
 const dayLabel: Record<string, string> = { mon: 'Mon', tue: 'Tue', wed: 'Wed', thu: 'Thu', fri: 'Fri', sat: 'Sat', sun: 'Sun' }
 
@@ -49,6 +53,7 @@ async function load() {
 			venues.value = await fetchVenues()
 			if (!venues.value.some((v) => v.id === venueId)) venueId = venues.value[0]?.id ?? ''
 			users.value = venueId ? await fetchUsers(venueId) : []
+			floorPlan.value = venueId ? await fetchFloorPlan(venueId) : null
 			return
 		}
 		const [v, oh, cd, ar] = await Promise.all([
@@ -65,6 +70,37 @@ async function load() {
 	} finally {
 		loading.value = false
 	}
+}
+
+// Super admin backdrop upload. The API derives the plan height from the drawing's aspect ratio.
+async function saveImageFile(input: HTMLInputElement) {
+	const file = input.files?.[0]
+	input.value = '' // allow picking the same file again
+	if (!file) return
+	if (file.size > 3 * 1024 * 1024) { imageError.value = 'Drawing must be under 3 MB.'; return }
+	imageError.value = null
+	const image = await new Promise<string>((resolve, reject) => {
+		const r = new FileReader()
+		r.onload = () => resolve(String(r.result))
+		r.onerror = () => reject(r.error)
+		r.readAsDataURL(file)
+	})
+	const img = new Image()
+	img.src = image
+	try { await img.decode() } catch { imageError.value = 'Could not read that image.'; return }
+	let width = img.naturalWidth, height = img.naturalHeight
+	if (!width || !height) {
+		// SVG without width/height: fall back to its viewBox, then a 4:3 canvas
+		const vb = new DOMParser().parseFromString(await file.text(), 'image/svg+xml').documentElement.getAttribute('viewBox')
+		const [, , w, h] = (vb ?? '').split(/[\s,]+/).map(Number)
+		width = w > 0 ? w : 1200
+		height = h > 0 ? h : 900
+	}
+	await run(() => saveFloorImage(venueId, { image, width, height }))
+}
+
+function removeImage() {
+	if (confirm('Remove the floor plan drawing?')) return run(() => saveFloorImage(venueId, { image: null }))
 }
 
 onMounted(async () => {
@@ -169,8 +205,7 @@ function updateArea(idx: number, patch: Partial<SeatingArea>) {
 	areas.value = next
 }
 function addArea() {
-	const id = `area-${Math.random().toString(36).slice(2, 6)}`
-	areas.value = [...areas.value, { id, name: 'New area', capacity: 10, bookable: true }]
+	areas.value = [...areas.value, { name: 'New area', capacity: 10, bookable: true }]
 }
 function removeArea(idx: number) {
 	areas.value = areas.value.filter((_, i) => i !== idx)
@@ -344,14 +379,15 @@ definePageMeta({ middleware: ['auth', 'admin'] })
 				<h2 class="font-display text-xl font-semibold text-ink">Seating areas</h2>
 				<p class="text-sm text-muted">Total bookable capacity: {{ totalCapacity }} covers</p>
 				<div class="mt-4 space-y-3">
-					<div v-for="(area, idx) in areas" :key="area.id" class="grid items-end gap-3 sm:grid-cols-[2fr_1fr_1fr_1fr_auto]">
+					<div v-for="(area, idx) in areas" :key="area.id ?? idx" class="grid items-end gap-3 sm:grid-cols-[2fr_1fr_1fr_1fr_auto]">
 						<div>
 							<label class="label">Name</label>
 							<input :value="area.name" class="field" @input="updateArea(idx, { name: ($event.target as HTMLInputElement).value })" />
 						</div>
 						<div>
 							<label class="label">Capacity</label>
-							<input type="number" min="0" :value="area.capacity" class="field" @input="updateArea(idx, { capacity: Number(($event.target as HTMLInputElement).value) })" />
+							<input type="number" min="0" :disabled="area.planSeats != null" :value="area.planSeats ?? area.capacity" class="field" @input="updateArea(idx, { capacity: Number(($event.target as HTMLInputElement).value) })" />
+							<p v-if="area.planSeats != null" class="mt-1 text-xs text-muted">from floor plan</p>
 						</div>
 						<div>
 							<label class="label">Min party</label>
@@ -391,6 +427,19 @@ definePageMeta({ middleware: ['auth', 'admin'] })
 					<div><label class="label">Slug (URL)</label><input v-model="newVenue.slug" class="field" required pattern="[a-z0-9]+(-[a-z0-9]+)*" placeholder="bali" /></div>
 					<button class="btn-primary" type="submit">Create venue</button>
 				</form>
+			</section>
+			<section v-if="auth.isSuperAdmin && venueId" class="card mb-6">
+				<h2 class="font-display text-xl font-semibold text-ink">Floor plan drawing</h2>
+				<div class="mt-4 grid items-start gap-4 sm:grid-cols-[minmax(0,28rem)_1fr]">
+					<FloorPlanSvg v-if="floorPlan" :plan="floorPlan" label="Floor plan preview" />
+					<div class="flex flex-col items-start gap-2">
+						<label class="label" for="floorPlanFile">Upload drawing (SVG, PNG, JPEG or WebP, max 3 MB)</label>
+						<input id="floorPlanFile" type="file" accept="image/svg+xml,image/png,image/jpeg,image/webp" @change="saveImageFile($event.target as HTMLInputElement)" />
+						<p v-if="imageError" class="text-xs text-danger">{{ imageError }}</p>
+						<button v-if="floorPlan?.image" class="btn-ghost" type="button" @click="removeImage">Remove drawing</button>
+					</div>
+				</div>
+				<p class="mt-2 text-xs text-muted">Venue admins place tables on this drawing in Floor plan.</p>
 			</section>
 
 			<section v-if="auth.isSuperAdmin && venueId" class="card mb-6">

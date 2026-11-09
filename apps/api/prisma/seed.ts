@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs'
 import { PrismaClient } from '../src/generated/prisma/client'
 import { prisma } from '../src/db'
 
@@ -145,6 +146,19 @@ async function main() {
 	for (const area of SETTINGS.seatingAreas) {
 		await upsertArea(venue.id, area)
 	}
+
+	// Store the Bali backdrop drawing once (never overwrite a super admin upload).
+	const svg = readFileSync(new URL('./floor-plans/bali.svg', import.meta.url), 'utf8')
+	await prisma.floorPlan.upsert({
+		where: { venueId: venue.id },
+		update: {},
+		create: {
+			venueId: venue.id,
+			image: 'data:image/svg+xml;base64,' + Buffer.from(svg).toString('base64'),
+			width: 1200,
+			height: 1525,
+		},
+	})
 
 	const passwordHash = '$argon2id$v=19$m=19456,t=2,p=1$oWgJCzdk/VoFLiSMCyundQ$Kcal3mi3wX6l7HWQWbHuG/mI2bgriEAa+V6OZX8Y1jo'
 

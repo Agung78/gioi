@@ -55,6 +55,9 @@ export const ModelName = {
   OpeningHours: 'OpeningHours',
   ClosedDate: 'ClosedDate',
   SeatingArea: 'SeatingArea',
+  FloorPlan: 'FloorPlan',
+  FloorTable: 'FloorTable',
+  FloorObject: 'FloorObject',
   Guest: 'Guest',
   Reservation: 'Reservation',
   ReservationStatusEvent: 'ReservationStatusEvent',
@@ -145,6 +148,45 @@ export const SeatingAreaScalarFieldEnum = {
 } as const
 
 export type SeatingAreaScalarFieldEnum = (typeof SeatingAreaScalarFieldEnum)[keyof typeof SeatingAreaScalarFieldEnum]
+
+
+export const FloorPlanScalarFieldEnum = {
+  venueId: 'venueId',
+  image: 'image',
+  width: 'width',
+  height: 'height',
+  updatedAt: 'updatedAt'
+} as const
+
+export type FloorPlanScalarFieldEnum = (typeof FloorPlanScalarFieldEnum)[keyof typeof FloorPlanScalarFieldEnum]
+
+
+export const FloorTableScalarFieldEnum = {
+  id: 'id',
+  venueId: 'venueId',
+  seatingAreaId: 'seatingAreaId',
+  seats: 'seats',
+  x: 'x',
+  y: 'y',
+  rotation: 'rotation'
+} as const
+
+export type FloorTableScalarFieldEnum = (typeof FloorTableScalarFieldEnum)[keyof typeof FloorTableScalarFieldEnum]
+
+
+export const FloorObjectScalarFieldEnum = {
+  id: 'id',
+  venueId: 'venueId',
+  label: 'label',
+  width: 'width',
+  height: 'height',
+  color: 'color',
+  x: 'x',
+  y: 'y',
+  rotation: 'rotation'
+} as const
+
+export type FloorObjectScalarFieldEnum = (typeof FloorObjectScalarFieldEnum)[keyof typeof FloorObjectScalarFieldEnum]
 
 
 export const GuestScalarFieldEnum = {

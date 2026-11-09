@@ -74,17 +74,18 @@ export function registerPublicVenueRoutes(app: FastifyInstance, prisma: PrismaCl
 				params: { type: 'object', properties: { slug: { type: 'string' } }, required: ['slug'] },
 				querystring: {
 					type: 'object',
-					properties: { date: { type: 'string' }, party: { type: 'string' } },
+					properties: { date: { type: 'string' }, party: { type: 'string' },
+					area: { type: 'string', format: 'uuid' } },
 					required: ['date', 'party'],
 				},
 			},
 		},
 		async (
-			request: FastifyRequest<{ Params: { slug: string }; Querystring: { date: string; party: string } }>,
+			request: FastifyRequest<{ Params: { slug: string }; Querystring: { date: string; party: string; area?: string } }>,
 			reply: FastifyReply,
 		) => {
 			const { slug } = request.params
-			const { date, party } = request.query
+			const { date, party, area } = request.query
 			const partySize = Number(party)
 			if (!Number.isInteger(partySize) || partySize < 1) {
 				return reply.status(400).send({ error: 'ERR_BAD_REQUEST', message: 'party must be a positive integer' })
@@ -96,16 +97,14 @@ export function registerPublicVenueRoutes(app: FastifyInstance, prisma: PrismaCl
 					openingHours: true,
 					closedDates: true,
 					seatingAreas: true,
-					reservations: true,
 				},
 			})
 			if (!venue) throw notFound('venue not found')
 
 			const dayStart = toUtc(date, '00:00', venue.timeZone)
 			const dayEnd = toUtc(date, '23:59', venue.timeZone)
-			const dayReservations = venue.reservations.filter((r) => {
-				const startsAt = r.startsAt instanceof Date ? r.startsAt : new Date(r.startsAt)
-				return startsAt >= dayStart && startsAt <= dayEnd
+			const dayReservations = await prisma.reservation.findMany({
+				where: { venueId: venue.id, startsAt: { gte: dayStart, lte: dayEnd } },
 			})
 
 			const settings = venueToSettings(venue)
@@ -125,7 +124,7 @@ export function registerPublicVenueRoutes(app: FastifyInstance, prisma: PrismaCl
 				updatedAt: r.startsAt.toISOString(),
 			}))
 
-			const slots = getDayAvailability(settings, reservations, date, partySize, { now: new Date() })
+			const slots = getDayAvailability(settings, reservations, date, partySize, { now: new Date(), seatingAreaId: area })
 
 			return { date, timeZone: venue.timeZone, slots }
 		},

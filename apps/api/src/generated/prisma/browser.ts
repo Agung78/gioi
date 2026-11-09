@@ -38,6 +38,21 @@ export type ClosedDate = Prisma.ClosedDateModel
  */
 export type SeatingArea = Prisma.SeatingAreaModel
 /**
+ * Model FloorPlan
+ * 
+ */
+export type FloorPlan = Prisma.FloorPlanModel
+/**
+ * Model FloorTable
+ * 
+ */
+export type FloorTable = Prisma.FloorTableModel
+/**
+ * Model FloorObject
+ * 
+ */
+export type FloorObject = Prisma.FloorObjectModel
+/**
  * Model Guest
  * 
  */

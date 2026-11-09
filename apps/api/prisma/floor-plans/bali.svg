@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1275" height="1620" viewBox="-75 30 1275 1620" shape-rendering="geometricPrecision" role="img" aria-label="GIOI Bali floor plan">
+  <defs>
+    <pattern id="paving" width="20" height="20" patternUnits="userSpaceOnUse">
+      <path d="M0 10H20M10 0V20" stroke="#D6C4A3" stroke-width=".7" opacity=".55"/>
+    </pattern>
+    <pattern id="waves" width="24" height="14" patternUnits="userSpaceOnUse">
+      <path d="M0 7Q6 1 12 7T24 7" fill="none" stroke="#7FB1CB" stroke-width="1" opacity=".6"/>
+    </pattern>
+    <linearGradient id="sea" x1="0" x2="1"><stop offset="0" stop-color="#BFD9E6"/><stop offset="1" stop-color="#BFD9E6" stop-opacity="0"/></linearGradient>
+  </defs>
+
+  <!-- ocean (west) -->
+  <rect x="-75" y="30" width="93" height="1620" fill="url(#sea)"/>
+  <rect x="-75" y="30" width="93" height="1620" fill="url(#waves)"/>
+  <text font-family="ui-sans-serif,system-ui,sans-serif" font-weight="500" font-size="20" letter-spacing=".14em" fill="#6B7A88" text-anchor="middle" transform="rotate(-90 -30 840)" x="-30" y="844">OCEAN VIEW</text>
+
+  <!-- Structure is drawn in the original sketch coordinates and scaled up 1.5x (same shapes, more floor per table).
+       Strokes use non-scaling-stroke so line weights stay constant. -->
+  <g transform="scale(1.5)" vector-effect="non-scaling-stroke">
+    <rect x="10" y="60" width="710" height="1000" rx="6" fill="none" stroke="#1F4A6B" stroke-width="1.5" stroke-dasharray="8 6" opacity=".55" vector-effect="non-scaling-stroke"/>
+
+    <g>
+      <polygon points="145,195 310,360 430,240 545,310 655,200 655,315 535,435 535,630 145,630" fill="#F1E8D4" stroke="#D6C4A3" stroke-width="1.5" stroke-linejoin="round" vector-effect="non-scaling-stroke"/>
+      <polygon points="145,195 310,360 430,240 545,310 655,200 655,315 535,435 535,630 145,630" fill="url(#paving)"/>
+    </g>
+
+    <g>
+      <polygon points="145,105 655,105 655,200 545,310 430,240 310,360 145,195" fill="#fff" stroke="#1F4A6B" stroke-width="2.5" stroke-linejoin="round" vector-effect="non-scaling-stroke"/>
+      <path d="M145,105 L225,165 L580,165 L655,105 M225,165 L145,195 M580,165 L655,200" fill="none" stroke="#E3D9C3" stroke-width="1" vector-effect="non-scaling-stroke"/>
+    </g>
+
+    <g>
+      <polygon points="145,630 535,630 535,435 655,315 655,955 145,955" fill="#fff" stroke="#1F4A6B" stroke-width="2.5" stroke-linejoin="round" vector-effect="non-scaling-stroke"/>
+      <path d="M145,630 L307,792 L145,955 M307,792 L493,792 L655,955 M493,792 L595,690 L595,375 M535,630 L595,690" fill="none" stroke="#E3D9C3" stroke-width="1" vector-effect="non-scaling-stroke"/>
+    </g>
+  </g>
+
+  <!-- labels (screen-size text at scaled positions) -->
+  <text font-family="ui-sans-serif,system-ui,sans-serif" font-weight="500" font-size="20" letter-spacing=".14em" fill="#6B7A88" text-anchor="middle" x="510" y="765">CENTRAL COURTYARD</text>
+  <text font-family="ui-sans-serif,system-ui,sans-serif" font-weight="600" font-size="20" letter-spacing=".14em" fill="#1F4A6B" text-anchor="start" x="217" y="146">PAVILION A</text>
+  <text font-family="ui-sans-serif,system-ui,sans-serif" font-weight="600" font-size="20" letter-spacing=".14em" fill="#1F4A6B" text-anchor="start" x="217" y="1462">MAIN HALL (B)</text>
+  <text font-family="ui-sans-serif,system-ui,sans-serif" font-weight="600" font-size="20" letter-spacing=".14em" fill="#1F4A6B" text-anchor="middle" transform="rotate(-90 962 705)" x="962" y="709">EAST WING</text>
+
+  <!-- compass: sketch "up" ≈ satellite NE, so north tilts left -->
+  <g transform="translate(1140 130) rotate(-35)">
+    <circle r="26" fill="#FFFDF8" stroke="#D6C4A3" stroke-width="1.5"/>
+    <path d="M0-19L7 0H-7Z" fill="#E87A3A"/><path d="M0 19L7 0H-7Z" fill="#6B7A88"/>
+    <text y="-34" fill="#102638" font-size="13" font-weight="700" text-anchor="middle">N</text>
+  </g>
+</svg>

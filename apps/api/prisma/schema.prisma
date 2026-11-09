@@ -83,6 +83,9 @@ model Venue {
   feedback     Feedback[]
   userVenues   UserVenue[]
   auditEvents  AuditEvent[]
+  floorPlan    FloorPlan?
+  floorTables  FloorTable[]
+  floorObjects FloorObject[]
 
   @@map("venues")
 }
@@ -123,10 +126,61 @@ model SeatingArea {
 
   venue        Venue         @relation(fields: [venueId], references: [id])
   reservations Reservation[]
+  floorTables  FloorTable[]
 
   @@unique([venueId, name])
   @@unique([id, venueId])
   @@map("seating_areas")
+}
+
+// docs/floor_plan_seating.md. Backdrop drawing per venue, uploaded by a super admin. `image` is a
+// data URL rendered only through SVG <image href> (never runs scripts). width is always 1200.
+model FloorPlan {
+  venueId   String   @id @map("venue_id") @db.Uuid
+  image     String?
+  width     Int      @default(1200) @db.SmallInt
+  height    Int      @default(900) @db.SmallInt
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  venue Venue @relation(fields: [venueId], references: [id], onDelete: Cascade)
+
+  @@map("floor_plans")
+}
+
+// A seated table. Seats per area sum into SeatingArea.capacity on layout save.
+model FloorTable {
+  id            String @id @default(uuid(7)) @db.Uuid
+  venueId       String @map("venue_id") @db.Uuid
+  seatingAreaId String @map("seating_area_id") @db.Uuid
+  seats         Int    @db.SmallInt
+  x             Float  @db.Real
+  y             Float  @db.Real
+  rotation      Int    @default(0) @db.SmallInt
+
+  venue       Venue       @relation(fields: [venueId], references: [id], onDelete: Cascade)
+  seatingArea SeatingArea @relation(fields: [seatingAreaId, venueId], references: [id, venueId], onDelete: Cascade)
+
+  @@index([venueId])
+  @@index([seatingAreaId])
+  @@map("floor_tables")
+}
+
+// Non-seated plan object (stage, bar, …). x/y = centre, plan units.
+model FloorObject {
+  id       String @id @default(uuid(7)) @db.Uuid
+  venueId  String @map("venue_id") @db.Uuid
+  label    String @default("")
+  width    Int    @db.SmallInt
+  height   Int    @db.SmallInt
+  color    String
+  x        Float  @db.Real
+  y        Float  @db.Real
+  rotation Int    @default(0) @db.SmallInt
+
+  venue Venue @relation(fields: [venueId], references: [id], onDelete: Cascade)
+
+  @@index([venueId])
+  @@map("floor_objects")
 }
 
 model Guest {

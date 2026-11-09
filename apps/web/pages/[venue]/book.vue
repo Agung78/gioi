@@ -7,6 +7,8 @@ import DatePicker from '@/components/DatePicker.vue'
 import AvailabilityGrid from '@/components/AvailabilityGrid.vue'
 import { createReservation } from '@/composables/useGuestApi'
 import type { CreateReservationBody } from '@/types/venue'
+import FloorPlanSvg from '@/components/FloorPlanSvg.vue'
+import type { PublicFloorPlan } from '@gioi/domain'
 
 const route = useRoute()
 const router = useRouter()
@@ -65,6 +67,10 @@ function capture(event: string, props: Record<string, unknown> = {}) {
 
 const bookableAreas = computed(() => settings.value?.seatingAreas.filter((a: any) => a.bookable) ?? [])
 
+function fits(a: any) {
+  return (!a.minParty || partySize.value >= a.minParty) && (!a.maxParty || partySize.value <= a.maxParty)
+}
+
 function toggleDiet(d: string) {
   dietary.value = dietary.value.includes(d) ? dietary.value.filter((x) => x !== d) : [...dietary.value, d]
 }
@@ -94,7 +100,11 @@ async function fetchSlots() {
   if (!settings.value) return
   slotPending.value = true
   try {
-    const res = await fetch(`/api/public/venues/${venue}/availability?date=${date.value}&party=${partySize.value}`, { credentials: 'include' })
+    const url = new URL(`/api/public/venues/${venue}/availability`, location.origin)
+    url.searchParams.set('date', date.value)
+    url.searchParams.set('party', String(partySize.value))
+    if (seatingAreaId.value) url.searchParams.set('area', seatingAreaId.value)
+    const res = await fetch(url.toString(), { credentials: 'include' })
     const json = await res.json()
     slots.value = json.slots ?? []
     capture('slots_viewed', {
@@ -109,10 +119,25 @@ async function fetchSlots() {
   }
 }
 
-watch([date, partySize], () => {
+// Party change: drop a selected area the party no longer fits (runs before the refetch watcher below).
+watch(partySize, () => {
+  const a = bookableAreas.value.find((x: any) => x.id === seatingAreaId.value)
+  if (seatingAreaId.value && (!a || !fits(a))) seatingAreaId.value = null
+})
+
+watch([date, partySize, seatingAreaId], () => {
   time.value = null
   fetchSlots()
 })
+
+const { data: floorPlan } = useFetch<PublicFloorPlan>(`/api/public/venues/${venue}/floor-plan`, { server: false, lazy: true })
+
+function onMapPick(kind: 't' | 'o', i: number) {
+  if (kind !== 't') return
+  const table = floorPlan.value?.tables[i]
+  const area = table && bookableAreas.value.find((a: any) => a.id === table.seatingAreaId)
+  if (area && fits(area)) seatingAreaId.value = area.id
+}
 
 watch(time, (t) => {
   if (t) capture('slot_selected', { time: t, date: date.value, party_size: partySize.value })
@@ -185,7 +210,7 @@ async function submit() {
       date: date.value,
       time: time.value,
       partySize: partySize.value,
-      seatingAreaId: r.areaId ?? seatingAreaId.value ?? settings.value?.seatingAreas[0]?.id,
+      seatingAreaId: seatingAreaId.value ?? undefined,
       occasion: occasion.value.trim() || undefined,
       guestNotes: guestNotes.value.trim() || undefined,
       allergies: allergies.length ? allergies : undefined,
@@ -280,9 +305,18 @@ onMounted(() => {
             <div class="flex flex-wrap gap-2">
               <button type="button" class="pill" :class="seatingAreaId === null ? 'pill-on' : ''"
                 :aria-pressed="seatingAreaId === null" @click="seatingAreaId = null">Anywhere</button>
-              <button v-for="a in bookableAreas" :key="a.id" type="button" class="pill"
-                :class="seatingAreaId === a.id ? 'pill-on' : ''" :aria-pressed="seatingAreaId === a.id"
-                @click="seatingAreaId = a.id">{{ a.name }}</button>
+              <button v-for="a in bookableAreas" :key="a.id" type="button" class="pill flex-col"
+                :class="[seatingAreaId === a.id ? 'pill-on' : '', fits(a) ? '' : 'cursor-not-allowed opacity-40']"
+                :aria-pressed="seatingAreaId === a.id" :disabled="!fits(a)" :aria-disabled="!fits(a)"
+                @click="seatingAreaId = a.id">
+                <span>{{ a.name }}</span>
+                <span v-if="a.maxParty && partySize > a.maxParty" class="text-xs font-normal">Up to {{ a.maxParty }} guests</span>
+                <span v-else-if="a.minParty && partySize < a.minParty" class="text-xs font-normal">Parties of {{ a.minParty }}+</span>
+              </button>
+            </div>
+            <div v-if="floorPlan?.tables.length" class="mt-3 max-w-xl">
+              <FloorPlanSvg :plan="floorPlan" :highlight-area-id="seatingAreaId" label="Map of seating areas" @item-down="onMapPick" />
+              <p class="mt-1.5 text-xs text-muted">Tap a table to choose its area.</p>
             </div>
           </div>
           <div>

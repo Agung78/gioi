@@ -416,6 +416,9 @@ export type VenueWhereInput = {
   feedback?: Prisma.FeedbackListRelationFilter
   userVenues?: Prisma.UserVenueListRelationFilter
   auditEvents?: Prisma.AuditEventListRelationFilter
+  floorPlan?: Prisma.XOR<Prisma.FloorPlanNullableScalarRelationFilter, Prisma.FloorPlanWhereInput> | null
+  floorTables?: Prisma.FloorTableListRelationFilter
+  floorObjects?: Prisma.FloorObjectListRelationFilter
 }
 
 export type VenueOrderByWithRelationInput = {
@@ -453,6 +456,9 @@ export type VenueOrderByWithRelationInput = {
   feedback?: Prisma.FeedbackOrderByRelationAggregateInput
   userVenues?: Prisma.UserVenueOrderByRelationAggregateInput
   auditEvents?: Prisma.AuditEventOrderByRelationAggregateInput
+  floorPlan?: Prisma.FloorPlanOrderByWithRelationInput
+  floorTables?: Prisma.FloorTableOrderByRelationAggregateInput
+  floorObjects?: Prisma.FloorObjectOrderByRelationAggregateInput
 }
 
 export type VenueWhereUniqueInput = Prisma.AtLeast<{
@@ -493,6 +499,9 @@ export type VenueWhereUniqueInput = Prisma.AtLeast<{
   feedback?: Prisma.FeedbackListRelationFilter
   userVenues?: Prisma.UserVenueListRelationFilter
   auditEvents?: Prisma.AuditEventListRelationFilter
+  floorPlan?: Prisma.XOR<Prisma.FloorPlanNullableScalarRelationFilter, Prisma.FloorPlanWhereInput> | null
+  floorTables?: Prisma.FloorTableListRelationFilter
+  floorObjects?: Prisma.FloorObjectListRelationFilter
 }, "id" | "slug">
 
 export type VenueOrderByWithAggregationInput = {
@@ -596,6 +605,9 @@ export type VenueCreateInput = {
   feedback?: Prisma.FeedbackCreateNestedManyWithoutVenueInput
   userVenues?: Prisma.UserVenueCreateNestedManyWithoutVenueInput
   auditEvents?: Prisma.AuditEventCreateNestedManyWithoutVenueInput
+  floorPlan?: Prisma.FloorPlanCreateNestedOneWithoutVenueInput
+  floorTables?: Prisma.FloorTableCreateNestedManyWithoutVenueInput
+  floorObjects?: Prisma.FloorObjectCreateNestedManyWithoutVenueInput
 }
 
 export type VenueUncheckedCreateInput = {
@@ -633,6 +645,9 @@ export type VenueUncheckedCreateInput = {
   feedback?: Prisma.FeedbackUncheckedCreateNestedManyWithoutVenueInput
   userVenues?: Prisma.UserVenueUncheckedCreateNestedManyWithoutVenueInput
   auditEvents?: Prisma.AuditEventUncheckedCreateNestedManyWithoutVenueInput
+  floorPlan?: Prisma.FloorPlanUncheckedCreateNestedOneWithoutVenueInput
+  floorTables?: Prisma.FloorTableUncheckedCreateNestedManyWithoutVenueInput
+  floorObjects?: Prisma.FloorObjectUncheckedCreateNestedManyWithoutVenueInput
 }
 
 export type VenueUpdateInput = {
@@ -670,6 +685,9 @@ export type VenueUpdateInput = {
   feedback?: Prisma.FeedbackUpdateManyWithoutVenueNestedInput
   userVenues?: Prisma.UserVenueUpdateManyWithoutVenueNestedInput
   auditEvents?: Prisma.AuditEventUpdateManyWithoutVenueNestedInput
+  floorPlan?: Prisma.FloorPlanUpdateOneWithoutVenueNestedInput
+  floorTables?: Prisma.FloorTableUpdateManyWithoutVenueNestedInput
+  floorObjects?: Prisma.FloorObjectUpdateManyWithoutVenueNestedInput
 }
 
 export type VenueUncheckedUpdateInput = {
@@ -707,6 +725,9 @@ export type VenueUncheckedUpdateInput = {
   feedback?: Prisma.FeedbackUncheckedUpdateManyWithoutVenueNestedInput
   userVenues?: Prisma.UserVenueUncheckedUpdateManyWithoutVenueNestedInput
   auditEvents?: Prisma.AuditEventUncheckedUpdateManyWithoutVenueNestedInput
+  floorPlan?: Prisma.FloorPlanUncheckedUpdateOneWithoutVenueNestedInput
+  floorTables?: Prisma.FloorTableUncheckedUpdateManyWithoutVenueNestedInput
+  floorObjects?: Prisma.FloorObjectUncheckedUpdateManyWithoutVenueNestedInput
 }
 
 export type VenueCreateManyInput = {
@@ -992,6 +1013,48 @@ export type VenueUpdateOneRequiredWithoutSeatingAreasNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.VenueUpdateToOneWithWhereWithoutSeatingAreasInput, Prisma.VenueUpdateWithoutSeatingAreasInput>, Prisma.VenueUncheckedUpdateWithoutSeatingAreasInput>
 }
 
+export type VenueCreateNestedOneWithoutFloorPlanInput = {
+  create?: Prisma.XOR<Prisma.VenueCreateWithoutFloorPlanInput, Prisma.VenueUncheckedCreateWithoutFloorPlanInput>
+  connectOrCreate?: Prisma.VenueCreateOrConnectWithoutFloorPlanInput
+  connect?: Prisma.VenueWhereUniqueInput
+}
+
+export type VenueUpdateOneRequiredWithoutFloorPlanNestedInput = {
+  create?: Prisma.XOR<Prisma.VenueCreateWithoutFloorPlanInput, Prisma.VenueUncheckedCreateWithoutFloorPlanInput>
+  connectOrCreate?: Prisma.VenueCreateOrConnectWithoutFloorPlanInput
+  upsert?: Prisma.VenueUpsertWithoutFloorPlanInput
+  connect?: Prisma.VenueWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.VenueUpdateToOneWithWhereWithoutFloorPlanInput, Prisma.VenueUpdateWithoutFloorPlanInput>, Prisma.VenueUncheckedUpdateWithoutFloorPlanInput>
+}
+
+export type VenueCreateNestedOneWithoutFloorTablesInput = {
+  create?: Prisma.XOR<Prisma.VenueCreateWithoutFloorTablesInput, Prisma.VenueUncheckedCreateWithoutFloorTablesInput>
+  connectOrCreate?: Prisma.VenueCreateOrConnectWithoutFloorTablesInput
+  connect?: Prisma.VenueWhereUniqueInput
+}
+
+export type VenueUpdateOneRequiredWithoutFloorTablesNestedInput = {
+  create?: Prisma.XOR<Prisma.VenueCreateWithoutFloorTablesInput, Prisma.VenueUncheckedCreateWithoutFloorTablesInput>
+  connectOrCreate?: Prisma.VenueCreateOrConnectWithoutFloorTablesInput
+  upsert?: Prisma.VenueUpsertWithoutFloorTablesInput
+  connect?: Prisma.VenueWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.VenueUpdateToOneWithWhereWithoutFloorTablesInput, Prisma.VenueUpdateWithoutFloorTablesInput>, Prisma.VenueUncheckedUpdateWithoutFloorTablesInput>
+}
+
+export type VenueCreateNestedOneWithoutFloorObjectsInput = {
+  create?: Prisma.XOR<Prisma.VenueCreateWithoutFloorObjectsInput, Prisma.VenueUncheckedCreateWithoutFloorObjectsInput>
+  connectOrCreate?: Prisma.VenueCreateOrConnectWithoutFloorObjectsInput
+  connect?: Prisma.VenueWhereUniqueInput
+}
+
+export type VenueUpdateOneRequiredWithoutFloorObjectsNestedInput = {
+  create?: Prisma.XOR<Prisma.VenueCreateWithoutFloorObjectsInput, Prisma.VenueUncheckedCreateWithoutFloorObjectsInput>
+  connectOrCreate?: Prisma.VenueCreateOrConnectWithoutFloorObjectsInput
+  upsert?: Prisma.VenueUpsertWithoutFloorObjectsInput
+  connect?: Prisma.VenueWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.VenueUpdateToOneWithWhereWithoutFloorObjectsInput, Prisma.VenueUpdateWithoutFloorObjectsInput>, Prisma.VenueUncheckedUpdateWithoutFloorObjectsInput>
+}
+
 export type VenueCreateNestedOneWithoutGuestsInput = {
   create?: Prisma.XOR<Prisma.VenueCreateWithoutGuestsInput, Prisma.VenueUncheckedCreateWithoutGuestsInput>
   connectOrCreate?: Prisma.VenueCreateOrConnectWithoutGuestsInput
@@ -1098,6 +1161,9 @@ export type VenueCreateWithoutOpeningHoursInput = {
   feedback?: Prisma.FeedbackCreateNestedManyWithoutVenueInput
   userVenues?: Prisma.UserVenueCreateNestedManyWithoutVenueInput
   auditEvents?: Prisma.AuditEventCreateNestedManyWithoutVenueInput
+  floorPlan?: Prisma.FloorPlanCreateNestedOneWithoutVenueInput
+  floorTables?: Prisma.FloorTableCreateNestedManyWithoutVenueInput
+  floorObjects?: Prisma.FloorObjectCreateNestedManyWithoutVenueInput
 }
 
 export type VenueUncheckedCreateWithoutOpeningHoursInput = {
@@ -1134,6 +1200,9 @@ export type VenueUncheckedCreateWithoutOpeningHoursInput = {
   feedback?: Prisma.FeedbackUncheckedCreateNestedManyWithoutVenueInput
   userVenues?: Prisma.UserVenueUncheckedCreateNestedManyWithoutVenueInput
   auditEvents?: Prisma.AuditEventUncheckedCreateNestedManyWithoutVenueInput
+  floorPlan?: Prisma.FloorPlanUncheckedCreateNestedOneWithoutVenueInput
+  floorTables?: Prisma.FloorTableUncheckedCreateNestedManyWithoutVenueInput
+  floorObjects?: Prisma.FloorObjectUncheckedCreateNestedManyWithoutVenueInput
 }
 
 export type VenueCreateOrConnectWithoutOpeningHoursInput = {
@@ -1186,6 +1255,9 @@ export type VenueUpdateWithoutOpeningHoursInput = {
   feedback?: Prisma.FeedbackUpdateManyWithoutVenueNestedInput
   userVenues?: Prisma.UserVenueUpdateManyWithoutVenueNestedInput
   auditEvents?: Prisma.AuditEventUpdateManyWithoutVenueNestedInput
+  floorPlan?: Prisma.FloorPlanUpdateOneWithoutVenueNestedInput
+  floorTables?: Prisma.FloorTableUpdateManyWithoutVenueNestedInput
+  floorObjects?: Prisma.FloorObjectUpdateManyWithoutVenueNestedInput
 }
 
 export type VenueUncheckedUpdateWithoutOpeningHoursInput = {
@@ -1222,6 +1294,9 @@ export type VenueUncheckedUpdateWithoutOpeningHoursInput = {
   feedback?: Prisma.FeedbackUncheckedUpdateManyWithoutVenueNestedInput
   userVenues?: Prisma.UserVenueUncheckedUpdateManyWithoutVenueNestedInput
   auditEvents?: Prisma.AuditEventUncheckedUpdateManyWithoutVenueNestedInput
+  floorPlan?: Prisma.FloorPlanUncheckedUpdateOneWithoutVenueNestedInput
+  floorTables?: Prisma.FloorTableUncheckedUpdateManyWithoutVenueNestedInput
+  floorObjects?: Prisma.FloorObjectUncheckedUpdateManyWithoutVenueNestedInput
 }
 
 export type VenueCreateWithoutClosedDatesInput = {
@@ -1258,6 +1333,9 @@ export type VenueCreateWithoutClosedDatesInput = {
   feedback?: Prisma.FeedbackCreateNestedManyWithoutVenueInput
   userVenues?: Prisma.UserVenueCreateNestedManyWithoutVenueInput
   auditEvents?: Prisma.AuditEventCreateNestedManyWithoutVenueInput
+  floorPlan?: Prisma.FloorPlanCreateNestedOneWithoutVenueInput
+  floorTables?: Prisma.FloorTableCreateNestedManyWithoutVenueInput
+  floorObjects?: Prisma.FloorObjectCreateNestedManyWithoutVenueInput
 }
 
 export type VenueUncheckedCreateWithoutClosedDatesInput = {
@@ -1294,6 +1372,9 @@ export type VenueUncheckedCreateWithoutClosedDatesInput = {
   feedback?: Prisma.FeedbackUncheckedCreateNestedManyWithoutVenueInput
   userVenues?: Prisma.UserVenueUncheckedCreateNestedManyWithoutVenueInput
   auditEvents?: Prisma.AuditEventUncheckedCreateNestedManyWithoutVenueInput
+  floorPlan?: Prisma.FloorPlanUncheckedCreateNestedOneWithoutVenueInput
+  floorTables?: Prisma.FloorTableUncheckedCreateNestedManyWithoutVenueInput
+  floorObjects?: Prisma.FloorObjectUncheckedCreateNestedManyWithoutVenueInput
 }
 
 export type VenueCreateOrConnectWithoutClosedDatesInput = {
@@ -1346,6 +1427,9 @@ export type VenueUpdateWithoutClosedDatesInput = {
   feedback?: Prisma.FeedbackUpdateManyWithoutVenueNestedInput
   userVenues?: Prisma.UserVenueUpdateManyWithoutVenueNestedInput
   auditEvents?: Prisma.AuditEventUpdateManyWithoutVenueNestedInput
+  floorPlan?: Prisma.FloorPlanUpdateOneWithoutVenueNestedInput
+  floorTables?: Prisma.FloorTableUpdateManyWithoutVenueNestedInput
+  floorObjects?: Prisma.FloorObjectUpdateManyWithoutVenueNestedInput
 }
 
 export type VenueUncheckedUpdateWithoutClosedDatesInput = {
@@ -1382,6 +1466,9 @@ export type VenueUncheckedUpdateWithoutClosedDatesInput = {
   feedback?: Prisma.FeedbackUncheckedUpdateManyWithoutVenueNestedInput
   userVenues?: Prisma.UserVenueUncheckedUpdateManyWithoutVenueNestedInput
   auditEvents?: Prisma.AuditEventUncheckedUpdateManyWithoutVenueNestedInput
+  floorPlan?: Prisma.FloorPlanUncheckedUpdateOneWithoutVenueNestedInput
+  floorTables?: Prisma.FloorTableUncheckedUpdateManyWithoutVenueNestedInput
+  floorObjects?: Prisma.FloorObjectUncheckedUpdateManyWithoutVenueNestedInput
 }
 
 export type VenueCreateWithoutSeatingAreasInput = {
@@ -1418,6 +1505,9 @@ export type VenueCreateWithoutSeatingAreasInput = {
   feedback?: Prisma.FeedbackCreateNestedManyWithoutVenueInput
   userVenues?: Prisma.UserVenueCreateNestedManyWithoutVenueInput
   auditEvents?: Prisma.AuditEventCreateNestedManyWithoutVenueInput
+  floorPlan?: Prisma.FloorPlanCreateNestedOneWithoutVenueInput
+  floorTables?: Prisma.FloorTableCreateNestedManyWithoutVenueInput
+  floorObjects?: Prisma.FloorObjectCreateNestedManyWithoutVenueInput
 }
 
 export type VenueUncheckedCreateWithoutSeatingAreasInput = {
@@ -1454,6 +1544,9 @@ export type VenueUncheckedCreateWithoutSeatingAreasInput = {
   feedback?: Prisma.FeedbackUncheckedCreateNestedManyWithoutVenueInput
   userVenues?: Prisma.UserVenueUncheckedCreateNestedManyWithoutVenueInput
   auditEvents?: Prisma.AuditEventUncheckedCreateNestedManyWithoutVenueInput
+  floorPlan?: Prisma.FloorPlanUncheckedCreateNestedOneWithoutVenueInput
+  floorTables?: Prisma.FloorTableUncheckedCreateNestedManyWithoutVenueInput
+  floorObjects?: Prisma.FloorObjectUncheckedCreateNestedManyWithoutVenueInput
 }
 
 export type VenueCreateOrConnectWithoutSeatingAreasInput = {
@@ -1506,6 +1599,9 @@ export type VenueUpdateWithoutSeatingAreasInput = {
   feedback?: Prisma.FeedbackUpdateManyWithoutVenueNestedInput
   userVenues?: Prisma.UserVenueUpdateManyWithoutVenueNestedInput
   auditEvents?: Prisma.AuditEventUpdateManyWithoutVenueNestedInput
+  floorPlan?: Prisma.FloorPlanUpdateOneWithoutVenueNestedInput
+  floorTables?: Prisma.FloorTableUpdateManyWithoutVenueNestedInput
+  floorObjects?: Prisma.FloorObjectUpdateManyWithoutVenueNestedInput
 }
 
 export type VenueUncheckedUpdateWithoutSeatingAreasInput = {
@@ -1542,6 +1638,525 @@ export type VenueUncheckedUpdateWithoutSeatingAreasInput = {
   feedback?: Prisma.FeedbackUncheckedUpdateManyWithoutVenueNestedInput
   userVenues?: Prisma.UserVenueUncheckedUpdateManyWithoutVenueNestedInput
   auditEvents?: Prisma.AuditEventUncheckedUpdateManyWithoutVenueNestedInput
+  floorPlan?: Prisma.FloorPlanUncheckedUpdateOneWithoutVenueNestedInput
+  floorTables?: Prisma.FloorTableUncheckedUpdateManyWithoutVenueNestedInput
+  floorObjects?: Prisma.FloorObjectUncheckedUpdateManyWithoutVenueNestedInput
+}
+
+export type VenueCreateWithoutFloorPlanInput = {
+  id?: string
+  slug: string
+  name: string
+  timeZone: string
+  tagline: string
+  intro: string
+  address: string
+  phone: string
+  whatsapp: string
+  email: string
+  mapsUrl: string
+  bookingIntervalMinutes?: number
+  partyMin?: number
+  partyMax?: number
+  diningMinutes?: number
+  leadTimeMinutes?: number
+  cutoffMinutes?: number
+  noShowTargetPercent?: number
+  overCapacityAlertPercent?: number
+  cancellationPolicy: string
+  feedbackTitle?: string | null
+  feedbackSubtitle?: string | null
+  feedbackTags?: Prisma.VenueCreatefeedbackTagsInput | string[]
+  feedbackMessageTemplate: string
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  openingHours?: Prisma.OpeningHoursCreateNestedManyWithoutVenueInput
+  closedDates?: Prisma.ClosedDateCreateNestedManyWithoutVenueInput
+  seatingAreas?: Prisma.SeatingAreaCreateNestedManyWithoutVenueInput
+  guests?: Prisma.GuestCreateNestedManyWithoutVenueInput
+  reservations?: Prisma.ReservationCreateNestedManyWithoutVenueInput
+  feedback?: Prisma.FeedbackCreateNestedManyWithoutVenueInput
+  userVenues?: Prisma.UserVenueCreateNestedManyWithoutVenueInput
+  auditEvents?: Prisma.AuditEventCreateNestedManyWithoutVenueInput
+  floorTables?: Prisma.FloorTableCreateNestedManyWithoutVenueInput
+  floorObjects?: Prisma.FloorObjectCreateNestedManyWithoutVenueInput
+}
+
+export type VenueUncheckedCreateWithoutFloorPlanInput = {
+  id?: string
+  slug: string
+  name: string
+  timeZone: string
+  tagline: string
+  intro: string
+  address: string
+  phone: string
+  whatsapp: string
+  email: string
+  mapsUrl: string
+  bookingIntervalMinutes?: number
+  partyMin?: number
+  partyMax?: number
+  diningMinutes?: number
+  leadTimeMinutes?: number
+  cutoffMinutes?: number
+  noShowTargetPercent?: number
+  overCapacityAlertPercent?: number
+  cancellationPolicy: string
+  feedbackTitle?: string | null
+  feedbackSubtitle?: string | null
+  feedbackTags?: Prisma.VenueCreatefeedbackTagsInput | string[]
+  feedbackMessageTemplate: string
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  openingHours?: Prisma.OpeningHoursUncheckedCreateNestedManyWithoutVenueInput
+  closedDates?: Prisma.ClosedDateUncheckedCreateNestedManyWithoutVenueInput
+  seatingAreas?: Prisma.SeatingAreaUncheckedCreateNestedManyWithoutVenueInput
+  guests?: Prisma.GuestUncheckedCreateNestedManyWithoutVenueInput
+  reservations?: Prisma.ReservationUncheckedCreateNestedManyWithoutVenueInput
+  feedback?: Prisma.FeedbackUncheckedCreateNestedManyWithoutVenueInput
+  userVenues?: Prisma.UserVenueUncheckedCreateNestedManyWithoutVenueInput
+  auditEvents?: Prisma.AuditEventUncheckedCreateNestedManyWithoutVenueInput
+  floorTables?: Prisma.FloorTableUncheckedCreateNestedManyWithoutVenueInput
+  floorObjects?: Prisma.FloorObjectUncheckedCreateNestedManyWithoutVenueInput
+}
+
+export type VenueCreateOrConnectWithoutFloorPlanInput = {
+  where: Prisma.VenueWhereUniqueInput
+  create: Prisma.XOR<Prisma.VenueCreateWithoutFloorPlanInput, Prisma.VenueUncheckedCreateWithoutFloorPlanInput>
+}
+
+export type VenueUpsertWithoutFloorPlanInput = {
+  update: Prisma.XOR<Prisma.VenueUpdateWithoutFloorPlanInput, Prisma.VenueUncheckedUpdateWithoutFloorPlanInput>
+  create: Prisma.XOR<Prisma.VenueCreateWithoutFloorPlanInput, Prisma.VenueUncheckedCreateWithoutFloorPlanInput>
+  where?: Prisma.VenueWhereInput
+}
+
+export type VenueUpdateToOneWithWhereWithoutFloorPlanInput = {
+  where?: Prisma.VenueWhereInput
+  data: Prisma.XOR<Prisma.VenueUpdateWithoutFloorPlanInput, Prisma.VenueUncheckedUpdateWithoutFloorPlanInput>
+}
+
+export type VenueUpdateWithoutFloorPlanInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  timeZone?: Prisma.StringFieldUpdateOperationsInput | string
+  tagline?: Prisma.StringFieldUpdateOperationsInput | string
+  intro?: Prisma.StringFieldUpdateOperationsInput | string
+  address?: Prisma.StringFieldUpdateOperationsInput | string
+  phone?: Prisma.StringFieldUpdateOperationsInput | string
+  whatsapp?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  mapsUrl?: Prisma.StringFieldUpdateOperationsInput | string
+  bookingIntervalMinutes?: Prisma.IntFieldUpdateOperationsInput | number
+  partyMin?: Prisma.IntFieldUpdateOperationsInput | number
+  partyMax?: Prisma.IntFieldUpdateOperationsInput | number
+  diningMinutes?: Prisma.IntFieldUpdateOperationsInput | number
+  leadTimeMinutes?: Prisma.IntFieldUpdateOperationsInput | number
+  cutoffMinutes?: Prisma.IntFieldUpdateOperationsInput | number
+  noShowTargetPercent?: Prisma.IntFieldUpdateOperationsInput | number
+  overCapacityAlertPercent?: Prisma.IntFieldUpdateOperationsInput | number
+  cancellationPolicy?: Prisma.StringFieldUpdateOperationsInput | string
+  feedbackTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  feedbackSubtitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  feedbackTags?: Prisma.VenueUpdatefeedbackTagsInput | string[]
+  feedbackMessageTemplate?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  openingHours?: Prisma.OpeningHoursUpdateManyWithoutVenueNestedInput
+  closedDates?: Prisma.ClosedDateUpdateManyWithoutVenueNestedInput
+  seatingAreas?: Prisma.SeatingAreaUpdateManyWithoutVenueNestedInput
+  guests?: Prisma.GuestUpdateManyWithoutVenueNestedInput
+  reservations?: Prisma.ReservationUpdateManyWithoutVenueNestedInput
+  feedback?: Prisma.FeedbackUpdateManyWithoutVenueNestedInput
+  userVenues?: Prisma.UserVenueUpdateManyWithoutVenueNestedInput
+  auditEvents?: Prisma.AuditEventUpdateManyWithoutVenueNestedInput
+  floorTables?: Prisma.FloorTableUpdateManyWithoutVenueNestedInput
+  floorObjects?: Prisma.FloorObjectUpdateManyWithoutVenueNestedInput
+}
+
+export type VenueUncheckedUpdateWithoutFloorPlanInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  timeZone?: Prisma.StringFieldUpdateOperationsInput | string
+  tagline?: Prisma.StringFieldUpdateOperationsInput | string
+  intro?: Prisma.StringFieldUpdateOperationsInput | string
+  address?: Prisma.StringFieldUpdateOperationsInput | string
+  phone?: Prisma.StringFieldUpdateOperationsInput | string
+  whatsapp?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  mapsUrl?: Prisma.StringFieldUpdateOperationsInput | string
+  bookingIntervalMinutes?: Prisma.IntFieldUpdateOperationsInput | number
+  partyMin?: Prisma.IntFieldUpdateOperationsInput | number
+  partyMax?: Prisma.IntFieldUpdateOperationsInput | number
+  diningMinutes?: Prisma.IntFieldUpdateOperationsInput | number
+  leadTimeMinutes?: Prisma.IntFieldUpdateOperationsInput | number
+  cutoffMinutes?: Prisma.IntFieldUpdateOperationsInput | number
+  noShowTargetPercent?: Prisma.IntFieldUpdateOperationsInput | number
+  overCapacityAlertPercent?: Prisma.IntFieldUpdateOperationsInput | number
+  cancellationPolicy?: Prisma.StringFieldUpdateOperationsInput | string
+  feedbackTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  feedbackSubtitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  feedbackTags?: Prisma.VenueUpdatefeedbackTagsInput | string[]
+  feedbackMessageTemplate?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  openingHours?: Prisma.OpeningHoursUncheckedUpdateManyWithoutVenueNestedInput
+  closedDates?: Prisma.ClosedDateUncheckedUpdateManyWithoutVenueNestedInput
+  seatingAreas?: Prisma.SeatingAreaUncheckedUpdateManyWithoutVenueNestedInput
+  guests?: Prisma.GuestUncheckedUpdateManyWithoutVenueNestedInput
+  reservations?: Prisma.ReservationUncheckedUpdateManyWithoutVenueNestedInput
+  feedback?: Prisma.FeedbackUncheckedUpdateManyWithoutVenueNestedInput
+  userVenues?: Prisma.UserVenueUncheckedUpdateManyWithoutVenueNestedInput
+  auditEvents?: Prisma.AuditEventUncheckedUpdateManyWithoutVenueNestedInput
+  floorTables?: Prisma.FloorTableUncheckedUpdateManyWithoutVenueNestedInput
+  floorObjects?: Prisma.FloorObjectUncheckedUpdateManyWithoutVenueNestedInput
+}
+
+export type VenueCreateWithoutFloorTablesInput = {
+  id?: string
+  slug: string
+  name: string
+  timeZone: string
+  tagline: string
+  intro: string
+  address: string
+  phone: string
+  whatsapp: string
+  email: string
+  mapsUrl: string
+  bookingIntervalMinutes?: number
+  partyMin?: number
+  partyMax?: number
+  diningMinutes?: number
+  leadTimeMinutes?: number
+  cutoffMinutes?: number
+  noShowTargetPercent?: number
+  overCapacityAlertPercent?: number
+  cancellationPolicy: string
+  feedbackTitle?: string | null
+  feedbackSubtitle?: string | null
+  feedbackTags?: Prisma.VenueCreatefeedbackTagsInput | string[]
+  feedbackMessageTemplate: string
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  openingHours?: Prisma.OpeningHoursCreateNestedManyWithoutVenueInput
+  closedDates?: Prisma.ClosedDateCreateNestedManyWithoutVenueInput
+  seatingAreas?: Prisma.SeatingAreaCreateNestedManyWithoutVenueInput
+  guests?: Prisma.GuestCreateNestedManyWithoutVenueInput
+  reservations?: Prisma.ReservationCreateNestedManyWithoutVenueInput
+  feedback?: Prisma.FeedbackCreateNestedManyWithoutVenueInput
+  userVenues?: Prisma.UserVenueCreateNestedManyWithoutVenueInput
+  auditEvents?: Prisma.AuditEventCreateNestedManyWithoutVenueInput
+  floorPlan?: Prisma.FloorPlanCreateNestedOneWithoutVenueInput
+  floorObjects?: Prisma.FloorObjectCreateNestedManyWithoutVenueInput
+}
+
+export type VenueUncheckedCreateWithoutFloorTablesInput = {
+  id?: string
+  slug: string
+  name: string
+  timeZone: string
+  tagline: string
+  intro: string
+  address: string
+  phone: string
+  whatsapp: string
+  email: string
+  mapsUrl: string
+  bookingIntervalMinutes?: number
+  partyMin?: number
+  partyMax?: number
+  diningMinutes?: number
+  leadTimeMinutes?: number
+  cutoffMinutes?: number
+  noShowTargetPercent?: number
+  overCapacityAlertPercent?: number
+  cancellationPolicy: string
+  feedbackTitle?: string | null
+  feedbackSubtitle?: string | null
+  feedbackTags?: Prisma.VenueCreatefeedbackTagsInput | string[]
+  feedbackMessageTemplate: string
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  openingHours?: Prisma.OpeningHoursUncheckedCreateNestedManyWithoutVenueInput
+  closedDates?: Prisma.ClosedDateUncheckedCreateNestedManyWithoutVenueInput
+  seatingAreas?: Prisma.SeatingAreaUncheckedCreateNestedManyWithoutVenueInput
+  guests?: Prisma.GuestUncheckedCreateNestedManyWithoutVenueInput
+  reservations?: Prisma.ReservationUncheckedCreateNestedManyWithoutVenueInput
+  feedback?: Prisma.FeedbackUncheckedCreateNestedManyWithoutVenueInput
+  userVenues?: Prisma.UserVenueUncheckedCreateNestedManyWithoutVenueInput
+  auditEvents?: Prisma.AuditEventUncheckedCreateNestedManyWithoutVenueInput
+  floorPlan?: Prisma.FloorPlanUncheckedCreateNestedOneWithoutVenueInput
+  floorObjects?: Prisma.FloorObjectUncheckedCreateNestedManyWithoutVenueInput
+}
+
+export type VenueCreateOrConnectWithoutFloorTablesInput = {
+  where: Prisma.VenueWhereUniqueInput
+  create: Prisma.XOR<Prisma.VenueCreateWithoutFloorTablesInput, Prisma.VenueUncheckedCreateWithoutFloorTablesInput>
+}
+
+export type VenueUpsertWithoutFloorTablesInput = {
+  update: Prisma.XOR<Prisma.VenueUpdateWithoutFloorTablesInput, Prisma.VenueUncheckedUpdateWithoutFloorTablesInput>
+  create: Prisma.XOR<Prisma.VenueCreateWithoutFloorTablesInput, Prisma.VenueUncheckedCreateWithoutFloorTablesInput>
+  where?: Prisma.VenueWhereInput
+}
+
+export type VenueUpdateToOneWithWhereWithoutFloorTablesInput = {
+  where?: Prisma.VenueWhereInput
+  data: Prisma.XOR<Prisma.VenueUpdateWithoutFloorTablesInput, Prisma.VenueUncheckedUpdateWithoutFloorTablesInput>
+}
+
+export type VenueUpdateWithoutFloorTablesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  timeZone?: Prisma.StringFieldUpdateOperationsInput | string
+  tagline?: Prisma.StringFieldUpdateOperationsInput | string
+  intro?: Prisma.StringFieldUpdateOperationsInput | string
+  address?: Prisma.StringFieldUpdateOperationsInput | string
+  phone?: Prisma.StringFieldUpdateOperationsInput | string
+  whatsapp?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  mapsUrl?: Prisma.StringFieldUpdateOperationsInput | string
+  bookingIntervalMinutes?: Prisma.IntFieldUpdateOperationsInput | number
+  partyMin?: Prisma.IntFieldUpdateOperationsInput | number
+  partyMax?: Prisma.IntFieldUpdateOperationsInput | number
+  diningMinutes?: Prisma.IntFieldUpdateOperationsInput | number
+  leadTimeMinutes?: Prisma.IntFieldUpdateOperationsInput | number
+  cutoffMinutes?: Prisma.IntFieldUpdateOperationsInput | number
+  noShowTargetPercent?: Prisma.IntFieldUpdateOperationsInput | number
+  overCapacityAlertPercent?: Prisma.IntFieldUpdateOperationsInput | number
+  cancellationPolicy?: Prisma.StringFieldUpdateOperationsInput | string
+  feedbackTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  feedbackSubtitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  feedbackTags?: Prisma.VenueUpdatefeedbackTagsInput | string[]
+  feedbackMessageTemplate?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  openingHours?: Prisma.OpeningHoursUpdateManyWithoutVenueNestedInput
+  closedDates?: Prisma.ClosedDateUpdateManyWithoutVenueNestedInput
+  seatingAreas?: Prisma.SeatingAreaUpdateManyWithoutVenueNestedInput
+  guests?: Prisma.GuestUpdateManyWithoutVenueNestedInput
+  reservations?: Prisma.ReservationUpdateManyWithoutVenueNestedInput
+  feedback?: Prisma.FeedbackUpdateManyWithoutVenueNestedInput
+  userVenues?: Prisma.UserVenueUpdateManyWithoutVenueNestedInput
+  auditEvents?: Prisma.AuditEventUpdateManyWithoutVenueNestedInput
+  floorPlan?: Prisma.FloorPlanUpdateOneWithoutVenueNestedInput
+  floorObjects?: Prisma.FloorObjectUpdateManyWithoutVenueNestedInput
+}
+
+export type VenueUncheckedUpdateWithoutFloorTablesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  timeZone?: Prisma.StringFieldUpdateOperationsInput | string
+  tagline?: Prisma.StringFieldUpdateOperationsInput | string
+  intro?: Prisma.StringFieldUpdateOperationsInput | string
+  address?: Prisma.StringFieldUpdateOperationsInput | string
+  phone?: Prisma.StringFieldUpdateOperationsInput | string
+  whatsapp?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  mapsUrl?: Prisma.StringFieldUpdateOperationsInput | string
+  bookingIntervalMinutes?: Prisma.IntFieldUpdateOperationsInput | number
+  partyMin?: Prisma.IntFieldUpdateOperationsInput | number
+  partyMax?: Prisma.IntFieldUpdateOperationsInput | number
+  diningMinutes?: Prisma.IntFieldUpdateOperationsInput | number
+  leadTimeMinutes?: Prisma.IntFieldUpdateOperationsInput | number
+  cutoffMinutes?: Prisma.IntFieldUpdateOperationsInput | number
+  noShowTargetPercent?: Prisma.IntFieldUpdateOperationsInput | number
+  overCapacityAlertPercent?: Prisma.IntFieldUpdateOperationsInput | number
+  cancellationPolicy?: Prisma.StringFieldUpdateOperationsInput | string
+  feedbackTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  feedbackSubtitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  feedbackTags?: Prisma.VenueUpdatefeedbackTagsInput | string[]
+  feedbackMessageTemplate?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  openingHours?: Prisma.OpeningHoursUncheckedUpdateManyWithoutVenueNestedInput
+  closedDates?: Prisma.ClosedDateUncheckedUpdateManyWithoutVenueNestedInput
+  seatingAreas?: Prisma.SeatingAreaUncheckedUpdateManyWithoutVenueNestedInput
+  guests?: Prisma.GuestUncheckedUpdateManyWithoutVenueNestedInput
+  reservations?: Prisma.ReservationUncheckedUpdateManyWithoutVenueNestedInput
+  feedback?: Prisma.FeedbackUncheckedUpdateManyWithoutVenueNestedInput
+  userVenues?: Prisma.UserVenueUncheckedUpdateManyWithoutVenueNestedInput
+  auditEvents?: Prisma.AuditEventUncheckedUpdateManyWithoutVenueNestedInput
+  floorPlan?: Prisma.FloorPlanUncheckedUpdateOneWithoutVenueNestedInput
+  floorObjects?: Prisma.FloorObjectUncheckedUpdateManyWithoutVenueNestedInput
+}
+
+export type VenueCreateWithoutFloorObjectsInput = {
+  id?: string
+  slug: string
+  name: string
+  timeZone: string
+  tagline: string
+  intro: string
+  address: string
+  phone: string
+  whatsapp: string
+  email: string
+  mapsUrl: string
+  bookingIntervalMinutes?: number
+  partyMin?: number
+  partyMax?: number
+  diningMinutes?: number
+  leadTimeMinutes?: number
+  cutoffMinutes?: number
+  noShowTargetPercent?: number
+  overCapacityAlertPercent?: number
+  cancellationPolicy: string
+  feedbackTitle?: string | null
+  feedbackSubtitle?: string | null
+  feedbackTags?: Prisma.VenueCreatefeedbackTagsInput | string[]
+  feedbackMessageTemplate: string
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  openingHours?: Prisma.OpeningHoursCreateNestedManyWithoutVenueInput
+  closedDates?: Prisma.ClosedDateCreateNestedManyWithoutVenueInput
+  seatingAreas?: Prisma.SeatingAreaCreateNestedManyWithoutVenueInput
+  guests?: Prisma.GuestCreateNestedManyWithoutVenueInput
+  reservations?: Prisma.ReservationCreateNestedManyWithoutVenueInput
+  feedback?: Prisma.FeedbackCreateNestedManyWithoutVenueInput
+  userVenues?: Prisma.UserVenueCreateNestedManyWithoutVenueInput
+  auditEvents?: Prisma.AuditEventCreateNestedManyWithoutVenueInput
+  floorPlan?: Prisma.FloorPlanCreateNestedOneWithoutVenueInput
+  floorTables?: Prisma.FloorTableCreateNestedManyWithoutVenueInput
+}
+
+export type VenueUncheckedCreateWithoutFloorObjectsInput = {
+  id?: string
+  slug: string
+  name: string
+  timeZone: string
+  tagline: string
+  intro: string
+  address: string
+  phone: string
+  whatsapp: string
+  email: string
+  mapsUrl: string
+  bookingIntervalMinutes?: number
+  partyMin?: number
+  partyMax?: number
+  diningMinutes?: number
+  leadTimeMinutes?: number
+  cutoffMinutes?: number
+  noShowTargetPercent?: number
+  overCapacityAlertPercent?: number
+  cancellationPolicy: string
+  feedbackTitle?: string | null
+  feedbackSubtitle?: string | null
+  feedbackTags?: Prisma.VenueCreatefeedbackTagsInput | string[]
+  feedbackMessageTemplate: string
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  openingHours?: Prisma.OpeningHoursUncheckedCreateNestedManyWithoutVenueInput
+  closedDates?: Prisma.ClosedDateUncheckedCreateNestedManyWithoutVenueInput
+  seatingAreas?: Prisma.SeatingAreaUncheckedCreateNestedManyWithoutVenueInput
+  guests?: Prisma.GuestUncheckedCreateNestedManyWithoutVenueInput
+  reservations?: Prisma.ReservationUncheckedCreateNestedManyWithoutVenueInput
+  feedback?: Prisma.FeedbackUncheckedCreateNestedManyWithoutVenueInput
+  userVenues?: Prisma.UserVenueUncheckedCreateNestedManyWithoutVenueInput
+  auditEvents?: Prisma.AuditEventUncheckedCreateNestedManyWithoutVenueInput
+  floorPlan?: Prisma.FloorPlanUncheckedCreateNestedOneWithoutVenueInput
+  floorTables?: Prisma.FloorTableUncheckedCreateNestedManyWithoutVenueInput
+}
+
+export type VenueCreateOrConnectWithoutFloorObjectsInput = {
+  where: Prisma.VenueWhereUniqueInput
+  create: Prisma.XOR<Prisma.VenueCreateWithoutFloorObjectsInput, Prisma.VenueUncheckedCreateWithoutFloorObjectsInput>
+}
+
+export type VenueUpsertWithoutFloorObjectsInput = {
+  update: Prisma.XOR<Prisma.VenueUpdateWithoutFloorObjectsInput, Prisma.VenueUncheckedUpdateWithoutFloorObjectsInput>
+  create: Prisma.XOR<Prisma.VenueCreateWithoutFloorObjectsInput, Prisma.VenueUncheckedCreateWithoutFloorObjectsInput>
+  where?: Prisma.VenueWhereInput
+}
+
+export type VenueUpdateToOneWithWhereWithoutFloorObjectsInput = {
+  where?: Prisma.VenueWhereInput
+  data: Prisma.XOR<Prisma.VenueUpdateWithoutFloorObjectsInput, Prisma.VenueUncheckedUpdateWithoutFloorObjectsInput>
+}
+
+export type VenueUpdateWithoutFloorObjectsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  timeZone?: Prisma.StringFieldUpdateOperationsInput | string
+  tagline?: Prisma.StringFieldUpdateOperationsInput | string
+  intro?: Prisma.StringFieldUpdateOperationsInput | string
+  address?: Prisma.StringFieldUpdateOperationsInput | string
+  phone?: Prisma.StringFieldUpdateOperationsInput | string
+  whatsapp?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  mapsUrl?: Prisma.StringFieldUpdateOperationsInput | string
+  bookingIntervalMinutes?: Prisma.IntFieldUpdateOperationsInput | number
+  partyMin?: Prisma.IntFieldUpdateOperationsInput | number
+  partyMax?: Prisma.IntFieldUpdateOperationsInput | number
+  diningMinutes?: Prisma.IntFieldUpdateOperationsInput | number
+  leadTimeMinutes?: Prisma.IntFieldUpdateOperationsInput | number
+  cutoffMinutes?: Prisma.IntFieldUpdateOperationsInput | number
+  noShowTargetPercent?: Prisma.IntFieldUpdateOperationsInput | number
+  overCapacityAlertPercent?: Prisma.IntFieldUpdateOperationsInput | number
+  cancellationPolicy?: Prisma.StringFieldUpdateOperationsInput | string
+  feedbackTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  feedbackSubtitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  feedbackTags?: Prisma.VenueUpdatefeedbackTagsInput | string[]
+  feedbackMessageTemplate?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  openingHours?: Prisma.OpeningHoursUpdateManyWithoutVenueNestedInput
+  closedDates?: Prisma.ClosedDateUpdateManyWithoutVenueNestedInput
+  seatingAreas?: Prisma.SeatingAreaUpdateManyWithoutVenueNestedInput
+  guests?: Prisma.GuestUpdateManyWithoutVenueNestedInput
+  reservations?: Prisma.ReservationUpdateManyWithoutVenueNestedInput
+  feedback?: Prisma.FeedbackUpdateManyWithoutVenueNestedInput
+  userVenues?: Prisma.UserVenueUpdateManyWithoutVenueNestedInput
+  auditEvents?: Prisma.AuditEventUpdateManyWithoutVenueNestedInput
+  floorPlan?: Prisma.FloorPlanUpdateOneWithoutVenueNestedInput
+  floorTables?: Prisma.FloorTableUpdateManyWithoutVenueNestedInput
+}
+
+export type VenueUncheckedUpdateWithoutFloorObjectsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  timeZone?: Prisma.StringFieldUpdateOperationsInput | string
+  tagline?: Prisma.StringFieldUpdateOperationsInput | string
+  intro?: Prisma.StringFieldUpdateOperationsInput | string
+  address?: Prisma.StringFieldUpdateOperationsInput | string
+  phone?: Prisma.StringFieldUpdateOperationsInput | string
+  whatsapp?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  mapsUrl?: Prisma.StringFieldUpdateOperationsInput | string
+  bookingIntervalMinutes?: Prisma.IntFieldUpdateOperationsInput | number
+  partyMin?: Prisma.IntFieldUpdateOperationsInput | number
+  partyMax?: Prisma.IntFieldUpdateOperationsInput | number
+  diningMinutes?: Prisma.IntFieldUpdateOperationsInput | number
+  leadTimeMinutes?: Prisma.IntFieldUpdateOperationsInput | number
+  cutoffMinutes?: Prisma.IntFieldUpdateOperationsInput | number
+  noShowTargetPercent?: Prisma.IntFieldUpdateOperationsInput | number
+  overCapacityAlertPercent?: Prisma.IntFieldUpdateOperationsInput | number
+  cancellationPolicy?: Prisma.StringFieldUpdateOperationsInput | string
+  feedbackTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  feedbackSubtitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  feedbackTags?: Prisma.VenueUpdatefeedbackTagsInput | string[]
+  feedbackMessageTemplate?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  openingHours?: Prisma.OpeningHoursUncheckedUpdateManyWithoutVenueNestedInput
+  closedDates?: Prisma.ClosedDateUncheckedUpdateManyWithoutVenueNestedInput
+  seatingAreas?: Prisma.SeatingAreaUncheckedUpdateManyWithoutVenueNestedInput
+  guests?: Prisma.GuestUncheckedUpdateManyWithoutVenueNestedInput
+  reservations?: Prisma.ReservationUncheckedUpdateManyWithoutVenueNestedInput
+  feedback?: Prisma.FeedbackUncheckedUpdateManyWithoutVenueNestedInput
+  userVenues?: Prisma.UserVenueUncheckedUpdateManyWithoutVenueNestedInput
+  auditEvents?: Prisma.AuditEventUncheckedUpdateManyWithoutVenueNestedInput
+  floorPlan?: Prisma.FloorPlanUncheckedUpdateOneWithoutVenueNestedInput
+  floorTables?: Prisma.FloorTableUncheckedUpdateManyWithoutVenueNestedInput
 }
 
 export type VenueCreateWithoutGuestsInput = {
@@ -1578,6 +2193,9 @@ export type VenueCreateWithoutGuestsInput = {
   feedback?: Prisma.FeedbackCreateNestedManyWithoutVenueInput
   userVenues?: Prisma.UserVenueCreateNestedManyWithoutVenueInput
   auditEvents?: Prisma.AuditEventCreateNestedManyWithoutVenueInput
+  floorPlan?: Prisma.FloorPlanCreateNestedOneWithoutVenueInput
+  floorTables?: Prisma.FloorTableCreateNestedManyWithoutVenueInput
+  floorObjects?: Prisma.FloorObjectCreateNestedManyWithoutVenueInput
 }
 
 export type VenueUncheckedCreateWithoutGuestsInput = {
@@ -1614,6 +2232,9 @@ export type VenueUncheckedCreateWithoutGuestsInput = {
   feedback?: Prisma.FeedbackUncheckedCreateNestedManyWithoutVenueInput
   userVenues?: Prisma.UserVenueUncheckedCreateNestedManyWithoutVenueInput
   auditEvents?: Prisma.AuditEventUncheckedCreateNestedManyWithoutVenueInput
+  floorPlan?: Prisma.FloorPlanUncheckedCreateNestedOneWithoutVenueInput
+  floorTables?: Prisma.FloorTableUncheckedCreateNestedManyWithoutVenueInput
+  floorObjects?: Prisma.FloorObjectUncheckedCreateNestedManyWithoutVenueInput
 }
 
 export type VenueCreateOrConnectWithoutGuestsInput = {
@@ -1666,6 +2287,9 @@ export type VenueUpdateWithoutGuestsInput = {
   feedback?: Prisma.FeedbackUpdateManyWithoutVenueNestedInput
   userVenues?: Prisma.UserVenueUpdateManyWithoutVenueNestedInput
   auditEvents?: Prisma.AuditEventUpdateManyWithoutVenueNestedInput
+  floorPlan?: Prisma.FloorPlanUpdateOneWithoutVenueNestedInput
+  floorTables?: Prisma.FloorTableUpdateManyWithoutVenueNestedInput
+  floorObjects?: Prisma.FloorObjectUpdateManyWithoutVenueNestedInput
 }
 
 export type VenueUncheckedUpdateWithoutGuestsInput = {
@@ -1702,6 +2326,9 @@ export type VenueUncheckedUpdateWithoutGuestsInput = {
   feedback?: Prisma.FeedbackUncheckedUpdateManyWithoutVenueNestedInput
   userVenues?: Prisma.UserVenueUncheckedUpdateManyWithoutVenueNestedInput
   auditEvents?: Prisma.AuditEventUncheckedUpdateManyWithoutVenueNestedInput
+  floorPlan?: Prisma.FloorPlanUncheckedUpdateOneWithoutVenueNestedInput
+  floorTables?: Prisma.FloorTableUncheckedUpdateManyWithoutVenueNestedInput
+  floorObjects?: Prisma.FloorObjectUncheckedUpdateManyWithoutVenueNestedInput
 }
 
 export type VenueCreateWithoutReservationsInput = {
@@ -1738,6 +2365,9 @@ export type VenueCreateWithoutReservationsInput = {
   feedback?: Prisma.FeedbackCreateNestedManyWithoutVenueInput
   userVenues?: Prisma.UserVenueCreateNestedManyWithoutVenueInput
   auditEvents?: Prisma.AuditEventCreateNestedManyWithoutVenueInput
+  floorPlan?: Prisma.FloorPlanCreateNestedOneWithoutVenueInput
+  floorTables?: Prisma.FloorTableCreateNestedManyWithoutVenueInput
+  floorObjects?: Prisma.FloorObjectCreateNestedManyWithoutVenueInput
 }
 
 export type VenueUncheckedCreateWithoutReservationsInput = {
@@ -1774,6 +2404,9 @@ export type VenueUncheckedCreateWithoutReservationsInput = {
   feedback?: Prisma.FeedbackUncheckedCreateNestedManyWithoutVenueInput
   userVenues?: Prisma.UserVenueUncheckedCreateNestedManyWithoutVenueInput
   auditEvents?: Prisma.AuditEventUncheckedCreateNestedManyWithoutVenueInput
+  floorPlan?: Prisma.FloorPlanUncheckedCreateNestedOneWithoutVenueInput
+  floorTables?: Prisma.FloorTableUncheckedCreateNestedManyWithoutVenueInput
+  floorObjects?: Prisma.FloorObjectUncheckedCreateNestedManyWithoutVenueInput
 }
 
 export type VenueCreateOrConnectWithoutReservationsInput = {
@@ -1826,6 +2459,9 @@ export type VenueUpdateWithoutReservationsInput = {
   feedback?: Prisma.FeedbackUpdateManyWithoutVenueNestedInput
   userVenues?: Prisma.UserVenueUpdateManyWithoutVenueNestedInput
   auditEvents?: Prisma.AuditEventUpdateManyWithoutVenueNestedInput
+  floorPlan?: Prisma.FloorPlanUpdateOneWithoutVenueNestedInput
+  floorTables?: Prisma.FloorTableUpdateManyWithoutVenueNestedInput
+  floorObjects?: Prisma.FloorObjectUpdateManyWithoutVenueNestedInput
 }
 
 export type VenueUncheckedUpdateWithoutReservationsInput = {
@@ -1862,6 +2498,9 @@ export type VenueUncheckedUpdateWithoutReservationsInput = {
   feedback?: Prisma.FeedbackUncheckedUpdateManyWithoutVenueNestedInput
   userVenues?: Prisma.UserVenueUncheckedUpdateManyWithoutVenueNestedInput
   auditEvents?: Prisma.AuditEventUncheckedUpdateManyWithoutVenueNestedInput
+  floorPlan?: Prisma.FloorPlanUncheckedUpdateOneWithoutVenueNestedInput
+  floorTables?: Prisma.FloorTableUncheckedUpdateManyWithoutVenueNestedInput
+  floorObjects?: Prisma.FloorObjectUncheckedUpdateManyWithoutVenueNestedInput
 }
 
 export type VenueCreateWithoutFeedbackInput = {
@@ -1898,6 +2537,9 @@ export type VenueCreateWithoutFeedbackInput = {
   reservations?: Prisma.ReservationCreateNestedManyWithoutVenueInput
   userVenues?: Prisma.UserVenueCreateNestedManyWithoutVenueInput
   auditEvents?: Prisma.AuditEventCreateNestedManyWithoutVenueInput
+  floorPlan?: Prisma.FloorPlanCreateNestedOneWithoutVenueInput
+  floorTables?: Prisma.FloorTableCreateNestedManyWithoutVenueInput
+  floorObjects?: Prisma.FloorObjectCreateNestedManyWithoutVenueInput
 }
 
 export type VenueUncheckedCreateWithoutFeedbackInput = {
@@ -1934,6 +2576,9 @@ export type VenueUncheckedCreateWithoutFeedbackInput = {
   reservations?: Prisma.ReservationUncheckedCreateNestedManyWithoutVenueInput
   userVenues?: Prisma.UserVenueUncheckedCreateNestedManyWithoutVenueInput
   auditEvents?: Prisma.AuditEventUncheckedCreateNestedManyWithoutVenueInput
+  floorPlan?: Prisma.FloorPlanUncheckedCreateNestedOneWithoutVenueInput
+  floorTables?: Prisma.FloorTableUncheckedCreateNestedManyWithoutVenueInput
+  floorObjects?: Prisma.FloorObjectUncheckedCreateNestedManyWithoutVenueInput
 }
 
 export type VenueCreateOrConnectWithoutFeedbackInput = {
@@ -1986,6 +2631,9 @@ export type VenueUpdateWithoutFeedbackInput = {
   reservations?: Prisma.ReservationUpdateManyWithoutVenueNestedInput
   userVenues?: Prisma.UserVenueUpdateManyWithoutVenueNestedInput
   auditEvents?: Prisma.AuditEventUpdateManyWithoutVenueNestedInput
+  floorPlan?: Prisma.FloorPlanUpdateOneWithoutVenueNestedInput
+  floorTables?: Prisma.FloorTableUpdateManyWithoutVenueNestedInput
+  floorObjects?: Prisma.FloorObjectUpdateManyWithoutVenueNestedInput
 }
 
 export type VenueUncheckedUpdateWithoutFeedbackInput = {
@@ -2022,6 +2670,9 @@ export type VenueUncheckedUpdateWithoutFeedbackInput = {
   reservations?: Prisma.ReservationUncheckedUpdateManyWithoutVenueNestedInput
   userVenues?: Prisma.UserVenueUncheckedUpdateManyWithoutVenueNestedInput
   auditEvents?: Prisma.AuditEventUncheckedUpdateManyWithoutVenueNestedInput
+  floorPlan?: Prisma.FloorPlanUncheckedUpdateOneWithoutVenueNestedInput
+  floorTables?: Prisma.FloorTableUncheckedUpdateManyWithoutVenueNestedInput
+  floorObjects?: Prisma.FloorObjectUncheckedUpdateManyWithoutVenueNestedInput
 }
 
 export type VenueCreateWithoutUserVenuesInput = {
@@ -2058,6 +2709,9 @@ export type VenueCreateWithoutUserVenuesInput = {
   reservations?: Prisma.ReservationCreateNestedManyWithoutVenueInput
   feedback?: Prisma.FeedbackCreateNestedManyWithoutVenueInput
   auditEvents?: Prisma.AuditEventCreateNestedManyWithoutVenueInput
+  floorPlan?: Prisma.FloorPlanCreateNestedOneWithoutVenueInput
+  floorTables?: Prisma.FloorTableCreateNestedManyWithoutVenueInput
+  floorObjects?: Prisma.FloorObjectCreateNestedManyWithoutVenueInput
 }
 
 export type VenueUncheckedCreateWithoutUserVenuesInput = {
@@ -2094,6 +2748,9 @@ export type VenueUncheckedCreateWithoutUserVenuesInput = {
   reservations?: Prisma.ReservationUncheckedCreateNestedManyWithoutVenueInput
   feedback?: Prisma.FeedbackUncheckedCreateNestedManyWithoutVenueInput
   auditEvents?: Prisma.AuditEventUncheckedCreateNestedManyWithoutVenueInput
+  floorPlan?: Prisma.FloorPlanUncheckedCreateNestedOneWithoutVenueInput
+  floorTables?: Prisma.FloorTableUncheckedCreateNestedManyWithoutVenueInput
+  floorObjects?: Prisma.FloorObjectUncheckedCreateNestedManyWithoutVenueInput
 }
 
 export type VenueCreateOrConnectWithoutUserVenuesInput = {
@@ -2146,6 +2803,9 @@ export type VenueUpdateWithoutUserVenuesInput = {
   reservations?: Prisma.ReservationUpdateManyWithoutVenueNestedInput
   feedback?: Prisma.FeedbackUpdateManyWithoutVenueNestedInput
   auditEvents?: Prisma.AuditEventUpdateManyWithoutVenueNestedInput
+  floorPlan?: Prisma.FloorPlanUpdateOneWithoutVenueNestedInput
+  floorTables?: Prisma.FloorTableUpdateManyWithoutVenueNestedInput
+  floorObjects?: Prisma.FloorObjectUpdateManyWithoutVenueNestedInput
 }
 
 export type VenueUncheckedUpdateWithoutUserVenuesInput = {
@@ -2182,6 +2842,9 @@ export type VenueUncheckedUpdateWithoutUserVenuesInput = {
   reservations?: Prisma.ReservationUncheckedUpdateManyWithoutVenueNestedInput
   feedback?: Prisma.FeedbackUncheckedUpdateManyWithoutVenueNestedInput
   auditEvents?: Prisma.AuditEventUncheckedUpdateManyWithoutVenueNestedInput
+  floorPlan?: Prisma.FloorPlanUncheckedUpdateOneWithoutVenueNestedInput
+  floorTables?: Prisma.FloorTableUncheckedUpdateManyWithoutVenueNestedInput
+  floorObjects?: Prisma.FloorObjectUncheckedUpdateManyWithoutVenueNestedInput
 }
 
 export type VenueCreateWithoutAuditEventsInput = {
@@ -2218,6 +2881,9 @@ export type VenueCreateWithoutAuditEventsInput = {
   reservations?: Prisma.ReservationCreateNestedManyWithoutVenueInput
   feedback?: Prisma.FeedbackCreateNestedManyWithoutVenueInput
   userVenues?: Prisma.UserVenueCreateNestedManyWithoutVenueInput
+  floorPlan?: Prisma.FloorPlanCreateNestedOneWithoutVenueInput
+  floorTables?: Prisma.FloorTableCreateNestedManyWithoutVenueInput
+  floorObjects?: Prisma.FloorObjectCreateNestedManyWithoutVenueInput
 }
 
 export type VenueUncheckedCreateWithoutAuditEventsInput = {
@@ -2254,6 +2920,9 @@ export type VenueUncheckedCreateWithoutAuditEventsInput = {
   reservations?: Prisma.ReservationUncheckedCreateNestedManyWithoutVenueInput
   feedback?: Prisma.FeedbackUncheckedCreateNestedManyWithoutVenueInput
   userVenues?: Prisma.UserVenueUncheckedCreateNestedManyWithoutVenueInput
+  floorPlan?: Prisma.FloorPlanUncheckedCreateNestedOneWithoutVenueInput
+  floorTables?: Prisma.FloorTableUncheckedCreateNestedManyWithoutVenueInput
+  floorObjects?: Prisma.FloorObjectUncheckedCreateNestedManyWithoutVenueInput
 }
 
 export type VenueCreateOrConnectWithoutAuditEventsInput = {
@@ -2306,6 +2975,9 @@ export type VenueUpdateWithoutAuditEventsInput = {
   reservations?: Prisma.ReservationUpdateManyWithoutVenueNestedInput
   feedback?: Prisma.FeedbackUpdateManyWithoutVenueNestedInput
   userVenues?: Prisma.UserVenueUpdateManyWithoutVenueNestedInput
+  floorPlan?: Prisma.FloorPlanUpdateOneWithoutVenueNestedInput
+  floorTables?: Prisma.FloorTableUpdateManyWithoutVenueNestedInput
+  floorObjects?: Prisma.FloorObjectUpdateManyWithoutVenueNestedInput
 }
 
 export type VenueUncheckedUpdateWithoutAuditEventsInput = {
@@ -2342,6 +3014,9 @@ export type VenueUncheckedUpdateWithoutAuditEventsInput = {
   reservations?: Prisma.ReservationUncheckedUpdateManyWithoutVenueNestedInput
   feedback?: Prisma.FeedbackUncheckedUpdateManyWithoutVenueNestedInput
   userVenues?: Prisma.UserVenueUncheckedUpdateManyWithoutVenueNestedInput
+  floorPlan?: Prisma.FloorPlanUncheckedUpdateOneWithoutVenueNestedInput
+  floorTables?: Prisma.FloorTableUncheckedUpdateManyWithoutVenueNestedInput
+  floorObjects?: Prisma.FloorObjectUncheckedUpdateManyWithoutVenueNestedInput
 }
 
 
@@ -2358,6 +3033,8 @@ export type VenueCountOutputType = {
   feedback: number
   userVenues: number
   auditEvents: number
+  floorTables: number
+  floorObjects: number
 }
 
 export type VenueCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -2369,6 +3046,8 @@ export type VenueCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.
   feedback?: boolean | VenueCountOutputTypeCountFeedbackArgs
   userVenues?: boolean | VenueCountOutputTypeCountUserVenuesArgs
   auditEvents?: boolean | VenueCountOutputTypeCountAuditEventsArgs
+  floorTables?: boolean | VenueCountOutputTypeCountFloorTablesArgs
+  floorObjects?: boolean | VenueCountOutputTypeCountFloorObjectsArgs
 }
 
 /**
@@ -2437,6 +3116,20 @@ export type VenueCountOutputTypeCountAuditEventsArgs<ExtArgs extends runtime.Typ
   where?: Prisma.AuditEventWhereInput
 }
 
+/**
+ * VenueCountOutputType without action
+ */
+export type VenueCountOutputTypeCountFloorTablesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.FloorTableWhereInput
+}
+
+/**
+ * VenueCountOutputType without action
+ */
+export type VenueCountOutputTypeCountFloorObjectsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.FloorObjectWhereInput
+}
+
 
 export type VenueSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -2473,6 +3166,9 @@ export type VenueSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   feedback?: boolean | Prisma.Venue$feedbackArgs<ExtArgs>
   userVenues?: boolean | Prisma.Venue$userVenuesArgs<ExtArgs>
   auditEvents?: boolean | Prisma.Venue$auditEventsArgs<ExtArgs>
+  floorPlan?: boolean | Prisma.Venue$floorPlanArgs<ExtArgs>
+  floorTables?: boolean | Prisma.Venue$floorTablesArgs<ExtArgs>
+  floorObjects?: boolean | Prisma.Venue$floorObjectsArgs<ExtArgs>
   _count?: boolean | Prisma.VenueCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["venue"]>
 
@@ -2573,6 +3269,9 @@ export type VenueInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs =
   feedback?: boolean | Prisma.Venue$feedbackArgs<ExtArgs>
   userVenues?: boolean | Prisma.Venue$userVenuesArgs<ExtArgs>
   auditEvents?: boolean | Prisma.Venue$auditEventsArgs<ExtArgs>
+  floorPlan?: boolean | Prisma.Venue$floorPlanArgs<ExtArgs>
+  floorTables?: boolean | Prisma.Venue$floorTablesArgs<ExtArgs>
+  floorObjects?: boolean | Prisma.Venue$floorObjectsArgs<ExtArgs>
   _count?: boolean | Prisma.VenueCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type VenueIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
@@ -2589,6 +3288,9 @@ export type $VenuePayload<ExtArgs extends runtime.Types.Extensions.InternalArgs 
     feedback: Prisma.$FeedbackPayload<ExtArgs>[]
     userVenues: Prisma.$UserVenuePayload<ExtArgs>[]
     auditEvents: Prisma.$AuditEventPayload<ExtArgs>[]
+    floorPlan: Prisma.$FloorPlanPayload<ExtArgs> | null
+    floorTables: Prisma.$FloorTablePayload<ExtArgs>[]
+    floorObjects: Prisma.$FloorObjectPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -3019,6 +3721,9 @@ export interface Prisma__VenueClient<T, Null = never, ExtArgs extends runtime.Ty
   feedback<T extends Prisma.Venue$feedbackArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Venue$feedbackArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$FeedbackPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   userVenues<T extends Prisma.Venue$userVenuesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Venue$userVenuesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$UserVenuePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   auditEvents<T extends Prisma.Venue$auditEventsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Venue$auditEventsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$AuditEventPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  floorPlan<T extends Prisma.Venue$floorPlanArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Venue$floorPlanArgs<ExtArgs>>): Prisma.Prisma__FloorPlanClient<runtime.Types.Result.GetResult<Prisma.$FloorPlanPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+  floorTables<T extends Prisma.Venue$floorTablesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Venue$floorTablesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$FloorTablePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  floorObjects<T extends Prisma.Venue$floorObjectsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Venue$floorObjectsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$FloorObjectPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -3656,6 +4361,73 @@ export type Venue$auditEventsArgs<ExtArgs extends runtime.Types.Extensions.Inter
   take?: number
   skip?: number
   distinct?: Prisma.AuditEventScalarFieldEnum | Prisma.AuditEventScalarFieldEnum[]
+}
+
+/**
+ * Venue.floorPlan
+ */
+export type Venue$floorPlanArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the FloorPlan
+   */
+  select?: Prisma.FloorPlanSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the FloorPlan
+   */
+  omit?: Prisma.FloorPlanOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.FloorPlanInclude<ExtArgs> | null
+  where?: Prisma.FloorPlanWhereInput
+}
+
+/**
+ * Venue.floorTables
+ */
+export type Venue$floorTablesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the FloorTable
+   */
+  select?: Prisma.FloorTableSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the FloorTable
+   */
+  omit?: Prisma.FloorTableOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.FloorTableInclude<ExtArgs> | null
+  where?: Prisma.FloorTableWhereInput
+  orderBy?: Prisma.FloorTableOrderByWithRelationInput | Prisma.FloorTableOrderByWithRelationInput[]
+  cursor?: Prisma.FloorTableWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.FloorTableScalarFieldEnum | Prisma.FloorTableScalarFieldEnum[]
+}
+
+/**
+ * Venue.floorObjects
+ */
+export type Venue$floorObjectsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the FloorObject
+   */
+  select?: Prisma.FloorObjectSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the FloorObject
+   */
+  omit?: Prisma.FloorObjectOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.FloorObjectInclude<ExtArgs> | null
+  where?: Prisma.FloorObjectWhereInput
+  orderBy?: Prisma.FloorObjectOrderByWithRelationInput | Prisma.FloorObjectOrderByWithRelationInput[]
+  cursor?: Prisma.FloorObjectWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.FloorObjectScalarFieldEnum | Prisma.FloorObjectScalarFieldEnum[]
 }
 
 /**
