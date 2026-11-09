@@ -1,5 +1,13 @@
 {
   "regions": ["sin1"],
+  "redirects": [
+    {
+      "source": "/:venue((?!login|host|guests|admin|privacy|_|api|ingest)[^/.]+)",
+      "has": [{ "type": "host", "value": "book.gioigroup.com" }],
+      "destination": "https://gioigroup.com/:venue",
+      "permanent": true
+    }
+  ],
   "rewrites": [
     { "source": "/ingest/static/:path*", "destination": "https://us-assets.i.posthog.com/static/:path*" },
     { "source": "/ingest/:path*", "destination": "https://us.i.posthog.com/:path*" },
