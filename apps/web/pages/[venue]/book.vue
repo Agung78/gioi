@@ -178,7 +178,7 @@ const canSubmit = computed(() => {
 
 const missingStepPrompt = computed(() => {
   if (!time.value) return 'Pick a time slot'
-  if (!fullName.value.trim() || !phone.value.trim()) return 'Enter full name & phone'
+  if (!fullName.value.trim() || !phone.value.trim() || !email.value.trim()) return 'Enter full name, phone & email'
   if (!acceptedPolicy.value) return 'Accept cancellation policy'
   return ''
 })
@@ -379,8 +379,8 @@ onMounted(() => {
                 placeholder="+62 812 3456 7890" />
             </div>
             <div>
-              <label class="label" for="email">Email (optional)</label>
-              <input id="email" v-model="email" type="email" autocomplete="email" class="field"
+              <label class="label" for="email">Email</label>
+              <input id="email" v-model="email" type="email" required autocomplete="email" class="field"
                 placeholder="you@example.com" />
             </div>
             <div>
