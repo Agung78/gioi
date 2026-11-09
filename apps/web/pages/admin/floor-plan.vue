@@ -258,7 +258,7 @@ definePageMeta({ middleware: ['auth', 'admin', () => (useAuthStore().isSuperAdmi
 						<label class="flex items-center gap-2">W <input :value="selObj.width" type="number" min="20" max="600" step="10" class="field !w-20" @change="setObjectSize('width', +($event.target as HTMLInputElement).value)" /></label>
 						<label class="flex items-center gap-2">H <input :value="selObj.height" type="number" min="20" max="600" step="10" class="field !w-20" @change="setObjectSize('height', +($event.target as HTMLInputElement).value)" /></label>
 					</template>
-					<span v-else class="text-muted">Click a table or object on the plan to change its chairs, rotation or area.</span>
+					<span v-else class="text-muted">Click a table or object on the plan to change its chairs or rotation.</span>
 					<template v-if="current">
 						<span class="flex items-center gap-1">Rotate
 							<button class="btn-secondary" type="button" title="Rotate −15° (Shift −90°)" aria-label="Rotate left" @click="rotate(-1, $event)">⟲</button>
@@ -302,7 +302,7 @@ definePageMeta({ middleware: ['auth', 'admin', () => (useAuthStore().isSuperAdmi
 							<i class="h-3 w-3 rounded border border-ink/60" :style="{ background: areaColor(draft.areas, a.id) }" aria-hidden="true" />
 							<span class="min-w-0">
 								<b class="block truncate text-sm font-semibold text-ink">{{ a.name }}</b>
-								<small class="text-xs text-muted">{{ stats.get(a.id)?.count }} tables · {{ stats.get(a.id)?.seats || 0 }} seats{{ a.bookable ? '' : ' · not bookable' }}</small>
+								<small class="text-xs text-muted">{{ stats.get(a.id)?.count }} {{ stats.get(a.id)?.count === 1 ? 'table' : 'tables' }} · {{ stats.get(a.id)?.seats || 0 }} seats{{ a.bookable ? '' : ' · not bookable' }}</small>
 							</span>
 						</button>
 					</li>

@@ -76,7 +76,7 @@ Reset between runs: re-seed, or `TRUNCATE venues, users CASCADE` on the **test**
 
 ### 1.2a Seating map on the booking page
 
-The "Seating" pills are gone. Guests pick a **seating area** by tapping a table on the venue map; the booking still stores the area, not the table. Needs the plan to have tables. Defaults for the run: party 2, areas Main Hall, Sunset Terrace, Chef's Counter (max 4), Beachfront Lounge (min 2).
+The "Seating" pills are gone. Guests pick a **seating area** by tapping a table on the venue map; the booking still stores the area, not the table. Needs the plan to have tables. Defaults for the run: party 2, areas Main Hall, Sunset Terrace, Chef's Counter (max 4), Beachfront Lounge (min 2). **Party limits are no longer editable in the floor plan editor and are cleared by the first layout save**; set them by SQL/API before running G-35 and G-40.
 
 | ID | P | Scenario | Steps | Expected | Status |
 |---|---|---|---|---|---|
@@ -286,22 +286,26 @@ Seed gives `admin` (super admin and venue admin of Bali) and `venueadmin` (venue
 |---|---|---|---|---|---|
 | F-01 | P0 | Drawing upload (super admin) | Settings → pick a venue → Floor plan drawing → upload `apps/api/prisma/floor-plans/bali.svg` → Remove drawing | Preview shows the drawing; Remove clears it; audit `floor_plan.image_uploaded` / `floor_plan.image_removed` | ✔ |
 | F-02 | P0 | Drawing rules | `PUT /admin/venues/:id/floor-plan/image` as venue admin; with a `text/html` data URL; with an image and no width/height | 403 "super admin required"; 422 "drawing must be an SVG, PNG, JPEG or WebP under 3 MB"; 422 "width and height are required with an image"; plan height follows the aspect ratio (bali.svg → 1525) | ✔ |
-| F-03 | P0 | Who can open the editor | Open `/admin/floor-plan` as host, venue admin, super admin | Host → `/host`; super admin → `/admin/settings` and no "Floor plan" nav link (it only uploads drawings); venue admin sees nav "Floor plan", plan, toolbar, area list with table counts and total seats | ✔ |
-| F-04 | P1 | Add table, chairs, Revert | Pick Terrace → + Table → + chair ×2 | New table in that area, 4 → 6 seats; unsaved indicator shows; Revert restores the saved layout | ✔ |
+| F-03 | P0 | Who can open the editor | Open `/admin/floor-plan` as host, venue admin, super admin | Host → `/host`; super admin → `/admin/settings` and no "Floor plan" nav link (it only uploads drawings); venue admin sees nav "Floor plan", the Add row, selected-item bar, plan, area list with table counts and total seats | ✔ |
+| F-04 | P1 | Add table, chairs, Revert | Click Terrace in the area list → `+ Table in Terrace` → + chair ×2 | New table in that area, 4 → 6 seats; unsaved indicator shows; Revert restores the saved layout | ✔ |
 | F-05 | P0 | Save layout sets capacity | Save a layout with tables in an area | Area capacity = sum of seats; survives reload; audit `floor_plan.updated` | ✔ |
 | F-06 | P1 | Capacity is never typed | Settings and Floor plan as venue admin | No capacity input anywhere; the side panel's seats per area are the capacity | ✔ |
 | F-07 | P1 | Capacity follows tables on every save | Remove all tables of an area, save; add them back, save | Capacity goes to 0, then to the new seat sum | ✔ |
 | F-08 | P0 | Layout needs venue admin | `PUT …/floor-plan/layout` as host; as super admin on a venue where they are not admin | 403 "venue admin required" both; `GET …/floor-plan` as that super admin → 200, `canEdit: false` | ✔ |
 | F-09 | P1 | Layout validation | Save a table with an unknown area id; one at x = 99999 | 422 "unknown seating area"; 422 "item is outside the floor plan" | ✔ |
 | F-10 | P1 | Public plan is safe | `GET /api/public/venues/bali/floor-plan` | Only width, height, image, areas, tables, objects; tables carry id, seatingAreaId, seats, x, y, rotation; no guest or booking data | ✔ |
-| F-11 | P2 | Editor controls | Drag, arrow nudge (Shift ×10), R rotate, +/− chair, Delete key / button | Each updates the plan; clamped inside the plan | ☐ (Delete button ✔; drag / rotate / keys not run) |
+| F-11 | P2 | Editor controls | Drag, arrow nudge (Shift ×10), `R` rotate, `+`/`−` chair, Delete key / button | Each updates the plan; clamped inside the plan | ✔ |
 | F-12 | P2 | New drawing keeps positions | Replace the drawing with a different aspect ratio | Tables keep their positions; any outside the new box are clamped when the editor loads | ☐ |
-| F-13 | P0 | Create an area | Floor plan → + Add area → name "Rooftop", min party 2 → pick it in the toolbar → + Table, + chair → Save layout | Area listed with 1 table and 5 seats; DB row has capacity 5, min_party 2, bookable; survives reload | ✔ |
+| F-13 | P0 | Create an area | Floor plan → + Add area → name "Rooftop" → **+ Add table** in the panel → + chair → Save layout | Area listed with 1 table and 5 seats; DB row has capacity 5, no party limits, bookable; survives reload | ✔ |
 | F-14 | P0 | Delete an area with reservations | Pin an area that has a booking (Sunset Terrace) → Delete area → Save layout | Save fails with "Sunset Terrace has reservations and cannot be deleted"; Revert brings it back; nothing changed in the DB | ✔ |
 | F-15 | P1 | Delete an empty area | Pin Rooftop (no bookings) → Delete area → Save layout | Area and its tables gone after save and reload | ✔ |
 | F-16 | P1 | No tables means no capacity | Save with an area that has no tables (Terrace) | Area stays in the list with 0 seats; its capacity is 0 so it takes no bookings; save succeeds | ✔ |
 | F-17 | P1 | Settings has no seating card | Settings as venue admin; `GET`/`PUT /api/admin/venues/:id/seating-areas` | No "Seating areas" card; both routes return 404 | ✔ |
 | F-18 | P1 | Area name and party rules | Duplicate names (case-insensitive), empty name, min > max (via API) | 422 "area names must be unique" / "area name is required" / "minParty must not exceed maxParty" | ✔ |
+| F-19 | P0 | Area drives where tables go | Select Terrace in the area list | Toolbar reads `+ Table in Terrace`; with no area selected (click it again) the button is disabled with a tooltip; clicking a table on the plan selects its area | ✔ |
+| F-20 | P1 | Selected-item bar | Click nothing, a table, then an object | Empty: hint to click an item. Table: "Selected table in <area>", Chairs − N +, Rotate, Delete, and **no Area dropdown**. Object: label, W, H, Rotate, Delete | ✔ |
+| F-21 | P1 | Area list reads clearly | Look at the area list | Heading "Areas"; each row "N table(s) · M seats" (singular for 1); only the selected row is strongly highlighted; Delete area is red | ✔ |
+| F-22 | P0 | No party limits in the UI | Select an area, save a layout, then check `seating_areas` | No Min/Max party inputs; after save `min_party` and `max_party` are NULL for every area | ✔ |
 
 ## 8. Audit log (`/admin/audit`, super admin)
 
@@ -411,3 +415,13 @@ Managed Chromium against web `:3000`, API `:3001`, Docker Postgres `gioi-pg`. La
 - **Found and fixed:** `slot_over_capacity` would have shown "Infinity%" for an area with bookings and capacity 0; it now reports 100%.
 - **Side effect to remember:** the first layout save on an existing venue sets every area to its seat count, so areas with a typed capacity and no tables drop to 0. In the dev DB, Terrace is now 0.
 - Test setup: `gioi_test` also lacked `0002_floor_plan`; applied by hand.
+
+## Run notes (2026-11-09, floor plan UX pass: area-driven toolbar, no party limits)
+
+Managed Chromium (1440×1000, then 390×844) against web `:3000`, API `:3001`, dev DB, as `venueadmin`.
+
+- ✔ run in the browser: F-03 (venue admin view), F-04, F-06, F-11 (rotate buttons, `R`, arrows, `+`, `Delete`, drag), F-13 to F-16, F-19 to F-22; no horizontal overflow at 390 px; no console errors. `pnpm --filter web typecheck` clean.
+- **UI changes covered:** the toolbar's area dropdown is gone (the selected area drives `+ Table in <area>`); the bar under it shows the selected table or object with Chairs, Rotate and Delete; the area panel holds Name, "Guests can book this area", `+ Add table`, Delete area; Min/Max party inputs were removed.
+- **Found and fixed during this run:** the area list said "1 tables"; the empty-selection hint still mentioned changing a table's area.
+- **Side effect to remember:** the first layout save clears every area's `min_party` / `max_party` (the editor sends `null`). In the dev DB, Beachfront Lounge (min 2) and Chef's Counter (max 4) now have no limits, so G-35 and G-40 in 1.2a need those limits re-set by SQL or API before re-running. The API and booking check still enforce limits when present.
+- Data left in the dev DB: Chef's Counter has 4 tables / 16 seats from earlier runs; Terrace has 0 tables.
