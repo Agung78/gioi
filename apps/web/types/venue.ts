@@ -42,6 +42,7 @@ export interface SlotAvailability {
 }
 
 export interface CreateReservationBody {
+  source?: 'website' | 'instagram' | 'google' | 'whatsapp'
   guestName: string
   phone: string
   email?: string

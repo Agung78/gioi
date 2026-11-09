@@ -226,6 +226,7 @@ async function submit() {
       allergies: allergies.length ? allergies : undefined,
       accessibility: accessibility.value.trim() || undefined,
       idempotencyKey: crypto.randomUUID(),
+      source: bookingSource(route.query.src),
       ...(turnstileToken.value ? { turnstileToken: turnstileToken.value } : {}),
     }
     const res = await createReservation(venue, body, posthog?.get_distinct_id())
