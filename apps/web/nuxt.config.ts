@@ -46,9 +46,8 @@ export default defineNuxtConfig({
 			htmlAttrs: { lang: 'en' },
 			link: [
 				{ rel: 'icon', type: 'image/jpeg', href: '/logo.jpg' },
-				{ rel: 'preconnect', href: 'https://api.fontshare.com', crossorigin: '' },
-				// ponytail: Fontshare CDN; self-host Cabinet Grotesk + Satoshi before launch
-				{ rel: 'stylesheet', href: 'https://api.fontshare.com/v2/css?f[]=cabinet-grotesk@700,800&f[]=satoshi@400,500,700&display=optional' },
+				{ rel: 'preload', as: 'font', type: 'font/woff2', crossorigin: '', href: '/fonts/cabinet-grotesk-800.woff2' },
+				{ rel: 'preload', as: 'font', type: 'font/woff2', crossorigin: '', href: '/fonts/satoshi-400.woff2' },
 			],
 			script: [
 				{ innerHTML: "try{var t=localStorage.getItem('gioi-theme');if(t)document.documentElement.dataset.theme=t}catch(e){}", tagPosition: 'head' },
@@ -78,6 +77,11 @@ export default defineNuxtConfig({
 	},
 	tailwindcss: {
 		configPath: 'tailwind.config.js',
+	},
+	vite: {
+		build: {
+			target: 'es2022',
+		},
 	},
 	vue: {
 		compilerOptions: {
