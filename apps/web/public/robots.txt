@@ -5,4 +5,4 @@ Disallow: /host
 Disallow: /admin
 Disallow: /guests
 Disallow: /ingest
-Sitemap: https://www.gioigroup.com/sitemap.xml
+Sitemap: https://gioigroup.com/sitemap.xml

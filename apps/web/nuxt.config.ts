@@ -5,13 +5,15 @@ export default defineNuxtConfig({
 		public: {
 			// Server-only (prerender/SSR fetch of venue data); same origin as the /api rewrite in vercel.json.
 			apiBase: process.env.NUXT_PUBLIC_API_BASE ?? 'https://gioi-api.vercel.app',
-			siteUrl: process.env.NUXT_PUBLIC_SITE_URL ?? 'https://www.gioigroup.com',
+			siteUrl: process.env.NUXT_PUBLIC_SITE_URL ?? 'https://gioigroup.com',
+			// Booking flow host. Empty in dev so links stay on localhost.
+			bookUrl: process.env.NUXT_PUBLIC_BOOK_URL ?? 'https://book.gioigroup.com',
 			turnstileSiteKey: process.env.NUXT_PUBLIC_TURNSTILE_SITE_KEY ?? '',
 		},
 	},
 	routeRules: {
-		// Nitro reads redirect.statusCode; Nuxt's RouteRules type says `status`, which Nitro ignores (stays 307).
-		'/': { redirect: { to: '/bali', statusCode: 301 } } as never,
+		// 307 (Nitro default), not 301: browsers cache 301 forever, and / becomes the group page later.
+		'/': { redirect: '/bali' },
 		'/bali': { prerender: true },
 		// Booking flow stays out of search results. Header (not robots.txt Disallow) so Google can crawl and see it.
 		// `as never`: keys that match a page pattern get Nuxt's narrow page-rule type, which omits `headers`; Nitro applies them (verified via curl).
@@ -29,6 +31,7 @@ export default defineNuxtConfig({
 	},
 	// Local only: production rewrites /api to the API project in vercel.json.
 	$development: {
+		runtimeConfig: { public: { bookUrl: '' } },
 		// Nitro supports `proxy`; Nuxt's RouteRules type omits it.
 		routeRules: { '/api/**': { proxy: 'http://127.0.0.1:3001/**' } as never },
 	},
