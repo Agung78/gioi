@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
-import { FLOOR_TABLE_MAX_SEATS, type AdminFloorPlan, type FloorObject, type FloorTable } from '@gioi/domain'
+import { FLOOR_TABLE_MAX_SEATS, type AdminFloorPlan, type FloorObject, type FloorPlanArea, type FloorTable } from '@gioi/domain'
 import { useAuthStore } from '@/stores/auth'
 import FloorPlanSvg from '@/components/FloorPlanSvg.vue'
 import { fetchFloorPlan, saveFloorLayout } from '@/composables/useApi'
@@ -14,6 +14,7 @@ const venueId = computed(() => auth.adminVenueId)
 
 const loading = ref(true)
 const plan = ref<AdminFloorPlan | null>(null)
+const areas = ref<FloorPlanArea[]>([])
 const tables = ref<FloorTable[]>([])
 const objects = ref<FloorObject[]>([])
 const selected = ref<string | null>(null) // 't:<index>' | 'o:<index>'
@@ -21,13 +22,13 @@ const hovered = ref<string | null>(null)
 const pinned = ref<string | null>(null)
 const dirty = ref(false)
 const error = ref<string | null>(null)
-const newTableArea = ref<string | null>(null)
 const objectType = ref(Object.keys(OBJECT_PRESETS)[0])
 const svgRef = ref<InstanceType<typeof FloorPlanSvg> | null>(null)
 
 const canEdit = computed(() => !!plan.value?.canEdit)
 // Live draft rendered by the shared component (backdrop + areas from the server, items from the editor).
-const draft = computed(() => plan.value && { ...plan.value, tables: tables.value, objects: objects.value })
+const draft = computed(() => plan.value && { ...plan.value, areas: areas.value, tables: tables.value, objects: objects.value })
+const pinnedArea = computed(() => areas.value.find((a) => a.id === pinned.value) ?? null)
 const highlight = computed(() => hovered.value ?? pinned.value)
 
 const current = computed(() => {
@@ -38,7 +39,7 @@ const current = computed(() => {
 const selTable = computed(() => (current.value?.kind === 't' ? (current.value.item as FloorTable) : null))
 const selObj = computed(() => (current.value?.kind === 'o' ? (current.value.item as FloorObject) : null))
 
-const stats = computed(() => new Map((plan.value?.areas ?? []).map((a) => {
+const stats = computed(() => new Map(areas.value.map((a) => {
 	const ts = tables.value.filter((t) => t.seatingAreaId === a.id)
 	return [a.id, { count: ts.length, seats: ts.reduce((s, t) => s + t.seats, 0) }]
 })))
@@ -48,9 +49,10 @@ const touch = () => { dirty.value = true }
 
 function load(p: AdminFloorPlan) {
 	plan.value = p
+	areas.value = structuredClone(p.areas)
 	tables.value = structuredClone(p.tables).map((t) => clampToPlan(t, p))
 	objects.value = structuredClone(p.objects).map((o) => clampToPlan(o, p))
-	newTableArea.value ??= p.areas.find((a) => a.bookable)?.id ?? p.areas[0]?.id ?? null
+	if (!areas.value.some((a) => a.id === pinned.value)) pinned.value = areas.value[0]?.id ?? null
 	selected.value = null
 	dirty.value = false
 }
@@ -88,8 +90,8 @@ function rotate(dir: 1 | -1, e: MouseEvent) {
 }
 
 function addTable() {
-	if (!plan.value || !newTableArea.value) return
-	tables.value.push({ seatingAreaId: newTableArea.value, seats: 4, x: plan.value.width / 2, y: plan.value.height / 2, rotation: 0 })
+	if (!plan.value || !pinned.value) return
+	tables.value.push({ seatingAreaId: pinned.value, seats: 4, x: plan.value.width / 2, y: plan.value.height / 2, rotation: 0 })
 	selected.value = `t:${tables.value.length - 1}`
 	touch()
 }
@@ -98,6 +100,25 @@ function addObject() {
 	if (!plan.value) return
 	objects.value.push({ ...OBJECT_PRESETS[objectType.value], x: plan.value.width / 2, y: plan.value.height / 2, rotation: 0 })
 	selected.value = `o:${objects.value.length - 1}`
+	touch()
+}
+
+function addArea() {
+	let name = 'New area'
+	for (let n = 2; areas.value.some((a) => a.name === name); n++) name = `New area ${n}`
+	const a = { id: crypto.randomUUID(), name, bookable: true, minParty: null, maxParty: null }
+	areas.value.push(a)
+	pinned.value = a.id
+	touch()
+}
+
+function removeArea(id: string) {
+	const n = tables.value.filter((t) => t.seatingAreaId === id).length
+	if (n && !confirm(`Delete this area and its ${n} table${n === 1 ? '' : 's'}?`)) return
+	tables.value = tables.value.filter((t) => t.seatingAreaId !== id)
+	areas.value = areas.value.filter((a) => a.id !== id)
+	if (pinned.value === id) pinned.value = null
+	selected.value = null
 	touch()
 }
 
@@ -120,6 +141,7 @@ function onItemDown(kind: 't' | 'o', index: number, ev: PointerEvent) {
 	if (!canEdit.value || !svgRef.value) return
 	ev.preventDefault()
 	selected.value = `${kind}:${index}`
+	if (kind === 't') pinned.value = tables.value[index].seatingAreaId
 	const item = (kind === 't' ? tables : objects).value[index]
 	const p = svgRef.value.toPlan(ev)
 	drag = { item, dx: item.x - p.x, dy: item.y - p.y }
@@ -161,6 +183,7 @@ async function save() {
 	const r1 = (v: number) => Math.round(v * 10) / 10
 	try {
 		load(await saveFloorLayout(venueId.value, {
+			areas: areas.value.map((a) => ({ id: a.id, name: a.name.trim(), bookable: a.bookable, minParty: null, maxParty: null })),
 			tables: tables.value.map((t) => ({ seatingAreaId: t.seatingAreaId, seats: t.seats, x: r1(t.x), y: r1(t.y), rotation: t.rotation })),
 			objects: objects.value.map((o) => ({ label: o.label, width: o.width, height: o.height, color: o.color, x: r1(o.x), y: r1(o.y), rotation: o.rotation })),
 		}))
@@ -208,41 +231,41 @@ definePageMeta({ middleware: ['auth', 'admin', () => (useAuthStore().isSuperAdmi
 			<p class="text-muted">Loading floor plan…</p>
 		</div>
 		<div v-else-if="!draft" class="alert-danger">{{ error }}</div>
-		<div v-else-if="!draft.areas.length" class="card py-16 text-center">
-			<p class="text-muted">Create seating areas in Settings first.</p>
-			<NuxtLink to="/admin/settings" class="btn-secondary mt-4">Go to Settings</NuxtLink>
-		</div>
 
 		<div v-else class="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_17rem]">
 			<div class="card min-w-0">
 				<div v-if="canEdit" class="mb-3 flex flex-wrap items-center gap-2">
-					<select v-model="newTableArea" class="field !w-auto" aria-label="Area for new tables">
-						<option v-for="a in draft.areas" :key="a.id" :value="a.id">{{ a.name }}</option>
-					</select>
-					<button class="btn-primary" type="button" @click="addTable">+ Table</button>
-					<button class="btn-secondary" type="button" title="Fewer chairs (−)" :disabled="!selTable || selTable.seats <= 1" @click="chairs(-1)">− chair</button>
-					<button class="btn-secondary" type="button" title="More chairs (+)" :disabled="!selTable || selTable.seats >= FLOOR_TABLE_MAX_SEATS" @click="chairs(1)">+ chair</button>
-					<button class="btn-secondary" type="button" title="Rotate −15° (Shift −90°)" aria-label="Rotate left" :disabled="!current" @click="rotate(-1, $event)">⟲</button>
-					<button class="btn-secondary" type="button" title="Rotate +15° (Shift +90°)" aria-label="Rotate right" :disabled="!current" @click="rotate(1, $event)">⟳</button>
+					<span class="text-xs font-semibold uppercase tracking-wide text-muted">Add</span>
+					<button class="btn-primary" type="button" :disabled="!pinnedArea" :title="pinnedArea ? '' : 'Select an area on the right first'" @click="addTable">+ Table{{ pinnedArea ? ` in ${pinnedArea.name}` : '' }}</button>
 					<select v-model="objectType" class="field !w-auto" aria-label="Object type">
 						<option v-for="k in Object.keys(OBJECT_PRESETS)" :key="k" :value="k">{{ k }}</option>
 					</select>
-					<button class="btn-secondary" type="button" @click="addObject">+ Object</button>
-					<button class="btn-ghost" type="button" title="Delete (Del)" :disabled="!current" @click="remove">Delete</button>
+					<button class="btn-secondary" type="button" @click="addObject">+ Add object</button>
 				</div>
 
-				<div v-if="selTable" class="mb-3 flex flex-wrap items-end gap-3 text-sm">
-					<label class="flex items-center gap-2">Area
-						<select v-model="selTable.seatingAreaId" class="field !w-auto" @change="touch">
-							<option v-for="a in draft.areas" :key="a.id" :value="a.id">{{ a.name }}</option>
-						</select>
-					</label>
-					<span class="text-muted">{{ selTable.seats }} chairs · {{ selTable.rotation }}°</span>
-				</div>
-				<div v-else-if="selObj" class="mb-3 flex flex-wrap items-end gap-3 text-sm">
-					<label class="flex items-center gap-2">Label <input v-model="selObj.label" maxlength="24" class="field !w-40" @input="touch" /></label>
-					<label class="flex items-center gap-2">W <input :value="selObj.width" type="number" min="20" max="600" step="10" class="field !w-20" @change="setObjectSize('width', +($event.target as HTMLInputElement).value)" /></label>
-					<label class="flex items-center gap-2">H <input :value="selObj.height" type="number" min="20" max="600" step="10" class="field !w-20" @change="setObjectSize('height', +($event.target as HTMLInputElement).value)" /></label>
+				<div v-if="canEdit" class="mb-3 flex min-h-11 flex-wrap items-center gap-3 rounded-input bg-line/30 px-3 py-2 text-sm">
+					<template v-if="selTable">
+						<b>Selected table <span class="font-normal text-muted">in {{ draft.areas.find((a) => a.id === selTable!.seatingAreaId)?.name }}</span></b>
+						<span class="flex items-center gap-1">Chairs
+							<button class="btn-secondary" type="button" aria-label="Fewer chairs" :disabled="selTable.seats <= 1" @click="chairs(-1)">−</button>
+							<span class="w-6 text-center font-bold tabular-nums">{{ selTable.seats }}</span>
+							<button class="btn-secondary" type="button" aria-label="More chairs" :disabled="selTable.seats >= FLOOR_TABLE_MAX_SEATS" @click="chairs(1)">+</button>
+						</span>
+					</template>
+					<template v-else-if="selObj">
+						<b>Selected object</b>
+						<label class="flex items-center gap-2">Label <input v-model="selObj.label" maxlength="24" class="field !w-40" @input="touch" /></label>
+						<label class="flex items-center gap-2">W <input :value="selObj.width" type="number" min="20" max="600" step="10" class="field !w-20" @change="setObjectSize('width', +($event.target as HTMLInputElement).value)" /></label>
+						<label class="flex items-center gap-2">H <input :value="selObj.height" type="number" min="20" max="600" step="10" class="field !w-20" @change="setObjectSize('height', +($event.target as HTMLInputElement).value)" /></label>
+					</template>
+					<span v-else class="text-muted">Click a table or object on the plan to change its chairs or rotation.</span>
+					<template v-if="current">
+						<span class="flex items-center gap-1">Rotate
+							<button class="btn-secondary" type="button" title="Rotate −15° (Shift −90°)" aria-label="Rotate left" @click="rotate(-1, $event)">⟲</button>
+							<button class="btn-secondary" type="button" title="Rotate +15° (Shift +90°)" aria-label="Rotate right" @click="rotate(1, $event)">⟳</button>
+						</span>
+						<button class="btn-ghost ml-auto" type="button" title="Delete (Del)" @click="remove">Delete</button>
+					</template>
 				</div>
 
 				<FloorPlanSvg
@@ -262,12 +285,13 @@ definePageMeta({ middleware: ['auth', 'admin', () => (useAuthStore().isSuperAdmi
 			</div>
 
 			<aside class="card">
+				<h2 class="mb-2 px-3 text-xs font-semibold uppercase tracking-wide text-muted">Areas</h2>
 				<ul class="grid gap-1">
 					<li v-for="a in draft.areas" :key="a.id">
 						<button
 							type="button"
-							class="grid w-full grid-cols-[12px_1fr_auto] items-center gap-3 rounded-input px-3 py-2 text-left hover:bg-line/40 focus-visible:bg-line/40"
-							:class="pinned === a.id ? 'bg-line/40' : ''"
+							class="grid w-full grid-cols-[12px_1fr] items-center gap-3 rounded-input px-3 py-2 text-left hover:bg-line/20 focus-visible:bg-line/20"
+							:class="pinned === a.id ? '!bg-line/60 ring-1 ring-ink/30' : ''"
 							:aria-pressed="pinned === a.id"
 							@mouseenter="hovered = a.id"
 							@mouseleave="hovered = null"
@@ -278,16 +302,27 @@ definePageMeta({ middleware: ['auth', 'admin', () => (useAuthStore().isSuperAdmi
 							<i class="h-3 w-3 rounded border border-ink/60" :style="{ background: areaColor(draft.areas, a.id) }" aria-hidden="true" />
 							<span class="min-w-0">
 								<b class="block truncate text-sm font-semibold text-ink">{{ a.name }}</b>
-								<small class="text-xs text-muted">{{ a.bookable ? '' : 'Not bookable · ' }}{{ stats.get(a.id)?.count }} tables</small>
+								<small class="text-xs text-muted">{{ stats.get(a.id)?.count }} {{ stats.get(a.id)?.count === 1 ? 'table' : 'tables' }} · {{ stats.get(a.id)?.seats || 0 }} seats{{ a.bookable ? '' : ' · not bookable' }}</small>
 							</span>
-							<span class="text-sm font-bold tabular-nums">{{ stats.get(a.id)?.seats || '' }}</span>
 						</button>
 					</li>
 				</ul>
-				<div class="mt-3 flex justify-between border-t border-line px-3 pt-3 font-bold">
+				<button v-if="canEdit" class="btn-secondary mt-3 w-full" type="button" @click="addArea">+ Add area</button>
+				<div v-if="canEdit && pinnedArea" class="mt-4 grid gap-3 border-t border-line px-3 pt-4 text-sm">
+					<h3 class="text-xs font-semibold uppercase tracking-wide text-muted">Edit selected area</h3>
+					<label class="grid gap-1">Name
+						<input v-model="pinnedArea.name" maxlength="80" class="field" @input="touch" />
+					</label>
+					<label class="flex items-center gap-2"><input v-model="pinnedArea.bookable" type="checkbox" @change="touch" /> Guests can book this area</label>
+					<button class="btn-primary" type="button" @click="addTable">+ Add table</button>
+					<p v-if="!stats.get(pinnedArea.id)?.count" class="text-xs text-muted">No tables yet. Add one, then drag it into place on the plan.</p>
+					<button class="btn-ghost justify-self-start !text-danger" type="button" @click="removeArea(pinnedArea.id)">Delete area</button>
+				</div>
+				<p v-else-if="canEdit" class="mt-4 px-3 text-xs text-muted">Click an area above to rename it or add tables to it.</p>
+				<div class="mt-4 flex justify-between border-t border-line px-3 pt-3 font-bold">
 					<span>Total seats</span><span class="tabular-nums">{{ totalSeats }}</span>
 				</div>
-				<p class="mt-3 px-3 text-xs text-muted">Seats per area become that area's bookable capacity when you save. Areas without tables keep their manual capacity.</p>
+				<p class="mt-2 px-3 text-xs text-muted">Seats = chairs on the tables. An area with no tables can't take bookings.</p>
 			</aside>
 		</div>
 	</div>
