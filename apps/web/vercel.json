@@ -2,9 +2,9 @@
   "regions": ["sin1"],
   "redirects": [
     {
-      "source": "/:venue((?!login|host|guests|admin|privacy|_|api|ingest)[^/.]+)",
+      "source": "/bali",
       "has": [{ "type": "host", "value": "book.gioigroup.com" }],
-      "destination": "https://gioigroup.com/:venue",
+      "destination": "https://gioigroup.com/bali",
       "permanent": true
     }
   ],
