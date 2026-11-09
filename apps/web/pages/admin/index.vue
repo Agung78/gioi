@@ -27,7 +27,6 @@ const { data: analytics, error: analyticsError } = await useFetch<AdminAnalytics
 	params.set('to', filters.value.rangeEnd)
 	if (filters.value.status !== 'all') params.set('status', filters.value.status)
 	if (filters.value.source !== 'all') params.set('source', filters.value.source)
-	if (filters.value.seatingAreaId !== 'all') params.set('seatingAreaId', filters.value.seatingAreaId)
 	if (filters.value.occasion !== 'all') params.set('occasion', filters.value.occasion)
 	return `/api/admin/analytics?${params}`
 }, {
@@ -140,12 +139,6 @@ definePageMeta({ middleware: ['auth', 'admin'] })
 				<select v-model="filters.source" class="field mt-1 !py-1.5 !px-3 text-sm">
 					<option value="all">All sources</option>
 					<option v-for="source in ['website', 'instagram', 'google', 'whatsapp', 'walk_in', 'phone', 'host']" :key="source" :value="source">{{ source }}</option>
-				</select>
-			</label>
-			<label class="label">Area
-				<select v-model="filters.seatingAreaId" class="field mt-1 !py-1.5 !px-3 text-sm">
-					<option value="all">All areas</option>
-					<option v-for="area in areas" :key="area.id" :value="area.id">{{ area.name }}</option>
 				</select>
 			</label>
 			<label class="label">Occasion
