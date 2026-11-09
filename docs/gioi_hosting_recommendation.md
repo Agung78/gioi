@@ -134,13 +134,13 @@ Build the API with these rules:
 
 ## 9. Finish the SEO work
 
-1. Add `Restaurant` structured data (JSON-LD) to the landing page: name, address, geo coordinates, opening hours, cuisines (Indonesian, Asian, Balinese, Western), price range, phone, and `acceptsReservations` with the booking URL.
+1. Add `Restaurant` structured data (JSON-LD) to the landing page: name, address, geo coordinates, opening hours, cuisines (Indonesian, Asian, Balinese, Western), price range, phone, and `acceptsReservations` plus a `ReserveAction` whose target is the booking form, `https://book.gioigroup.com/<venue>/book`. Add the venue's Instagram profile to `sameAs`.
 2. Set titles, descriptions and Open Graph tags with `useSeoMeta`, so shared links show a preview on Instagram and WhatsApp.
-3. Set one canonical URL for the landing page. Vercel adds `X-Robots-Tag: noindex` to preview deployments automatically.
-4. Publish `sitemap.xml` and `robots.txt` on `book.gioigroup.com`. List each venue's landing page and disallow `/*/book`. Serve `Disallow: /` on `admin.gioigroup.com`.
+3. Set one canonical URL for the landing page: `https://www.gioigroup.com/<venue>`. `book.gioigroup.com/<venue>` renders the same page and canonicalizes to it. Do not leave the `.htaccess` redirect from step 5.4 in place once the canonical points at `www`, because a canonical to a URL that redirects back is a loop. Vercel adds `X-Robots-Tag: noindex` to preview deployments automatically.
+4. Publish `sitemap.xml` and `robots.txt` on `www.gioigroup.com`. List each venue's landing page. Keep the booking flow out of search with an `X-Robots-Tag: noindex` header (Nitro `routeRules` on `/<venue>/book`, `/<venue>/confirmation` and `/<venue>/feedback`), not a `robots.txt` Disallow. Google can only see a noindex on a page it may crawl. Serve `Disallow: /` on `admin.gioigroup.com`.
 5. Submit the sitemap in Google Search Console.
-6. Add `book.gioigroup.com/bali/book` as the reservation link on GIOI's Google Business Profile.
-7. Point SEO backlinks to `gioigroup.com/bali`, not to `book.gioigroup.com`.
+6. Add `book.gioigroup.com/bali/book` as the booking link and `www.gioigroup.com/bali` as the website link on GIOI's Google Business Profile. Google requires a booking link to let the customer finish the booking, so it points at the form and not at the landing page. Google's link checker ignores `robots.txt` and only needs a 200 response.
+7. Point SEO backlinks to `www.gioigroup.com/bali`, not to `book.gioigroup.com`.
 
 ## Check the setup after the first deploy
 

@@ -10,7 +10,10 @@ export default defineNuxtConfig({
 	routeRules: {
 		'/': { redirect: '/bali' },
 		'/bali': { prerender: true },
-		'/bali/book/**': { ssr: false },
+		// Booking flow stays out of search results. Header (not robots.txt Disallow) so Google can crawl and see it.
+		'/bali/book/**': { ssr: false, headers: { 'X-Robots-Tag': 'noindex' } },
+		'/bali/confirmation/**': { headers: { 'X-Robots-Tag': 'noindex' } },
+		'/bali/feedback/**': { headers: { 'X-Robots-Tag': 'noindex' } },
 		'/login': { ssr: false },
 		'/host': { ssr: false },
 		'/guests/**': { ssr: false },

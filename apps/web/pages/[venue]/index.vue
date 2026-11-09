@@ -2,7 +2,7 @@
 definePageMeta({ public: true })
 import { onBeforeUnmount, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from '#app'
-import { PhMapPin, PhClock, PhWhatsappLogo, PhPhone, PhSunHorizon, PhArrowUpRight } from '@phosphor-icons/vue'
+import { PhMapPin, PhClock, PhWhatsappLogo, PhPhone, PhInstagramLogo, PhSunHorizon, PhArrowUpRight } from '@phosphor-icons/vue'
 import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { addDays, todayISO } from '@gioi/domain'
@@ -31,6 +31,70 @@ const qDate = ref(today)
 const qParty = ref(2)
 const max = info?.partySizeLimits?.max ?? 8
 const min = info?.partySizeLimits?.min ?? 1
+useSeoMeta({
+  title: 'GIOI Ocean Gourmet Bali | Beachfront Seafood in Kuta',
+  description: 'Beachfront seafood and modern Asian dining at Discovery Mall, Kuta Beach, Bali. Reserve a table online at GIOI Ocean Gourmet.',
+  ogTitle: 'GIOI Ocean Gourmet Bali | Beachfront Seafood in Kuta',
+  ogDescription: 'Beachfront seafood and modern Asian dining at Discovery Mall, Kuta Beach, Bali. Reserve a table online at GIOI Ocean Gourmet.',
+  ogType: 'website',
+  ogUrl: 'https://www.gioigroup.com/bali',
+  ogImage: 'https://www.gioigroup.com/images/brands/3/GIOI-OG_Gallery-image-outlet-06.webp',
+  ogSiteName: 'GIOI Ocean Gourmet',
+  ogLocale: 'en_US',
+  ogImageWidth: 3959,
+  ogImageHeight: 2225,
+  twitterCard: 'summary_large_image',
+})
+
+useHead({
+  link: [{ rel: 'canonical', href: 'https://www.gioigroup.com/bali' }],
+  script: [
+    {
+      type: 'application/ld+json',
+      innerHTML: JSON.stringify({
+        '@context': 'https://schema.org',
+        '@type': 'Restaurant',
+        name: 'GIOI Ocean Gourmet',
+        url: 'https://www.gioigroup.com/bali',
+        image: 'https://www.gioigroup.com/images/brands/3/GIOI-OG_Gallery-image-outlet-06.webp',
+        ...(info?.phone ? { telephone: info.phone } : {}),
+        address: {
+          '@type': 'PostalAddress',
+          ...(info?.address ? { streetAddress: info.address } : {}),
+          addressLocality: 'Kuta',
+          addressRegion: 'Bali',
+          addressCountry: 'ID',
+        },
+        servesCuisine: ['Seafood', 'Asian'],
+        sameAs: ['https://www.instagram.com/gioioceangourmet/'],
+        ...(info?.mapsUrl ? { hasMap: info.mapsUrl } : {}),
+        acceptsReservations: 'https://book.gioigroup.com/bali/book',
+        potentialAction: {
+          '@type': 'ReserveAction',
+          target: {
+            '@type': 'EntryPoint',
+            urlTemplate: 'https://book.gioigroup.com/bali/book',
+            inLanguage: 'en',
+            actionPlatform: [
+              'http://schema.org/DesktopWebPlatform',
+              'http://schema.org/MobileWebPlatform',
+            ],
+          },
+        },
+        ...(Object.keys(hours).length
+          ? {
+              openingHoursSpecification: Object.entries(hours).map(([day, h]) => ({
+                '@type': 'OpeningHoursSpecification',
+                dayOfWeek: dayLabel[Number(day)],
+                opens: h?.open,
+                closes: h?.close,
+              })),
+            }
+          : {}),
+      }),
+    },
+  ],
+})
 
 function quickBook() {
   router.push({ path: `/${venue}/book`, query: { date: qDate.value, party: String(qParty.value) } })
@@ -103,8 +167,8 @@ onBeforeUnmount(() => ctx?.revert())
       <ol class="mt-16 grid gap-6 md:mt-24 md:grid-cols-3 md:gap-8"><li v-for="scene in scenes" :key="scene.title" data-rise :class="scene.feature ? 'md:-translate-y-12' : ''"><div class="group relative overflow-hidden rounded-surface"><div class="aspect-[4/5] overflow-hidden bg-line/50"><img :src="scene.img" :alt="scene.title" loading="lazy" class="h-full w-full object-cover transition duration-700 group-hover:scale-[1.03]" /></div><span class="absolute left-4 top-4 rounded-full bg-navy/85 px-3 py-1 font-display text-sm font-bold text-sand backdrop-blur">{{ scene.time }}</span></div><div class="mt-5"><h3 class="text-2xl font-extrabold">{{ scene.title }}</h3><p class="mt-2 max-w-[36ch] leading-relaxed text-muted">{{ scene.copy }}</p></div></li></ol>
     </section>
 
-    <section id="visit" class="border-b border-line"><div class="mx-auto grid max-w-7xl gap-16 px-4 py-24 md:grid-cols-[1.1fr_0.9fr] md:px-8 md:py-32"><div><p class="text-xs font-semibold uppercase tracking-[0.3em] text-muted">Find us</p><h2 data-reveal aria-label="On the beach at Discovery Mall." class="mt-4 text-[clamp(2rem,4.5vw,3.5rem)] font-extrabold leading-[1.02]"><span aria-hidden="true"><span v-for="w in 'On the beach at Discovery Mall.'.split(' ')" :key="w" class="inline-block overflow-hidden align-bottom"><span data-word class="inline-block pr-[0.2em]">{{ w }}</span></span></span></h2><p data-rise class="mt-8 flex gap-3 text-lg leading-relaxed"><PhMapPin :size="24" class="mt-1 shrink-0 text-accent" aria-hidden="true" /><span>{{ info?.address }}<br /><a :href="info?.mapsUrl" target="_blank" rel="noopener" class="group inline-flex min-h-11 items-center gap-1 font-medium text-accent underline decoration-line underline-offset-4">Get directions <PhArrowUpRight :size="16" aria-hidden="true" /></a></span></p><div data-rise class="mt-10 flex flex-wrap gap-3"><a :href="wa" @click="posthog?.capture('whatsapp_clicked', { from: 'venue_page' })" class="btn-secondary"><PhWhatsappLogo :size="20" aria-hidden="true" /> WhatsApp</a><a :href="`tel:${info?.phone.replace(/\D/g, '')}`" class="btn-secondary"><PhPhone :size="20" aria-hidden="true" /> {{ info?.phone }}</a></div></div><div data-rise class="self-end"><div class="flex items-center justify-between"><h3 class="flex items-center gap-2 text-sm font-semibold uppercase tracking-[0.2em] text-muted"><PhClock :size="18" aria-hidden="true" /> Hours</h3><span class="text-sm font-semibold uppercase tracking-[0.2em] tabular-nums" aria-label="Current time in Bali">{{ wita }} <span class="text-muted">WITA</span></span></div><ul class="mt-4 divide-y divide-line border-y border-line"><li v-for="d in days" :key="d" class="flex justify-between py-3"><span class="text-muted">{{ dayLabel[d] }}</span><span class="font-medium">{{ hours[d] ? `${hours[d].open} to ${hours[d].close}` : 'Closed' }}</span></li></ul></div></div></section>
+    <section id="visit" class="border-b border-line"><div class="mx-auto grid max-w-7xl gap-16 px-4 py-24 md:grid-cols-[1.1fr_0.9fr] md:px-8 md:py-32"><div><p class="text-xs font-semibold uppercase tracking-[0.3em] text-muted">Find us</p><h2 data-reveal aria-label="On the beach at Discovery Mall." class="mt-4 text-[clamp(2rem,4.5vw,3.5rem)] font-extrabold leading-[1.02]"><span aria-hidden="true"><span v-for="w in 'On the beach at Discovery Mall.'.split(' ')" :key="w" class="inline-block overflow-hidden align-bottom"><span data-word class="inline-block pr-[0.2em]">{{ w }}</span></span></span></h2><p data-rise class="mt-8 flex gap-3 text-lg leading-relaxed"><PhMapPin :size="24" class="mt-1 shrink-0 text-accent" aria-hidden="true" /><span>{{ info?.address }}<br /><a :href="info?.mapsUrl" target="_blank" rel="noopener" class="group inline-flex min-h-11 items-center gap-1 font-medium text-accent underline decoration-line underline-offset-4">Get directions <PhArrowUpRight :size="16" aria-hidden="true" /></a></span></p><div data-rise class="mt-10 flex flex-wrap gap-3"><a :href="wa" @click="posthog?.capture('whatsapp_clicked', { from: 'venue_page' })" class="btn-secondary"><PhWhatsappLogo :size="20" aria-hidden="true" /> WhatsApp</a><a :href="`tel:${info?.phone.replace(/\D/g, '')}`" class="btn-secondary"><PhPhone :size="20" aria-hidden="true" /> {{ info?.phone }}</a><a href="https://www.instagram.com/gioioceangourmet/" target="_blank" rel="noopener noreferrer" class="btn-secondary"><PhInstagramLogo :size="20" aria-hidden="true" /> Instagram</a></div></div><div data-rise class="self-end"><div class="flex items-center justify-between"><h3 class="flex items-center gap-2 text-sm font-semibold uppercase tracking-[0.2em] text-muted"><PhClock :size="18" aria-hidden="true" /> Hours</h3><span class="text-sm font-semibold uppercase tracking-[0.2em] tabular-nums" aria-label="Current time in Bali">{{ wita }} <span class="text-muted">WITA</span></span></div><ul class="mt-4 divide-y divide-line border-y border-line"><li v-for="d in days" :key="d" class="flex justify-between py-3"><span class="text-muted">{{ dayLabel[d] }}</span><span class="font-medium">{{ hours[d] ? `${hours[d].open} to ${hours[d].close}` : 'Closed' }}</span></li></ul></div></div></section>
 
-    <section class="bg-navy text-white"><div class="mx-auto max-w-7xl px-4 pb-10 pt-24 md:px-8 md:pt-32"><h2 data-reveal aria-label="Make sunset your reservation." class="max-w-[14ch] text-[clamp(2.5rem,7vw,6rem)] font-extrabold leading-[0.95] tracking-[-0.03em] text-white"><span aria-hidden="true"><span v-for="w in 'Make sunset your reservation.'.split(' ')" :key="w" class="inline-block overflow-hidden align-bottom"><span data-word class="inline-block pr-[0.2em]" :class="w === 'reservation.' ? 'text-sun' : ''">{{ w }}</span></span></span></h2><div data-rise class="mt-10 flex flex-wrap items-center gap-6"><NuxtLink :to="`/${venue}/book`" class="btn min-h-12 bg-sun px-8 text-base text-navy hover:bg-sand focus-visible:ring-sand focus-visible:ring-offset-navy">Reserve a table</NuxtLink><p class="max-w-[48ch] text-sm leading-relaxed text-white/65">For sunset seating, booking ahead is recommended.</p></div><footer class="mt-24 flex flex-col gap-4 border-t border-white/10 pt-6 text-xs text-white/50 sm:flex-row sm:items-center sm:justify-between"><img src="/logo.jpg" alt="GIOI Ocean Gourmet" class="h-10 w-10 rounded-full object-cover" /><span>GIOI Ocean Gourmet · Kuta, Bali</span></footer></div></section>
+    <section class="bg-navy text-white"><div class="mx-auto max-w-7xl px-4 pb-10 pt-24 md:px-8 md:pt-32"><h2 data-reveal aria-label="Make sunset your reservation." class="max-w-[14ch] text-[clamp(2.5rem,7vw,6rem)] font-extrabold leading-[0.95] tracking-[-0.03em] text-white"><span aria-hidden="true"><span v-for="w in 'Make sunset your reservation.'.split(' ')" :key="w" class="inline-block overflow-hidden align-bottom"><span data-word class="inline-block pr-[0.2em]" :class="w === 'reservation.' ? 'text-sun' : ''">{{ w }}</span></span></span></h2><div data-rise class="mt-10 flex flex-wrap items-center gap-6"><NuxtLink :to="`/${venue}/book`" class="btn min-h-12 bg-sun px-8 text-base text-navy hover:bg-sand focus-visible:ring-sand focus-visible:ring-offset-navy">Reserve a table</NuxtLink><p class="max-w-[48ch] text-sm leading-relaxed text-white/65">For sunset seating, booking ahead is recommended.</p></div><footer class="mt-24 flex flex-col gap-4 border-t border-white/10 pt-6 text-xs text-white/50 sm:flex-row sm:items-center sm:justify-between"><img src="/logo.jpg" alt="GIOI Ocean Gourmet" class="h-10 w-10 rounded-full object-cover" /><a href="https://www.instagram.com/gioioceangourmet/" target="_blank" rel="noopener noreferrer" aria-label="GIOI Ocean Gourmet on Instagram" class="inline-flex min-h-11 items-center gap-1.5 hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-sand"><PhInstagramLogo :size="20" aria-hidden="true" /> @gioioceangourmet</a><span>GIOI Ocean Gourmet · Kuta, Bali</span></footer></div></section>
   </div>
 </template>
