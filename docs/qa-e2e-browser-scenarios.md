@@ -1,7 +1,7 @@
 # GIOI — QA E2E Browser Scenarios
 
 Manual (or Playwright-ready) browser scenarios for `apps/web` + `apps/api`.
-Derived from the journey diagrams in [`docs/diagrams/`](./diagrams/) (`customer-journey`, `host-journey`, `admin-journey`) and the code as of 2026-11-07. Run on a clean seeded database.
+Derived from the journey diagrams in [`docs/diagrams/`](./diagrams/) (`customer-journey`, `host-journey`, `admin-journey`) and the code as of 2026-11-09. Floor plan behaviour is specified in [`floor_plan_seating.md`](./floor_plan_seating.md). Run on a clean seeded database.
 
 **Priority:** P0 = release blocker, P1 = must pass before launch, P2 = polish.
 **Status:** `☐` not run, `✔` pass, `✘` fail (link the bug).
@@ -15,7 +15,7 @@ Derived from the journey diagrams in [`docs/diagrams/`](./diagrams/) (`customer-
 | DB | Seeded (`pnpm --filter api prisma:seed`) |
 | Super admin | `admin` / `password` (isSuperAdmin; manages Venues + Accounts in Settings; seed links it to the venue as `admin`) |
 | Host | `host` / `password` (venue role **`host`**; confirm in Settings → Accounts before testing) |
-| Venue admin | create `venueadmin` in Settings → Accounts as super admin (T-16): not super admin, venue role `admin` |
+| Venue admin | `venueadmin` / `password` (seeded; not super admin, venue role `admin`). T-16 still covers creating one in Settings → Accounts |
 | Browsers | Desktop Chrome at 100%, plus mobile 390×844. Run the public booking flow (G-*) in both |
 | Two-device tests | Two separate browser profiles (or normal + incognito) |
 
@@ -41,6 +41,8 @@ Reset between runs: re-seed, or `TRUNCATE venues, users CASCADE` on the **test**
 | Audit log | L-01…L-06 |
 | Super admin venues & accounts | T-13…T-26, R-14 |
 | Bootstrap, prod, CI | B-01…B-06, D-13 |
+| Customer 2a Seating map | G-31…G-43 |
+| Floor plan & seating (admin) | F-01…F-12, T-06 |
 
 ---
 
@@ -58,7 +60,7 @@ Reset between runs: re-seed, or `TRUNCATE venues, users CASCADE` on the **test**
 
 | ID | P | Scenario | Steps | Expected | Status |
 |---|---|---|---|---|---|
-| G-04 | P0 | Happy path | **1 When** (14-day strip, party stepper, seating) → time grid → **2 Who** (name + phone) → **3 Details** → accept cancellation policy → Confirm booking | Redirect to `/bali/confirmation/<code>`; booking is `pending`; shows on `/host` | ✔ |
+| G-04 | P0 | Happy path | **1 When** (14-day strip, party stepper, optional table area on the map, see 1.2a) → time grid → **2 Who** (name + phone) → **3 Details** → accept cancellation policy → Confirm booking | Redirect to `/bali/confirmation/<code>`; booking is `pending`; shows on `/host` | ✔ |
 | G-05 | P1 | Date strip on mobile | 390px viewport | First pill has a left gutter (not flush to the edge); strip scrolls and snaps; "More dates" picker works | ☐ |
 | G-06 | P1 | Time grid states | Look at Lunch / Afternoon / Sunset / Dinner groups across days | Slots show `N left`, `Full`, `Too soon`, or `Closed` correctly; unavailable ones not selectable | ✔ |
 | G-07 | P1 | Closed day / closed date | Pick a closed weekday or a date in Settings → Closed dates | Pill disabled or all slots `Closed` | ✔ |
@@ -71,6 +73,26 @@ Reset between runs: re-seed, or `TRUNCATE venues, users CASCADE` on the **test**
 | G-14 | P1 | Policy gate | Try to confirm without accepting the cancellation policy | Blocked | ✔ |
 | G-15 | P1 | Idempotency | Double-click Confirm; reload and resubmit | Exactly one reservation, same booking code | ✔ |
 | G-15b | P1 | Turnstile (only if `NUXT_PUBLIC_TURNSTILE_SITE_KEY` set) | Submit without solving | Blocked with message; with token succeeds | ☐ |
+
+### 1.2a Seating map on the booking page
+
+The "Seating" pills are gone. Guests pick a **seating area** by tapping a table on the venue map; the booking still stores the area, not the table. Needs the plan to have tables. Defaults for the run: party 2, areas Main Hall, Sunset Terrace, Chef's Counter (max 4), Beachfront Lounge (min 2).
+
+| ID | P | Scenario | Steps | Expected | Status |
+|---|---|---|---|---|---|
+| G-31 | P1 | Map visibility | Open `/bali/book`, then a venue whose plan has no tables | Map ("Pick a table area") sits between Guests and Time; no Seating pills; with no tables there is no map and the booking still works | ☐ (shown ✔; empty-plan case not run) |
+| G-32 | P0 | Tap a table | Click any table | Dialog opens with the area name, "Table for N" and a fit message; table gets a glow | ✔ |
+| G-33 | P0 | Choose area | Choose Sunset Terrace | Dialog closes; "Selected: Sunset Terrace" under the map; other areas' tables fade; slots refetch with `area=<id>`; summary Seating shows the area | ✔ |
+| G-34 | P1 | Clear | Open a table of the selected area | Buttons are Close and Clear; Clear → no selection, summary "Any available table" | ✔ |
+| G-35 | P1 | Fit rules | Raise party to 6, open a Chef's Counter table; open a 2-seat Main Hall table | Chef's Counter: "Not available for a party of 6 (up to 4)" and Choose disabled. 2-seat table: "seats 2 … party of 6 will be seated in Main Hall, not at this exact table" and Choose enabled | ✔ |
+| G-36 | P1 | Dismiss | Esc; click the backdrop; Close | Each closes the dialog and keeps the selection unchanged | ✔ |
+| G-37 | P1 | Keyboard | Focus a table (Tab), press Enter | Dialog opens; Esc closes; focus ring or highlight visible on the table | ✔ (Enter + Esc; focus ring not eyeballed) |
+| G-38 | P0 | Book with a chosen area | Choose Sunset Terrace, pick a time, fill name and phone, accept policy, Confirm | Confirmation shows Seating "Sunset Terrace" | ✔ |
+| G-39 | P1 | Book without choosing | Same, but never open a table | Booking succeeds; the server picks an area (confirmation shows one, e.g. Main Hall) | ✔ |
+| G-40 | P1 | Party change drops a bad area | Choose Chef's Counter, raise party to 6 | Selection cleared automatically ("Selected:" gone) | ✔ |
+| G-41 | P1 | Mobile 390×844 | Run G-32/G-33 | No horizontal overflow; map fits (358 px wide); dialog is a bottom sheet with readable buttons | ✔ |
+| G-42 | P1 | Theme | Open the dialog in dark and light | Text and buttons readable in both | ☐ (dark ✔; light not run) |
+| G-43 | P2 | Area not open for online booking | Table of an area with `bookable = false` | "This area isn't open for online booking…", Choose disabled | ☐ (no such area in the seed) |
 
 ### 1.3 Confirmation — `/bali/confirmation/:code`
 
@@ -227,7 +249,7 @@ Expected is shown as **host / venue admin / super admin**.
 | T-03 | P1 | Name read-only | Restaurant name | Disabled (not in the API whitelist) | ✔ |
 | T-04 | P1 | **Opening hours & rules** | Hours per weekday, interval, party limits, lead time, cut-off, closed dates | Public availability follows each | ✔ |
 | T-05 | P1 | **Guest feedback** | Title, subtitle, WhatsApp template (tags field is read-only) | Used on feedback page and the host's feedback link | ✔ |
-| T-06 | P1 | **Seating areas** | Name, capacity, party min/max, bookable, add/remove | Public + walk-in options follow | ✔ |
+| T-06 | P1 | **Seating areas** | Name, capacity, party min/max, bookable, add/remove | Public + walk-in options follow; capacity box is read-only for areas with floor-plan tables (see F-06) | ✔ |
 | T-07 | P1 | **Accounts** (super admin) | See 7.1 (T-13…T-28) | Replaced by the Venues/Accounts scenarios | ✔ |
 | T-08 | P0 | **Data export** | Download reservations CSV | File downloads with guest contact + allergy/accessibility notes; 403 for hosts | ✔ |
 | T-09 | P1 | Save is diffed | Change one field, save | Audit event lists only the changed field(s) | ✔ |
@@ -255,6 +277,25 @@ Expected is shown as **host / venue admin / super admin**.
 | T-26 | P0 | Venue admin first run | Log in as the new venue admin on a blank venue | Settings loads; fill Restaurant, hours, seating areas; saved; `/<slug>` shows them; multi-venue isolation holds (R-09) | ✔ (Restaurant only; hours/seating not filled) |
 | T-27 | P1 | No spaces in logins | Create or edit a login containing a space, or only spaces | 422 "login must not contain spaces"; leading/trailing spaces are trimmed | ✔ |
 | T-28 | P1 | Rename to an existing login | Edit an account's login to another user's login → Save | 409 "login already exists" (was a 500); renaming to its own login is a no-op | ✔ |
+
+### 7.2 Floor plan and seating (`/admin/floor-plan`, Settings → Floor plan drawing)
+
+Seed gives `admin` (super admin and venue admin of Bali) and `venueadmin` (venue admin only). To test "super admin without venue admin rights", create a second venue as `admin`.
+
+| ID | P | Scenario | Steps | Expected | Status |
+|---|---|---|---|---|---|
+| F-01 | P0 | Drawing upload (super admin) | Settings → pick a venue → Floor plan drawing → upload `apps/api/prisma/floor-plans/bali.svg` → Remove drawing | Preview shows the drawing; Remove clears it; audit `floor_plan.image_uploaded` / `floor_plan.image_removed` | ✔ |
+| F-02 | P0 | Drawing rules | `PUT /admin/venues/:id/floor-plan/image` as venue admin; with a `text/html` data URL; with an image and no width/height | 403 "super admin required"; 422 "drawing must be an SVG, PNG, JPEG or WebP under 3 MB"; 422 "width and height are required with an image"; plan height follows the aspect ratio (bali.svg → 1525) | ✔ |
+| F-03 | P0 | Who can open the editor | Open `/admin/floor-plan` as host, venue admin, super admin | Host → `/host`; super admin → `/admin/settings` and no "Floor plan" nav link (it only uploads drawings); venue admin sees nav "Floor plan", plan, toolbar, area list with table counts and total seats | ✔ |
+| F-04 | P1 | Add table, chairs, Revert | Pick Terrace → + Table → + chair ×2 | New table in that area, 4 → 6 seats; unsaved indicator shows; Revert restores the saved layout | ✔ |
+| F-05 | P0 | Save layout sets capacity | Save a layout with tables in an area | Area capacity = sum of seats; survives reload; audit `floor_plan.updated` | ✔ |
+| F-06 | P1 | Capacity box in Settings | Settings → Seating areas as venue admin | Area with tables: read-only, "from floor plan". Area without tables: editable and saves | ✔ |
+| F-07 | P1 | Area without tables keeps capacity | Save a layout that has no tables for an area | That area's capacity unchanged | ✔ |
+| F-08 | P0 | Layout needs venue admin | `PUT …/floor-plan/layout` as host; as super admin on a venue where they are not admin | 403 "venue admin required" both; `GET …/floor-plan` as that super admin → 200, `canEdit: false` | ✔ |
+| F-09 | P1 | Layout validation | Save a table with an unknown area id; one at x = 99999 | 422 "unknown seating area"; 422 "item is outside the floor plan" | ✔ |
+| F-10 | P1 | Public plan is safe | `GET /api/public/venues/bali/floor-plan` | Only width, height, image, areas, tables, objects; tables carry id, seatingAreaId, seats, x, y, rotation; no guest or booking data | ✔ |
+| F-11 | P2 | Editor controls | Drag, arrow nudge (Shift ×10), R rotate, +/− chair, Delete key / button | Each updates the plan; clamped inside the plan | ☐ (Delete button ✔; drag / rotate / keys not run) |
+| F-12 | P2 | New drawing keeps positions | Replace the drawing with a different aspect ratio | Tables keep their positions; any outside the new box are clamped when the editor loads | ☐ |
 
 ## 8. Audit log (`/admin/audit`, super admin)
 
@@ -320,6 +361,7 @@ Expected is shown as **host / venue admin / super admin**.
 - No venue rename/delete, and no email field in Settings (email is only set at bootstrap/seed).
 - Super admin's own Host/Dashboard use the first linked venue only; no venue switcher there.
 - Public staff-login link was removed from the landing footer; `/login` is reachable by URL only.
+- Floor plan is area-level: guests choose an area through the map, not a specific table. Table-level booking needs a `tableId` on reservations, table availability and host assignment.
 
 ## Run notes (2026-11-07, managed Chromium + curl, dev DB)
 
@@ -341,3 +383,16 @@ Managed Chromium (the user's Chrome relay was unusable: the relay on :9224 and t
   - T-27: logins with spaces inside were accepted (`qaadminm  qahostr…`). They now return 422.
   - T-28: renaming a login to an existing one returned 500. It now returns 409.
 - **Behaviour to remember when testing:** logging in as a user through the API replaces that user's browser session (single device per user, A-07). Use a separate user, or log in again after API calls.
+
+## Run notes (2026-11-09, seating map and floor plan, localhost browser + curl, dev DB)
+
+Managed Chromium against web `:3000`, API `:3001`, Docker Postgres `gioi-pg`. Layout used: 11 tables over Main Hall (2), Sunset Terrace (3), Chef's Counter (3), Beachfront Lounge (3), Terrace (0); capacities are the table seat sums (6 / 14 / 6 / 16), Terrace keeps its manual 14.
+
+- ✔ run: G-31 (shown half), G-32 to G-42 (G-37 and G-42 partly), F-01 to F-10.
+- ☐ not run: G-31 (hidden when the plan has no tables), G-42 light mode, G-43 (no non-bookable area in the seed), F-11 (drag and rotate; Delete button ✔), F-12.
+- **Found and fixed during this run:**
+  - The table popup used a hardcoded white background, so its text was unreadable in dark mode. It now uses the theme tokens.
+  - For a table smaller than the party the popup said "we'll pair nearby tables", which the system doesn't do (booking is area-level). It now says the party is seated in the area, not at this exact table.
+- **Dev DB fixes needed to run this:** the dev DB had no `0002_floor_plan` tables (applied the SQL as `gioi_owner`; `prisma migrate deploy` still fails with P3005 because the DB was never baselined), and `venueadmin` was missing (now in `prisma/seed.ts`).
+- Data left in the dev DB: bookings `GIOI-H9UEX2WC` (Sunset Terrace) and one Main Hall booking from G-39, venue `qa-floor` (drawing removed), 11 demo tables.
+- The map is a guide only: a booking stores the seating area, never a table.

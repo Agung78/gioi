@@ -76,7 +76,7 @@ const navLinks = computed(() => {
   if (!auth.user) return []
   const links = [{ to: '/host', label: 'Host' }]
   if (auth.isAdmin) links.push({ to: '/admin', label: 'Dashboard' }, { to: '/admin/settings', label: 'Settings' })
-  if (auth.adminVenueId) links.push({ to: '/admin/floor-plan', label: 'Floor plan' })
+  if (auth.adminVenueId && !auth.isSuperAdmin) links.push({ to: '/admin/floor-plan', label: 'Floor plan' }) // layout is the venue admin's job; super admin only uploads the drawing in Settings
   if (auth.isSuperAdmin) links.push({ to: '/admin/audit', label: 'Audit' })
   return links
 })

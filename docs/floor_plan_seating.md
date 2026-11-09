@@ -78,19 +78,23 @@ Uploaded SVGs are only ever rendered through SVG `<image href>`, which doesn't r
   - Side panel lists each area with its table count and seats; hover or click highlights that area. Total seats.
   - Explicit **Save layout** with an unsaved-changes indicator and **Revert** to reload.
   - Users without venue admin rights see the plan read-only.
-- **`/admin/settings`** for super admins: "Floor plan drawing" upload, preview and remove for the selected venue.
+- **`/admin/settings`** for super admins: "Floor plan drawing" upload, preview and remove for the venue chosen in the venue picker. Super admins have no "Floor plan" nav link, and `/admin/floor-plan` redirects them to Settings: laying out tables is the venue admin's job.
 - **`/admin/settings`** for venue admins: the capacity box is read-only and shows "from floor plan" when `planSeats` is set.
+
+QA scenarios for all of the above: [`qa-e2e-browser-scenarios.md`](./qa-e2e-browser-scenarios.md) §1.2a and §7.2.
 
 ## Guest booking UX (`/[venue]/book`)
 
-- The Seating **pills stay the main control**. The map only explains them.
-- A read-only map sits under the pills, shown only when there is more than one bookable area **and** the plan has tables.
-  - Selecting a pill fades the other areas' tables (opacity 0.22; no transition under reduced motion). "Anywhere" shows everything.
-  - Tapping a table selects its area when that area is bookable and fits the party.
-  - The map sits on a fixed light paper background, so uploaded drawings read correctly in dark mode.
-- Pills for areas that can't fit the party are disabled and show the reason ("Up to 4 guests", "Parties of 2+"). If the party changes and the selected area no longer fits, the selection goes back to Anywhere.
+- There are **no Seating pills**. The guest picks a **seating area** by tapping a table on the venue map ("Pick a table area"). The booking stores the area, never a table.
+- The map sits between Guests and Time, and only renders when the plan has tables. It is on a fixed light paper background, so uploaded drawings read correctly in dark mode.
+- Tapping a table (or Enter / Space on a focused table; hit area is larger than the icon) opens a dialog: area name, "Table for N", and a fit message.
+  - **Choose <area>** sets the area. Other areas' tables fade (opacity 0.22), "Selected: <area>" shows under the map, and the booking summary shows it. Choose is disabled when the area isn't bookable online or the party is outside its min/max.
+  - If the table seats fewer than the party, the dialog says the party is seated in the area, not at that exact table.
+  - On the selected area's tables the button is **Clear**, which goes back to "Any available table".
+  - Esc, the backdrop and Close dismiss it. On a phone it is a bottom sheet.
+- If the party changes and the selected area no longer fits, the selection is cleared.
 - Time slots are fetched for the selected area (`area` query), so the grid matches what the server will accept.
-- **Anywhere** sends no `seatingAreaId`, so the server picks the area (`pickAreaForParty`).
+- With no area chosen the booking sends no `seatingAreaId`, so the server picks the area (`pickAreaForParty`).
 
 ## Booking fixes shipped with this feature
 

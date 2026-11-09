@@ -184,7 +184,7 @@ onUnmounted(() => {
 })
 watch(venueId, reload)
 
-definePageMeta({ middleware: ['auth', 'admin'] })
+definePageMeta({ middleware: ['auth', 'admin', () => (useAuthStore().isSuperAdmin ? navigateTo('/admin/settings') : undefined)] })
 </script>
 
 <template>

@@ -317,7 +317,7 @@ onMounted(() => {
               <div v-if="picked" class="fixed inset-0 z-50 flex items-end justify-center bg-black/40 p-4 md:items-center"
                 @click.self="pickedIdx = null">
                 <div role="dialog" aria-modal="true" aria-labelledby="table-title"
-                  class="w-full max-w-sm space-y-4 rounded-surface bg-white p-5 shadow-xl">
+                  class="w-full max-w-sm space-y-4 rounded-surface border border-line bg-raised p-5 text-ink shadow-soft">
                   <div>
                     <p class="text-xs font-semibold uppercase tracking-widest text-muted">{{ picked.area.name }}</p>
                     <h3 id="table-title" class="text-xl font-extrabold">Table for {{ picked.table.seats }}</h3>
@@ -327,7 +327,7 @@ onMounted(() => {
                     Not available for a party of {{ partySize }}<span v-if="picked.area.minParty"> (parties of {{ picked.area.minParty }}+)</span><span v-else-if="picked.area.maxParty"> (up to {{ picked.area.maxParty }})</span>.
                   </p>
                   <p v-else-if="picked.table.seats < partySize" class="text-sm text-muted">
-                    Seats {{ picked.table.seats }}; we'll pair nearby tables for your party of {{ partySize }}.
+                    This table seats {{ picked.table.seats }}. Your party of {{ partySize }} will be seated in {{ picked.area.name }}, not at this exact table.
                   </p>
                   <p v-else class="text-sm text-muted">Fits your party of {{ partySize }}. We'll seat you in {{ picked.area.name }}.</p>
                   <div class="flex gap-2">

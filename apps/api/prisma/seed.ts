@@ -195,6 +195,18 @@ async function main() {
 		create: { userId: host.id, venueId: venue.id, role: 'host' },
 	})
 
+	// Venue admin without super-admin rights: edits the table layout, cannot upload the drawing.
+	const venueAdmin = await prisma.user.upsert({
+		where: { login: 'venueadmin' },
+		update: {},
+		create: { login: 'venueadmin', name: 'Venue Admin', passwordHash, active: true },
+	})
+	await prisma.userVenue.upsert({
+		where: { userId_venueId: { userId: venueAdmin.id, venueId: venue.id } },
+		update: {},
+		create: { userId: venueAdmin.id, venueId: venue.id, role: 'admin' },
+	})
+
 	console.log(`Seeded venue ${venue.id} (${venue.slug})`)
 }
 
