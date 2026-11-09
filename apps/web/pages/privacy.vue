@@ -22,7 +22,7 @@ useHead({
     <ul class="list-disc pl-6 mt-2 space-y-1 text-muted">
       <li>Full name</li>
       <li>WhatsApp / phone number</li>
-      <li>Email address (optional)</li>
+      <li>Email address</li>
       <li>Country / city (optional)</li>
       <li>Occasion, dietary needs and allergies, accessibility needs, and special requests (optional)</li>
     </ul>

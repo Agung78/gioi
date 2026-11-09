@@ -37,7 +37,7 @@ export function registerPublicReservationRoutes(app: FastifyInstance, prisma: Pr
 				params: { type: 'object', properties: { slug: { type: 'string' } }, required: ['slug'] },
 				body: {
 					type: 'object',
-					required: ['guestName', 'phone', 'date', 'time', 'partySize'],
+					required: ['guestName', 'phone', 'email', 'date', 'time', 'partySize'],
 					properties: {
 						guestName: { type: 'string', maxLength: 120 },
 						phone: { type: 'string', maxLength: 32 },

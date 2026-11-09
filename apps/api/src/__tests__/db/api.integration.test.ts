@@ -140,6 +140,7 @@ describe('API integration', () => {
 			body: JSON.stringify({
 				guestName: 'Ayu',
 				phone: '+62 811 222 333',
+				email: 'ayu@example.com',
 				date: DATE,
 				time: '13:00',
 				partySize: 2,
@@ -156,7 +157,7 @@ describe('API integration', () => {
 			fetch(`${baseUrl}/public/venues/bali/reservations`, {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ guestName: 'Ayu', phone: '+62 811 222 333', date: DATE, time: '13:00', partySize: 2, source, idempotencyKey: key }),
+				body: JSON.stringify({ guestName: 'Ayu', phone: '+62 811 222 333', email: 'ayu@example.com', date: DATE, time: '13:00', partySize: 2, source, idempotencyKey: key }),
 			})
 		const ok = await post('instagram', '33333333-3333-4333-8333-333333333333')
 		expect(ok.status).toBe(201)
@@ -169,6 +170,7 @@ describe('API integration', () => {
 		const booking = {
 			guestName: 'Ayu',
 			phone: '+62 811 222 333',
+			email: 'ayu@example.com',
 			date: DATE,
 			time: '13:00',
 			partySize: 2,
@@ -202,6 +204,7 @@ describe('API integration', () => {
 			body: JSON.stringify({
 				guestName: 'Ayu',
 				phone: '+62 811 222 333',
+				email: 'ayu@example.com',
 				date: DATE,
 				time: '13:00',
 				partySize: 2,
@@ -228,6 +231,7 @@ describe('API integration', () => {
 				body: JSON.stringify({
 					guestName: `Guest ${i}`,
 					phone: `+62 811 000 ${String(i).padStart(4, '0')}`,
+					email: `guest${i}@example.com`,
 					date: DATE,
 					time: '14:00',
 					partySize,
@@ -260,6 +264,7 @@ describe('API integration', () => {
 			body: JSON.stringify({
 				guestName: 'Ayu',
 				phone: '+62 811 222 333',
+				email: 'ayu@example.com',
 				date: DATE,
 				time: '13:00',
 				partySize: 2,
@@ -286,6 +291,7 @@ describe('API integration', () => {
 			body: JSON.stringify({
 				guestName: 'Ayu',
 				phone: '+62 811 222 333',
+				email: 'ayu@example.com',
 				date: DATE,
 				time: '13:00',
 				partySize: 2,
@@ -423,6 +429,7 @@ describe('API integration', () => {
 			body: JSON.stringify({
 				guestName: 'Ayu',
 				phone: '+62 811 222 333',
+				email: 'ayu@example.com',
 				date: DATE,
 				time: '13:00',
 				partySize: 5,
