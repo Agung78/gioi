@@ -1,6 +1,6 @@
 # SEO organic growth estimate: GIOI Ocean Gourmet Bali
 
-Scope: `apps/web` as of 2026-11-09, venue `/bali`. Domain `gioigroup.com` is not assigned yet.
+Scope: `apps/web` as of 2026-11-09, venue `/bali`. Domain `gioigroup.com` is assigned and serves `/bali` (reported by owner; not re-verified here). Booking flow lives on `book.gioigroup.com`.
 
 > **Read this first.** No keyword-volume, ranking or Search Console data was available when this was written. Every number below is a planning assumption, marked `[INFERENCE]`, not a measurement. Replace them with Search Console data once the site is live.
 
@@ -16,16 +16,16 @@ Verified against a local production build (`pnpm run build` + `node .output/serv
 | Images | Self-hosted in `public/images/venues/bali/`, WebP 1600×900, 160 to 270 KB each. The hero (LCP) image is visible on first paint (no clip-path reveal). |
 | Menu | 2 PDFs in `public/menus/`, linked as "Menu (PDF)" and "Drinks menu (PDF)". The 2.7 MB food menu is heavy on mobile. |
 | Content | About 135 words plus one Indonesian line. Thin for a ranking page. |
-| Technical | `/` redirects to `/bali` with 301. The prerender fails the build if venue data cannot be loaded, so the page never ships without address, phone or hours. SEOmator local score 88/B was measured **before** these fixes; re-run it. |
+| Technical | `/` is the group landing page in code (prerendered, no redirect to `/bali`); the owner reports only `/bali` is live on the domain so far. Booking, confirmation and feedback paths on the site host 301 to `book.gioigroup.com` (`server/middleware/host-routes.ts`); staff routes 404 on `book.*`. The prerender fails the build if venue data cannot be loaded, so the page never ships without address, phone or hours. SEOmator local score 88/B was measured **before** these fixes; re-run it. |
 | Trust / legal | `/privacy` page (PDP Law No. 27/2022, PostHog and Vercel Analytics disclosed), linked from the footer. Needs legal review before launch. No About or Contact page. |
 | Security headers | Defined in `vercel.json`; not verifiable until deployed. CSP not added. |
-| Sitemap / robots | `public/sitemap.xml` lists only `/bali` (not `/privacy`). `robots.txt` disallows `/login`, `/host`, `/admin`, `/guests`, `/ingest`. Both point at `www.gioigroup.com`, which is not live yet. |
-| Domain | Not assigned. Canonical, sitemap and JSON-LD URLs point at a host that does not serve the app yet. |
+| Sitemap / robots | `/sitemap.xml` is generated (`server/routes/sitemap.xml.ts`) from `siteUrl`: lists `/` and every `VENUE_SEO` slug, not `/privacy`. `robots.txt` disallows `/login`, `/host`, `/admin`, `/guests`, `/ingest` and points at `https://gioigroup.com/sitemap.xml`. |
+| Domain | `gioigroup.com` assigned; `/bali` reachable. `siteUrl` defaults to `https://gioigroup.com`, `bookUrl` to `https://book.gioigroup.com`, so canonical, JSON-LD and the `ReserveAction` target already use the live hosts. Search Console verification and indexing status unknown. |
 | Off-page | No known backlinks, no Google Business Profile status recorded, no reviews data. `[INFERENCE]` all absent or unverified. **Observed 2026-11-09:** Google AI Overview for "gioi gourmet ocean reservasi" lists WhatsApp (+62 811-3960-6101), Chope Bali, Grab Dine Out and the Instagram DM as the ways to book, citing tripadvisor.co.id. The venue's own booking page is not mentioned. |
 
 ## 2. What limits organic growth
 
-1. **No live domain.** Until `gioigroup.com` serves `/bali`, Google cannot index the canonical URL. Organic traffic is effectively zero by construction.
+1. **Indexing not confirmed.** The domain is live but there is no Search Console data yet, so it is unknown whether `/bali` is indexed. The AI Overview in the 2026-11-09 screenshot does not cite it.
 2. **One ranking page.** Only `/bali` can rank for restaurant queries. There is nothing for long-tail searches (menu, location, events, dietary).
 3. **Thin content.** About 135 words, with the menu locked in PDFs.
 4. **Local pack beats blue links.** For "restaurant Kuta" style queries, Google Maps results and travel aggregators (TripAdvisor, Google Maps, delivery and booking platforms) take most clicks. `[INFERENCE]` Kuta is a high-competition tourist area.
@@ -44,9 +44,9 @@ Verified against a local production build (`pnpm run build` + `node .output/serv
 
 ## 4. Timeline and scenarios `[INFERENCE]`
 
-Indexing and ranking start the day the domain serves the page. The ranges assume the checklist in section 5 is done and Google Business Profile is set up. They are planning guides, not forecasts.
+Indexing and ranking start once Google crawls `/bali` on the live domain; the clock below starts at the Search Console indexing request. The ranges assume the checklist in section 5 is done and Google Business Profile is set up. They are planning guides, not forecasts.
 
-| Phase (from domain live) | What happens | Conservative | Base | Optimistic |
+| Phase (from indexing request) | What happens | Conservative | Base | Optimistic |
 |---|---|---|---|---|
 | Weeks 0 to 2 | Crawl and index of `/bali` | Indexed | Indexed, brand query ranks | Brand #1 |
 | Months 1 to 3 | Brand and menu queries stabilise | Brand traffic only | Brand + a few local impressions | Local impressions growing |
@@ -57,17 +57,17 @@ Rough monthly organic visits at month 6 to 12, **before** adding more pages: con
 
 Changing what the AI Overview says about booking `[INFERENCE]`: it is generated from pages Google already ranks, so expect 2 to 8+ weeks after `/bali` is indexed and the Business Profile booking link is set, with no guarantee. Snippet and title changes usually show in 1 to 4 weeks after recrawl.
 
-## 5. Checklist when `gioigroup.com` is assigned
+## 5. Checklist now that `gioigroup.com` is live
 
-Do these in order; each one affects indexing.
+Done (per owner): domain assigned, `/bali` served. Remaining, in order; each one affects indexing.
 
-1. Point DNS at the Vercel project; choose **www or apex** and 301-redirect the other to it. All venue images are self-hosted, so nothing on the page depends on the old `gioigroup.com` site.
-2. Set `NUXT_PUBLIC_SITE_URL` to the final host (canonical, `og:url`, JSON-LD, booking and menu URLs all derive from it).
+1. Confirm the canonical host: pick **www or apex**, and 301-redirect the other to it. All venue images are self-hosted.
+2. Confirm `NUXT_PUBLIC_SITE_URL` (default `https://gioigroup.com`) and `NUXT_PUBLIC_BOOK_URL` (default `https://book.gioigroup.com`) match production; canonical, `og:url`, JSON-LD, booking and menu URLs derive from them. Check `curl -sI https://gioigroup.com/bali/book` returns a 301 to `book.gioigroup.com` and `https://book.gioigroup.com/bali/book` carries `X-Robots-Tag: noindex`.
 3. `NUXT_PUBLIC_API_BASE` defaults to `https://gioi-api.vercel.app`; override it only if the API moves. If the API is unreachable at build time, the build fails at prerender instead of shipping an empty page.
-4. Remove the `'/' -> '/bali'` 301 redirect in `nuxt.config.ts` if the company homepage will live at `/`. A 301 is cached by browsers, so decide before going live.
-5. Confirm `sitemap.xml` and `robots.txt` are served from the final host. Add `/privacy` to the sitemap. If the company site owns the root, add the venue URLs to its sitemap.
+4. Decide what `/` serves. The code prerenders a group landing page at `/`; if production still 404s or differs, fix before submitting the sitemap, because the sitemap lists `/`.
+5. Confirm `sitemap.xml` and `robots.txt` are served from `https://gioigroup.com`. Add `/privacy` to the sitemap (currently missing).
 6. Verify the host in Google Search Console, submit the sitemap, request indexing of `/bali`.
-7. Confirm the `*.vercel.app` production URL does not compete with the canonical (the canonical tag already points at the final host).
+7. Confirm the `*.vercel.app` production URL does not compete with the canonical (the canonical tag points at `gioigroup.com`).
 8. Have `/privacy` reviewed by legal.
 9. Re-run the SEOmator audit against the live URL: `seomator audit https://<host>/bali --crawl -m 20 --mobile --format llm`, and validate the JSON-LD with Google's Rich Results Test.
 
