@@ -11,6 +11,18 @@ export interface VenueSeo {
   cuisine: string[]
   sameAs: string[]
   menus?: { label: string; path: string }[]
+  tzLabel: string
+  page: {
+    badge: string
+    heroLines: [string, string, string]
+    intro: string
+    imageAlt: string
+    experienceTitle: string
+    scenes: { time: string; title: string; copy: string; img: string; alt: string; feature?: boolean }[]
+    visitTitle: string
+    ctaTitle: string
+    ctaNote: string
+  }
 }
 
 export const VENUE_SEO: Record<string, VenueSeo> = {
@@ -28,5 +40,21 @@ export const VENUE_SEO: Record<string, VenueSeo> = {
       { label: 'Menu (PDF)', path: '/menus/bali-menu.pdf' },
       { label: 'Drinks menu (PDF)', path: '/menus/bali-alcohol-menu.pdf' },
     ],
+    tzLabel: 'WITA',
+    page: {
+      badge: 'Beachfront dining in Kuta',
+      heroLines: ['Fresh from', 'the coast.', 'Made for sunset.'],
+      intro: 'A beachfront restaurant for seafood, modern Asian flavours and long afternoons beside Kuta Beach.',
+      imageAlt: 'GIOI Ocean Gourmet beachfront dining area in Kuta, Bali',
+      experienceTitle: 'Come for the view. Stay for the flavour.',
+      scenes: [
+        { time: '10:00', title: 'A slower start', copy: 'Coffee, fresh fruit and the first view of Kuta Beach.', img: '/images/venues/bali/outlet-02.webp', alt: 'Morning coffee and fruit overlooking Kuta Beach at GIOI Ocean Gourmet' },
+        { time: '17:30', title: 'The front row', copy: 'Settle in for seafood, sharing plates and the light changing over the water.', img: '/images/venues/bali/outlet-07.webp', alt: 'Beachfront tables facing the sunset at GIOI Ocean Gourmet, Kuta', feature: true },
+        { time: '20:00', title: 'Stay for dinner', copy: 'Grilled coastal produce, modern Asian flavours and cocktails after sunset.', img: '/images/venues/bali/outlet-05.webp', alt: 'Evening dinner setting at GIOI Ocean Gourmet, Kuta Beach' },
+      ],
+      visitTitle: 'On the beach at Discovery Mall.',
+      ctaTitle: 'Make sunset your reservation.',
+      ctaNote: 'For sunset seating, booking ahead is recommended.',
+    },
   },
 }

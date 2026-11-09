@@ -1,3 +1,5 @@
+import { VENUE_SEO } from './utils/venueSeo'
+
 export default defineNuxtConfig({
 	compatibilityDate: '2026-11-07',
 	devtools: { enabled: true },
@@ -11,10 +13,14 @@ export default defineNuxtConfig({
 			turnstileSiteKey: process.env.NUXT_PUBLIC_TURNSTILE_SITE_KEY ?? '',
 		},
 	},
+	nitro: {
+		prerender: {
+			routes: Object.keys(VENUE_SEO).map((s) => `/${s}`),
+		},
+	},
 	routeRules: {
-		// 307 (Nitro default), not 301: browsers cache 301 forever, and / becomes the group page later.
-		'/': { redirect: '/bali' },
-		'/bali': { prerender: true },
+		// / is the group landing page now; prerendered.
+		'/': { prerender: true },
 		// Booking flow stays out of search results. Header (not robots.txt Disallow) so Google can crawl and see it.
 		// `as never`: keys that match a page pattern get Nuxt's narrow page-rule type, which omits `headers`; Nitro applies them (verified via curl).
 		'/*/book/**': { ssr: false, headers: { 'X-Robots-Tag': 'noindex' } } as never,
