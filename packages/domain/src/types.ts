@@ -253,3 +253,49 @@ export interface StaffReservation {
   allergies: string[]
   accessibility?: string
 }
+
+// --- Floor plan (docs/floor_plan_seating.md) ---
+// Plan space: FLOOR_PLAN_WIDTH × height units; x/y = item centre; rotation = degrees clockwise.
+
+export const FLOOR_PLAN_WIDTH = 1200
+export const FLOOR_PLAN_DEFAULT_HEIGHT = 900
+export const FLOOR_TABLE_MAX_SEATS = 16
+
+export interface FloorTable {
+  id?: string
+  seatingAreaId: string
+  seats: number
+  x: number
+  y: number
+  rotation: number
+}
+
+export interface FloorObject {
+  id?: string
+  label: string
+  width: number
+  height: number
+  color: string // #RRGGBB
+  x: number
+  y: number
+  rotation: number
+}
+
+export interface FloorPlanArea {
+  id: string
+  name: string
+  bookable: boolean
+}
+
+export interface PublicFloorPlan {
+  width: number
+  height: number
+  image: string | null // data URL; render only via SVG <image href>
+  areas: FloorPlanArea[]
+  tables: FloorTable[]
+  objects: FloorObject[]
+}
+
+export interface AdminFloorPlan extends PublicFloorPlan {
+  canEdit: boolean // venue admin of this venue
+}

@@ -17,6 +17,8 @@ export const useAuthStore = defineStore('auth', () => {
 	const isSuperAdmin = computed(() => !!user.value?.isSuperAdmin)
 	// venue admins manage their venue; super admins manage everything
 	const isAdmin = computed(() => isSuperAdmin.value || Object.values(user.value?.venueRoles ?? {}).includes('admin'))
+	/** First venue id where this user has the `admin` role (venue admin, not super admin). */
+	const adminVenueId = computed(() => Object.entries(user.value?.venueRoles ?? {}).find(([, role]) => role === 'admin')?.[0] ?? null)
 
 	async function login(body: { login: string; password: string }) {
 		await apiLogin(body)
@@ -29,5 +31,5 @@ export const useAuthStore = defineStore('auth', () => {
 		ready.value = true
 	}
 
-	return { user, ready, isSuperAdmin, isAdmin, me, login, logout }
+	return { user, ready, isSuperAdmin, isAdmin, adminVenueId, me, login, logout }
 })

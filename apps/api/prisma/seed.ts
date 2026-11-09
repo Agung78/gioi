@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs'
 import { PrismaClient } from '../src/generated/prisma/client'
 import { prisma } from '../src/db'
 
@@ -146,6 +147,19 @@ async function main() {
 		await upsertArea(venue.id, area)
 	}
 
+	// Store the Bali backdrop drawing once (never overwrite a super admin upload).
+	const svg = readFileSync(new URL('./floor-plans/bali.svg', import.meta.url), 'utf8')
+	await prisma.floorPlan.upsert({
+		where: { venueId: venue.id },
+		update: {},
+		create: {
+			venueId: venue.id,
+			image: 'data:image/svg+xml;base64,' + Buffer.from(svg).toString('base64'),
+			width: 1200,
+			height: 1525,
+		},
+	})
+
 	const passwordHash = '$argon2id$v=19$m=19456,t=2,p=1$oWgJCzdk/VoFLiSMCyundQ$Kcal3mi3wX6l7HWQWbHuG/mI2bgriEAa+V6OZX8Y1jo'
 
 	const admin = await prisma.user.upsert({
@@ -179,6 +193,18 @@ async function main() {
 		where: { userId_venueId: { userId: host.id, venueId: venue.id } },
 		update: {},
 		create: { userId: host.id, venueId: venue.id, role: 'host' },
+	})
+
+	// Venue admin without super-admin rights: edits the table layout, cannot upload the drawing.
+	const venueAdmin = await prisma.user.upsert({
+		where: { login: 'venueadmin' },
+		update: {},
+		create: { login: 'venueadmin', name: 'Venue Admin', passwordHash, active: true },
+	})
+	await prisma.userVenue.upsert({
+		where: { userId_venueId: { userId: venueAdmin.id, venueId: venue.id } },
+		update: {},
+		create: { userId: venueAdmin.id, venueId: venue.id, role: 'admin' },
 	})
 
 	console.log(`Seeded venue ${venue.id} (${venue.slug})`)

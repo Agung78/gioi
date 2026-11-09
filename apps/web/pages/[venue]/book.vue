@@ -1,11 +1,13 @@
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from '#app'
 import { addDays, todayISO, isOpenOn, hoursFor, checkAvailability } from '@gioi/domain'
 import { PhArrowLeft, PhCaretDown, PhMinus, PhPlus } from '@phosphor-icons/vue'
 import DatePicker from '@/components/DatePicker.vue'
 import AvailabilityGrid from '@/components/AvailabilityGrid.vue'
 import { createReservation } from '@/composables/useGuestApi'
+import FloorPlanSvg from '@/components/FloorPlanSvg.vue'
+import type { PublicFloorPlan } from '@gioi/domain'
 import type { CreateReservationBody } from '@/types/venue'
 
 const route = useRoute()
@@ -65,6 +67,10 @@ function capture(event: string, props: Record<string, unknown> = {}) {
 
 const bookableAreas = computed(() => settings.value?.seatingAreas.filter((a: any) => a.bookable) ?? [])
 
+function fits(a: any) {
+  return (!a.minParty || partySize.value >= a.minParty) && (!a.maxParty || partySize.value <= a.maxParty)
+}
+
 function toggleDiet(d: string) {
   dietary.value = dietary.value.includes(d) ? dietary.value.filter((x) => x !== d) : [...dietary.value, d]
 }
@@ -94,7 +100,11 @@ async function fetchSlots() {
   if (!settings.value) return
   slotPending.value = true
   try {
-    const res = await fetch(`/api/public/venues/${venue}/availability?date=${date.value}&party=${partySize.value}`, { credentials: 'include' })
+    const url = new URL(`/api/public/venues/${venue}/availability`, location.origin)
+    url.searchParams.set('date', date.value)
+    url.searchParams.set('party', String(partySize.value))
+    if (seatingAreaId.value) url.searchParams.set('area', seatingAreaId.value)
+    const res = await fetch(url.toString(), { credentials: 'include' })
     const json = await res.json()
     slots.value = json.slots ?? []
     capture('slots_viewed', {
@@ -109,9 +119,30 @@ async function fetchSlots() {
   }
 }
 
-watch([date, partySize], () => {
+// Party change: drop a selected area the party no longer fits (runs before the refetch watcher below).
+watch(partySize, () => {
+  const a = bookableAreas.value.find((x: any) => x.id === seatingAreaId.value)
+  if (seatingAreaId.value && (!a || !fits(a))) seatingAreaId.value = null
+})
+
+watch([date, partySize, seatingAreaId], () => {
   time.value = null
   fetchSlots()
+})
+
+const { data: floorPlan } = useFetch<PublicFloorPlan>(`/api/public/venues/${venue}/floor-plan`, { server: false, lazy: true })
+
+const pickedIdx = ref<number | null>(null)
+const picked = computed(() => {
+  const t = pickedIdx.value == null ? null : floorPlan.value?.tables[pickedIdx.value]
+  const area = t && settings.value?.seatingAreas.find((a: any) => a.id === t.seatingAreaId)
+  return t && area ? { table: t, area, fits: fits(area) } : null
+})
+const onTablePick = (i: number) => { pickedIdx.value = i }
+onMounted(() => {
+  const esc = (e: KeyboardEvent) => e.key === 'Escape' && (pickedIdx.value = null)
+  window.addEventListener('keydown', esc)
+  onBeforeUnmount(() => window.removeEventListener('keydown', esc))
 })
 
 watch(time, (t) => {
@@ -185,7 +216,7 @@ async function submit() {
       date: date.value,
       time: time.value,
       partySize: partySize.value,
-      seatingAreaId: r.areaId ?? seatingAreaId.value ?? settings.value?.seatingAreas[0]?.id,
+      seatingAreaId: seatingAreaId.value ?? undefined,
       occasion: occasion.value.trim() || undefined,
       guestNotes: guestNotes.value.trim() || undefined,
       allergies: allergies.length ? allergies : undefined,
@@ -275,15 +306,40 @@ onMounted(() => {
                 @click="capture('whatsapp_clicked', { from: 'large_party' })">Message us on WhatsApp</a>.
             </p>
           </div>
-          <div v-if="bookableAreas.length > 1">
-            <span class="label">Seating</span>
-            <div class="flex flex-wrap gap-2">
-              <button type="button" class="pill" :class="seatingAreaId === null ? 'pill-on' : ''"
-                :aria-pressed="seatingAreaId === null" @click="seatingAreaId = null">Anywhere</button>
-              <button v-for="a in bookableAreas" :key="a.id" type="button" class="pill"
-                :class="seatingAreaId === a.id ? 'pill-on' : ''" :aria-pressed="seatingAreaId === a.id"
-                @click="seatingAreaId = a.id">{{ a.name }}</button>
-            </div>
+          <div v-if="floorPlan?.tables.length" class="max-w-xl">
+            <span class="label">Pick a table area</span>
+            <FloorPlanSvg :plan="floorPlan" pickable :selected="pickedIdx != null ? `t:${pickedIdx}` : null"
+              :highlight-area-id="seatingAreaId" label="Venue floor plan" @table-pick="onTablePick" />
+            <p class="mt-1.5 text-xs text-muted">
+              <template v-if="seatingAreaName">Selected: <strong>{{ seatingAreaName }}</strong>. </template>Tap a table for details.
+            </p>
+            <Teleport to="body">
+              <div v-if="picked" class="fixed inset-0 z-50 flex items-end justify-center bg-black/40 p-4 md:items-center"
+                @click.self="pickedIdx = null">
+                <div role="dialog" aria-modal="true" aria-labelledby="table-title"
+                  class="w-full max-w-sm space-y-4 rounded-surface border border-line bg-raised p-5 text-ink shadow-soft">
+                  <div>
+                    <p class="text-xs font-semibold uppercase tracking-widest text-muted">{{ picked.area.name }}</p>
+                    <h3 id="table-title" class="text-xl font-extrabold">Table for {{ picked.table.seats }}</h3>
+                  </div>
+                  <p v-if="!picked.area.bookable" class="text-sm text-muted">This area isn't open for online booking. Message us to request it.</p>
+                  <p v-else-if="!picked.fits" class="text-sm text-muted">
+                    Not available for a party of {{ partySize }}<span v-if="picked.area.minParty"> (parties of {{ picked.area.minParty }}+)</span><span v-else-if="picked.area.maxParty"> (up to {{ picked.area.maxParty }})</span>.
+                  </p>
+                  <p v-else-if="picked.table.seats < partySize" class="text-sm text-muted">
+                    This table seats {{ picked.table.seats }}. Your party of {{ partySize }} will be seated in {{ picked.area.name }}, not at this exact table.
+                  </p>
+                  <p v-else class="text-sm text-muted">Fits your party of {{ partySize }}. We'll seat you in {{ picked.area.name }}.</p>
+                  <div class="flex gap-2">
+                    <button type="button" class="pill flex-1" @click="pickedIdx = null">Close</button>
+                    <button v-if="seatingAreaId === picked.area.id" type="button" class="pill flex-1" @click="seatingAreaId = null; pickedIdx = null">Clear</button>
+                    <button v-else type="button" class="pill pill-on flex-1" :disabled="!picked.area.bookable || !picked.fits" @click="seatingAreaId = picked.area.id; pickedIdx = null">
+                      Choose {{ picked.area.name }}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </Teleport>
           </div>
           <div>
             <span class="label">Time</span>

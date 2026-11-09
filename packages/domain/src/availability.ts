@@ -111,6 +111,8 @@ export interface CheckOptions {
   now?: Date
   /** Skip past/lead-time/cutoff checks (used by walk-ins where the guest is already here). */
   skipTemporal?: boolean
+  /** When set, report availability for this area only instead of picking the best-fit area. */
+  seatingAreaId?: string
 }
 
 /** Reasons a draft is not bookable. Returned as an array so we can show all blockers at once. */
@@ -217,7 +219,7 @@ export function getDayAvailability(
     if (compareTime(time, hours.close) === 0) {
       return { time, open: false, reason: 'closed' as const }
     }
-    const result = checkAvailability(settings, reservations, { date: dateISO, time, partySize }, { now })
+    const result = checkAvailability(settings, reservations, { date: dateISO, time, partySize, seatingAreaId: opts.seatingAreaId }, { now })
     if (!result.ok) {
       const primary = result.reasons[0]
       const reason: SlotAvailability['reason'] =
@@ -228,8 +230,12 @@ export function getDayAvailability(
           : 'past'
       return { time, open: false, reason }
     }
-    const fit = remainingCapacityForParty(settings, reservations, dateISO, time, partySize)
-    return { time, open: true, remaining: fit?.remaining }
+    // Scoped to one area: remaining covers there; otherwise the best-fit area across the venue.
+    const area = opts.seatingAreaId ? settings.seatingAreas.find((a) => a.id === opts.seatingAreaId) : undefined
+    const remaining = area
+      ? area.capacity - reservedCovers(reservations, dateISO, time, area.id, settings.diningMinutes)
+      : remainingCapacityForParty(settings, reservations, dateISO, time, partySize)?.remaining
+    return { time, open: true, remaining }
   })
 }
 

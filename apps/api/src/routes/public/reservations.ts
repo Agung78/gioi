@@ -99,18 +99,21 @@ export function registerPublicReservationRoutes(app: FastifyInstance, prisma: Pr
 				const venueAreas = await tx.seatingArea.findMany({
 					where: { venueId: venue.id, bookable: true },
 					orderBy: { id: 'asc' },
-					select: { id: true, capacity: true },
+					select: { id: true, capacity: true, minParty: true, maxParty: true },
 				})
 				if (!areaId) {
 					const candidate = await pickAreaForParty(tx as unknown as PrismaClient, venue.id, startsAt, body.partySize, venue.diningMinutes, venueAreas)
 					if (!candidate) throw conflict('full')
 					areaId = candidate
 				} else {
-					const [area] = await tx.$queryRaw<{ id: string }[]>`
-						SELECT id FROM seating_areas
+					const [area] = await tx.$queryRaw<{ id: string; min_party: number | null; max_party: number | null }[]>`
+						SELECT id, min_party, max_party FROM seating_areas
 						WHERE id = ${areaId}::uuid AND venue_id = ${venue.id}::uuid AND bookable = true
 						FOR UPDATE`
 					if (!area) throw conflict('no_area')
+					if ((area.min_party != null && body.partySize < area.min_party) || (area.max_party != null && body.partySize > area.max_party)) {
+						throw unprocessable('party size not allowed in this area')
+					}
 				}
 
 				const before = new Date(startsAt.getTime() - venue.diningMinutes * 60000)
@@ -384,9 +387,10 @@ async function pickAreaForParty(
 	const usedMap = new Map(usedByArea.map((r) => [r.area_id, Number(r.used)]))
 	let best: { id: string; remaining: number } | null = null
 	for (const area of locked) {
-		const cap = areas.find((a) => a.id === area.id)!.capacity
-		const used = usedMap.get(area.id) ?? 0
-		const remaining = cap - used
+		const a = areas.find((x) => x.id === area.id)!
+		if (a.minParty != null && partySize < a.minParty) continue
+		if (a.maxParty != null && partySize > a.maxParty) continue
+		const remaining = a.capacity - (usedMap.get(area.id) ?? 0)
 		if (remaining < partySize) continue
 		if (!best || remaining < best.remaining) best = { id: area.id, remaining }
 	}

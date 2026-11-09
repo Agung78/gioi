@@ -401,6 +401,9 @@ export const ModelName = {
   OpeningHours: 'OpeningHours',
   ClosedDate: 'ClosedDate',
   SeatingArea: 'SeatingArea',
+  FloorPlan: 'FloorPlan',
+  FloorTable: 'FloorTable',
+  FloorObject: 'FloorObject',
   Guest: 'Guest',
   Reservation: 'Reservation',
   ReservationStatusEvent: 'ReservationStatusEvent',
@@ -424,7 +427,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "venue" | "openingHours" | "closedDate" | "seatingArea" | "guest" | "reservation" | "reservationStatusEvent" | "feedback" | "user" | "userVenue" | "session" | "auditEvent"
+    modelProps: "venue" | "openingHours" | "closedDate" | "seatingArea" | "floorPlan" | "floorTable" | "floorObject" | "guest" | "reservation" | "reservationStatusEvent" | "feedback" | "user" | "userVenue" | "session" | "auditEvent"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -721,6 +724,228 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.SeatingAreaCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.SeatingAreaCountAggregateOutputType> | number
+        }
+      }
+    }
+    FloorPlan: {
+      payload: Prisma.$FloorPlanPayload<ExtArgs>
+      fields: Prisma.FloorPlanFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.FloorPlanFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FloorPlanPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.FloorPlanFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FloorPlanPayload>
+        }
+        findFirst: {
+          args: Prisma.FloorPlanFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FloorPlanPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.FloorPlanFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FloorPlanPayload>
+        }
+        findMany: {
+          args: Prisma.FloorPlanFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FloorPlanPayload>[]
+        }
+        create: {
+          args: Prisma.FloorPlanCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FloorPlanPayload>
+        }
+        createMany: {
+          args: Prisma.FloorPlanCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.FloorPlanCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FloorPlanPayload>[]
+        }
+        delete: {
+          args: Prisma.FloorPlanDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FloorPlanPayload>
+        }
+        update: {
+          args: Prisma.FloorPlanUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FloorPlanPayload>
+        }
+        deleteMany: {
+          args: Prisma.FloorPlanDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.FloorPlanUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.FloorPlanUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FloorPlanPayload>[]
+        }
+        upsert: {
+          args: Prisma.FloorPlanUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FloorPlanPayload>
+        }
+        aggregate: {
+          args: Prisma.FloorPlanAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateFloorPlan>
+        }
+        groupBy: {
+          args: Prisma.FloorPlanGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.FloorPlanGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.FloorPlanCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.FloorPlanCountAggregateOutputType> | number
+        }
+      }
+    }
+    FloorTable: {
+      payload: Prisma.$FloorTablePayload<ExtArgs>
+      fields: Prisma.FloorTableFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.FloorTableFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FloorTablePayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.FloorTableFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FloorTablePayload>
+        }
+        findFirst: {
+          args: Prisma.FloorTableFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FloorTablePayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.FloorTableFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FloorTablePayload>
+        }
+        findMany: {
+          args: Prisma.FloorTableFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FloorTablePayload>[]
+        }
+        create: {
+          args: Prisma.FloorTableCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FloorTablePayload>
+        }
+        createMany: {
+          args: Prisma.FloorTableCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.FloorTableCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FloorTablePayload>[]
+        }
+        delete: {
+          args: Prisma.FloorTableDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FloorTablePayload>
+        }
+        update: {
+          args: Prisma.FloorTableUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FloorTablePayload>
+        }
+        deleteMany: {
+          args: Prisma.FloorTableDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.FloorTableUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.FloorTableUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FloorTablePayload>[]
+        }
+        upsert: {
+          args: Prisma.FloorTableUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FloorTablePayload>
+        }
+        aggregate: {
+          args: Prisma.FloorTableAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateFloorTable>
+        }
+        groupBy: {
+          args: Prisma.FloorTableGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.FloorTableGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.FloorTableCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.FloorTableCountAggregateOutputType> | number
+        }
+      }
+    }
+    FloorObject: {
+      payload: Prisma.$FloorObjectPayload<ExtArgs>
+      fields: Prisma.FloorObjectFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.FloorObjectFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FloorObjectPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.FloorObjectFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FloorObjectPayload>
+        }
+        findFirst: {
+          args: Prisma.FloorObjectFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FloorObjectPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.FloorObjectFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FloorObjectPayload>
+        }
+        findMany: {
+          args: Prisma.FloorObjectFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FloorObjectPayload>[]
+        }
+        create: {
+          args: Prisma.FloorObjectCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FloorObjectPayload>
+        }
+        createMany: {
+          args: Prisma.FloorObjectCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.FloorObjectCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FloorObjectPayload>[]
+        }
+        delete: {
+          args: Prisma.FloorObjectDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FloorObjectPayload>
+        }
+        update: {
+          args: Prisma.FloorObjectUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FloorObjectPayload>
+        }
+        deleteMany: {
+          args: Prisma.FloorObjectDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.FloorObjectUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.FloorObjectUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FloorObjectPayload>[]
+        }
+        upsert: {
+          args: Prisma.FloorObjectUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FloorObjectPayload>
+        }
+        aggregate: {
+          args: Prisma.FloorObjectAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateFloorObject>
+        }
+        groupBy: {
+          args: Prisma.FloorObjectGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.FloorObjectGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.FloorObjectCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.FloorObjectCountAggregateOutputType> | number
         }
       }
     }
@@ -1421,6 +1646,45 @@ export const SeatingAreaScalarFieldEnum = {
 export type SeatingAreaScalarFieldEnum = (typeof SeatingAreaScalarFieldEnum)[keyof typeof SeatingAreaScalarFieldEnum]
 
 
+export const FloorPlanScalarFieldEnum = {
+  venueId: 'venueId',
+  image: 'image',
+  width: 'width',
+  height: 'height',
+  updatedAt: 'updatedAt'
+} as const
+
+export type FloorPlanScalarFieldEnum = (typeof FloorPlanScalarFieldEnum)[keyof typeof FloorPlanScalarFieldEnum]
+
+
+export const FloorTableScalarFieldEnum = {
+  id: 'id',
+  venueId: 'venueId',
+  seatingAreaId: 'seatingAreaId',
+  seats: 'seats',
+  x: 'x',
+  y: 'y',
+  rotation: 'rotation'
+} as const
+
+export type FloorTableScalarFieldEnum = (typeof FloorTableScalarFieldEnum)[keyof typeof FloorTableScalarFieldEnum]
+
+
+export const FloorObjectScalarFieldEnum = {
+  id: 'id',
+  venueId: 'venueId',
+  label: 'label',
+  width: 'width',
+  height: 'height',
+  color: 'color',
+  x: 'x',
+  y: 'y',
+  rotation: 'rotation'
+} as const
+
+export type FloorObjectScalarFieldEnum = (typeof FloorObjectScalarFieldEnum)[keyof typeof FloorObjectScalarFieldEnum]
+
+
 export const GuestScalarFieldEnum = {
   id: 'id',
   venueId: 'venueId',
@@ -1640,6 +1904,20 @@ export type BooleanFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel,
 
 
 /**
+ * Reference to a field of type 'Float'
+ */
+export type FloatFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Float'>
+    
+
+
+/**
+ * Reference to a field of type 'Float[]'
+ */
+export type ListFloatFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Float[]'>
+    
+
+
+/**
  * Reference to a field of type 'Channel'
  */
 export type EnumChannelFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Channel'>
@@ -1706,20 +1984,6 @@ export type JsonFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'J
  * Reference to a field of type 'QueryMode'
  */
 export type EnumQueryModeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'QueryMode'>
-    
-
-
-/**
- * Reference to a field of type 'Float'
- */
-export type FloatFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Float'>
-    
-
-
-/**
- * Reference to a field of type 'Float[]'
- */
-export type ListFloatFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Float[]'>
     
 
 /**
@@ -1877,6 +2141,9 @@ export type GlobalOmitConfig = {
   openingHours?: Prisma.OpeningHoursOmit
   closedDate?: Prisma.ClosedDateOmit
   seatingArea?: Prisma.SeatingAreaOmit
+  floorPlan?: Prisma.FloorPlanOmit
+  floorTable?: Prisma.FloorTableOmit
+  floorObject?: Prisma.FloorObjectOmit
   guest?: Prisma.GuestOmit
   reservation?: Prisma.ReservationOmit
   reservationStatusEvent?: Prisma.ReservationStatusEventOmit

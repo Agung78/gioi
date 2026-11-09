@@ -15,6 +15,7 @@ import { notFound, conflict, forbidden, unprocessable, AppError } from '../../li
 import { hash } from '@node-rs/argon2'
 import { venueToSettings } from '../../lib/settings'
 import { requireAuth, requireAdmin, requireVenueAccess } from '../../lib/middleware'
+import { planSeatsByArea, areasWithPlanSeats } from './floorPlan'
 import {
 	localDate,
 	localTime,
@@ -657,7 +658,7 @@ export function registerStaffRoutes(app: FastifyInstance, prisma: PrismaClient):
 			const session = await requireAuth(prisma, request.cookies as Record<string, string>)
 			requireVenueAccess(session, request.params.id)
 			requireAdmin(session, request.params.id)
-			return prisma.seatingArea.findMany({ where: { venueId: request.params.id }, orderBy: { name: 'asc' } })
+			return areasWithPlanSeats(prisma, request.params.id)
 		},
 	)
 
@@ -706,6 +707,7 @@ export function registerStaffRoutes(app: FastifyInstance, prisma: PrismaClient):
 					throw new AppError(422, 'minParty must not exceed maxParty', 'ERR_VALIDATION')
 				}
 			}
+			const planSeats = await planSeatsByArea(prisma, request.params.id)
 			await prisma.$transaction(async (tx) => {
 				for (const row of request.body) {
 					if (row.id) {
@@ -713,7 +715,7 @@ export function registerStaffRoutes(app: FastifyInstance, prisma: PrismaClient):
 							where: { id: row.id, venueId: request.params.id },
 							data: {
 								name: row.name,
-								capacity: row.capacity,
+								capacity: planSeats.get(row.id) ?? row.capacity,
 								bookable: row.bookable,
 								minParty: row.minParty ?? null,
 								maxParty: row.maxParty ?? null,
@@ -744,7 +746,7 @@ export function registerStaffRoutes(app: FastifyInstance, prisma: PrismaClient):
 					},
 				})
 			})
-			return prisma.seatingArea.findMany({ where: { venueId: request.params.id }, orderBy: { name: 'asc' } })
+			return areasWithPlanSeats(prisma, request.params.id)
 		},
 	)
 

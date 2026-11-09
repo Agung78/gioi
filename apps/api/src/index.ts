@@ -5,6 +5,7 @@ import { prisma } from './db'
 import { registerErrorHandler } from './lib/middleware'
 import { registerPublicVenueRoutes } from './routes/public/venues'
 import { registerStaffRoutes } from './routes/staff'
+import { registerFloorPlanRoutes } from './routes/staff/floorPlan'
 import { registerPublicReservationRoutes } from './routes/public/reservations'
 import { registerStaffAuthRoutes } from './routes/staff/auth'
 
@@ -39,6 +40,7 @@ registerPublicVenueRoutes(app, prisma)
 registerPublicReservationRoutes(app, prisma)
 registerStaffAuthRoutes(app, prisma)
 registerStaffRoutes(app, prisma)
+registerFloorPlanRoutes(app, prisma)
 
 // Vercel imports the default export; locally there is no platform to call it.
 if (!process.env.VERCEL) {
