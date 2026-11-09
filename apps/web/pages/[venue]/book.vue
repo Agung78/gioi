@@ -340,7 +340,7 @@ onMounted(() => {
                     Not available for a party of {{ partySize }}<span v-if="picked.area.minParty"> (parties of {{ picked.area.minParty }}+)</span><span v-else-if="picked.area.maxParty"> (up to {{ picked.area.maxParty }})</span>.
                   </p>
                   <p v-else-if="picked.table.seats < partySize" class="text-sm text-muted">
-                    This table seats {{ picked.table.seats }}. Your party of {{ partySize }} will be seated in {{ picked.area.name }}, not at this exact table.
+                    This table seats {{ picked.table.seats }}. Your party of {{ partySize }} will be seated in {{ picked.area.name }}<template v-if="partySize > picked.table.seats">, and our host will join {{ Math.ceil(partySize / picked.table.seats) }} tables for you</template>, not at this exact table.
                   </p>
                   <p v-else class="text-sm text-muted">Fits your party of {{ partySize }}. We'll seat you in {{ picked.area.name }}.</p>
                   <div class="flex gap-2">
