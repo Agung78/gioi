@@ -51,9 +51,9 @@ export const VENUE_SEO: Record<string, VenueSeo> = {
       imageAlt: 'GIOI Ocean Gourmet beachfront dining area in Kuta, Bali',
       experienceTitle: 'Come for the view. Stay for the flavour.',
       scenes: [
-        { time: '10:00', title: 'A slower start', copy: 'Coffee, fresh fruit and the first view of Kuta Beach.', img: '/images/venues/bali/outlet-02.webp', alt: 'Morning coffee and fruit overlooking Kuta Beach at GIOI Ocean Gourmet' },
-        { time: '17:30', title: 'The front row', copy: 'Settle in for seafood, sharing plates and the light changing over the water.', img: '/images/venues/bali/outlet-07.webp', alt: 'Beachfront tables facing the sunset at GIOI Ocean Gourmet, Kuta', feature: true },
-        { time: '20:00', title: 'Stay for dinner', copy: 'Grilled coastal produce, modern Asian flavours and cocktails after sunset.', img: '/images/venues/bali/outlet-05.webp', alt: 'Evening dinner setting at GIOI Ocean Gourmet, Kuta Beach' },
+        { time: '10 AM', title: '10 AM — Breakfast', copy: 'Fresh coffee, delicious breakfast, and ocean breeze to start your day right. Your perfect morning escape awaits at GIOI.', img: '/images/venues/bali/outlet-02.webp', alt: 'Morning coffee and fruit overlooking Kuta Beach at GIOI Ocean Gourmet' },
+        { time: 'Sunset', title: 'SUNSET — Golden Hour', copy: 'Golden skies, chilled beers, and signature cocktails by the sea. Catch the sunset, sip, and let the good times roll.', img: '/images/venues/bali/outlet-07.webp', alt: 'Beachfront tables facing the sunset at GIOI Ocean Gourmet, Kuta', feature: true },
+        { time: 'Dinner', title: 'DINNER — Evening Experience', copy: 'Warm ambience, indulgent seafood platters, and perfectly juicy steaks. Make tonight a little more special at GIOI.', img: '/images/venues/bali/outlet-05.webp', alt: 'Evening dinner setting at GIOI Ocean Gourmet, Kuta Beach' },
       ],
       visitTitle: 'On the beach at Discovery Mall.',
       ctaTitle: 'Make sunset your reservation.',
