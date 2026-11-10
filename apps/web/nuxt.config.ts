@@ -12,7 +12,6 @@ export default defineNuxtConfig({
 			siteUrl: process.env.NUXT_PUBLIC_SITE_URL ?? 'https://gioigroup.com',
 			// Booking flow host. Empty in dev so links stay on localhost.
 			bookUrl: process.env.NUXT_PUBLIC_BOOK_URL ?? 'https://book.gioigroup.com',
-			turnstileSiteKey: process.env.NUXT_PUBLIC_TURNSTILE_SITE_KEY ?? '',
 		},
 	},
 	nitro: {

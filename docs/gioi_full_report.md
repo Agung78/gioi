@@ -249,4 +249,34 @@ Traffic arrived on Nov 8 and peaked on Nov 9. /bali leads with 46 visitors, then
 
 ![](report-img/vercel.png)
 
+### PostHog Web analytics · book.gioigroup.com, last 7 days
+
+::: stats
+8 | Visitors | blue
+32 | Page views | green
+15 | Sessions | orange
+33% | Bounce rate | tan
+:::
+
+Average session duration is 15m 50s. /bali/book has 5 visitors and 23 views (28.6% bounce); /bali has 4 visitors and 9 views (42.9% bounce). Direct brings 8 visitors, Referral 3. Desktop and mobile each have 4 visitors, desktop with 24 views and mobile 8. Traffic is mainly Indonesia and the United States. Activity began Nov 8 and peaked Nov 9, with Monday 10:00 to 11:00 UTC the busiest hours. Error tracking is not set up, no conversion action is defined, and retention is 0% in week 1 for the Nov 1 to 7 cohort. The sample is very small, and the book. host only, so it is not comparable with the Vercel figures above.
+
+![](report-img/posthog-1.png)
+
+![](report-img/posthog-2.png)
+
+![](report-img/posthog-3.png)
+
+## Vercel Firewall · gioi-web, traffic, past day
+
+::: stats
+527 | Requests denied | orange
+61 | Requests challenged | tan
+0 | Custom rules | blue
+Inactive | Bot Protection | green
+:::
+
+The firewall is active with system mitigations on; the DDoS Mitigation filter is applied. Traffic peaks at about 250 requests in one interval, with smaller spikes later in the day. Two Google-hosted IPs (34.76.33.44 with 251 and 34.22.196.121 with 123) and the AS Google LLC (375) lead, followed by DigitalOcean (68). Most user agents are Windows Chrome (367), and one is the i9scan scanner (29). Top request paths include /, /.git/config (12), /.env (11), /.svn/entries (7) and /config.json (7), which are typical secret-hunting probes. Hosts hit are gioigroup.com (343), www.gioigroup.com (167) and book.gioigroup.com (78). No custom rules are set and Bot Protection is inactive. Reading these as automated scanning is an inference from the paths and sources; the dashboard does not label them.
+
+![](report-img/vercel-firewall.png)
+
 > Method and limits: the pentest was black-box with no source access and /ingest/** excluded; ZAP was passive; QA ran on the dev database, not production. Raw outputs: gioi/strix_runs/host-docker-internal-3002_7cee/, /tmp/gioi-{api,web}-semgrep.json, cve-mcp.json, zap/zap-report.json.

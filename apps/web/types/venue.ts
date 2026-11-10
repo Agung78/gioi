@@ -55,7 +55,7 @@ export interface CreateReservationBody {
   allergies?: string[]
   accessibility?: string
   idempotencyKey?: string
-  turnstileToken?: string
+  website?: string
 }
 
 export interface CreateReservationResponse {
