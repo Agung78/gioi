@@ -41,7 +41,7 @@ useHead({
     <p>We use PostHog and Vercel Analytics to understand aggregate site usage, such as which pages are viewed and where bookings start or fail. PostHog is configured without autocapture or session recording. We do not use these tools to track you across other sites.</p>
 
     <h2 class="text-xl font-bold mt-8 mb-3">Sharing</h2>
-    <p>Your personal data is shared only with service providers needed to run the reservation system (for example, our hosting and booking API, and Cloudflare Turnstile spam protection). We do not sell your data.</p>
+    <p>Your personal data is shared only with service providers needed to run the reservation system (for example, our hosting and booking API). We do not sell your data.</p>
 
     <h2 class="text-xl font-bold mt-8 mb-3">Retention</h2>
     <p>We keep your data as long as needed to manage reservations and meet our legal obligations.</p>

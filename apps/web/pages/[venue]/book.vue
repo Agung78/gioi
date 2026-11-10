@@ -195,8 +195,7 @@ const formattedDate = computed(() =>
 )
 const seatingAreaName = computed(() => bookableAreas.value.find((a: any) => a.id === seatingAreaId.value)?.name)
 
-const turnstileSiteKey = useRuntimeConfig().public.turnstileSiteKey
-const turnstileToken = ref<string | null>(null)
+const website = ref('')
 
 async function submit() {
   error.value = null
@@ -207,11 +206,6 @@ async function submit() {
     error.value = 'That time just filled up. Pick another slot above.'
     time.value = null
     document.getElementById('when')?.scrollIntoView({ behavior: 'smooth' })
-    return
-  }
-  if (turnstileSiteKey && !turnstileToken.value) {
-    capture('booking_submit_failed', { reason: 'turnstile', date: date.value, party_size: partySize.value })
-    error.value = 'Please complete the verification.'
     return
   }
   submitting.value = true
@@ -231,7 +225,7 @@ async function submit() {
       accessibility: accessibility.value.trim() || undefined,
       idempotencyKey: crypto.randomUUID(),
       source: bookingSource(route.query.src),
-      ...(turnstileToken.value ? { turnstileToken: turnstileToken.value } : {}),
+      website: website.value,
     }
     const res = await createReservation(venue, body, posthog?.get_distinct_id())
     router.push(`/${venue}/confirmation/${res.bookingCode}`)
@@ -280,6 +274,7 @@ onMounted(() => {
 
     <div class="mt-8 grid gap-8 lg:grid-cols-[1fr_320px]">
       <form id="book-form" class="min-w-0 space-y-10" @submit.prevent="submit" @focusin.once="capture('booking_form_started')">
+        <input v-model="website" type="text" name="website" tabindex="-1" autocomplete="off" aria-hidden="true" class="absolute -left-[9999px] h-0 w-0 opacity-0">
         <section id="when" class="space-y-5">
           <h2 class="text-xl font-bold">1. When</h2>
           <div>

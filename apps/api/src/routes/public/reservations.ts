@@ -1,6 +1,7 @@
 import type { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify'
 import type { PrismaClient } from '@prisma/client'
-import { notFound, conflict, forbidden, unprocessable } from '../../lib/errors'
+import { randomUUID } from 'node:crypto'
+import { notFound, conflict, unprocessable } from '../../lib/errors'
 import { randomBookingCode } from '../../lib/crypto'
 import { track } from '../../lib/analytics'
 import { addDays, canTransition, dayOfWeek, localDate, localTime, toMinutes, toUtc } from '@gioi/domain'
@@ -53,24 +54,17 @@ export function registerPublicReservationRoutes(app: FastifyInstance, prisma: Pr
 						idempotencyKey: { type: 'string', format: 'uuid' },
 						// Guests may only claim marketing channels, never staff ones (host, walk_in, ...).
 						source: { type: 'string', enum: ['website', 'instagram', 'google', 'whatsapp'] },
-						turnstileToken: { type: 'string' },
+						website: { type: 'string', maxLength: 200 },
 					},
 				},
 			},
 		},
-		async (request: FastifyRequest<{ Params: { slug: string }; Body: CreateReservationBody & { turnstileToken?: string } }>, reply: FastifyReply) => {
+		async (request: FastifyRequest<{ Params: { slug: string }; Body: CreateReservationBody & { website?: string } }>, reply: FastifyReply) => {
 			const { slug } = request.params
 			const body = request.body
 
-			// Turnstile verification. Skipping is not allowed in production.
-			const secret = process.env.TURNSTILE_SECRET_KEY
-			if (!secret && process.env.NODE_ENV === 'production') {
-				throw forbidden('Turnstile not configured')
-			}
-			if (secret) {
-				const verified = await verifyTurnstile(secret, body.turnstileToken)
-				if (!verified) throw unprocessable('Turnstile verification failed')
-			}
+			// Honeypot: hidden field real users never fill. Fake success so bots don't adapt.
+			if (body.website) return reply.status(200).send({ bookingCode: randomBookingCode(), reservationId: randomUUID() })
 
 			const venue = await prisma.venue.findUnique({ where: { slug }, include: { openingHours: true, closedDates: true } })
 			if (!venue) throw notFound('venue not found')
@@ -400,17 +394,4 @@ async function pickAreaForParty(
 	return best ? best.id : null
 }
 
-async function verifyTurnstile(secret: string, token?: string): Promise<boolean> {
-	if (!token) return false
-	try {
-		const res = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
-			method: 'POST',
-			headers: { 'Content-Type': 'application/json' },
-			body: JSON.stringify({ secret, response: token }),
-		})
-		const json = await res.json()
-		return !!json.success
-	} catch {
-		return false
-	}
-}
+
