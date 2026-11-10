@@ -5,7 +5,7 @@ export interface VenueSeo {
   description: string
   city: string
   region: string
-  image: { url: string; width: number; height: number }
+  image: { url: string; width: number; height: number; og?: { url: string; width: number; height: number } } // og: 1.91:1 share card
   geo: { lat: number; lng: number }
   priceRange: string
   cuisine: string[]
@@ -33,7 +33,7 @@ export const VENUE_SEO: Record<string, VenueSeo> = {
     description: 'Beachfront seafood and modern Asian dining at Discovery Mall, Kuta Beach, Bali. Reserve a table online. Reservasi meja online di GIOI Ocean Gourmet, restoran seafood tepi pantai Kuta.',
     city: 'Kuta',
     region: 'Bali',
-    image: { url: '/images/venues/bali/outlet-06.webp', width: 1600, height: 900 },
+    image: { url: '/images/venues/bali/outlet-06.webp', width: 1600, height: 1600, og: { url: '/images/venues/bali/outlet-06-og.jpg', width: 1200, height: 630 } },
     geo: { lat: -8.7283604, lng: 115.1668197 },
     priceRange: 'IDR 250,000 - 300,000',
     cuisine: ['Seafood', 'Asian'],

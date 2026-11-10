@@ -85,7 +85,7 @@ onBeforeUnmount(() => ctx?.revert())
             <button class="btn h-12 flex-1 bg-sun px-6 text-base text-navy hover:bg-sand focus-visible:ring-sand focus-visible:ring-offset-navy sm:flex-none" type="submit">Find a table</button>
           </form>
         </div>
-        <div data-hero-media class="relative order-1 overflow-hidden rounded-[28px] md:order-2"><div class="aspect-[4/3] bg-navy md:aspect-auto md:h-[min(60svh,34rem)]"><img :src="seo.image.url" :alt="p.imageAlt" width="1600" height="900" class="h-full w-full object-cover" fetchpriority="high" /></div></div>
+        <div data-hero-media class="relative order-1 overflow-hidden rounded-[28px] md:order-2"><div class="aspect-[4/3] bg-navy md:aspect-auto md:h-[min(60svh,34rem)]"><img :src="seo.image.url" :alt="p.imageAlt" width="1600" height="1600" class="h-full w-full object-cover" fetchpriority="high" /></div></div>
       </div>
     </section>
 

@@ -28,7 +28,8 @@ export async function useVenueSeo(venue = (useRoute().params.venue as string)) {
   const name = info?.name ?? 'GIOI'
   const title = seo?.title ?? name
   const description = seo?.description ?? info?.tagline ?? ''
-  const image = siteUrl + seo.image.url
+  const og = seo.image.og ?? seo.image
+  const image = siteUrl + og.url
   const phoneE164 = info?.phone ? '+' + info.phone.replace(/^0/, '62').replace(/\D/g, '') : ''
   const wa = info ? `https://wa.me/${info.whatsapp.replace(/^0/, '62').replace(/\D/g, '')}` : '#'
 
@@ -45,8 +46,8 @@ export async function useVenueSeo(venue = (useRoute().params.venue as string)) {
     ogSiteName: 'GIOI Group',
     twitterImage: image,
     ogLocale: 'en_US',
-    ogImageWidth: seo?.image.width,
-    ogImageHeight: seo?.image.height,
+    ogImageWidth: og.width,
+    ogImageHeight: og.height,
     twitterCard: 'summary_large_image',
   })
 
