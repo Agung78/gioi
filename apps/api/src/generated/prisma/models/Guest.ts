@@ -606,10 +606,6 @@ export type GuestUpdateallergiesInput = {
   push?: string | string[]
 }
 
-export type NullableDateTimeFieldUpdateOperationsInput = {
-  set?: Date | string | null
-}
-
 export type GuestCreateNestedOneWithoutReservationsInput = {
   create?: Prisma.XOR<Prisma.GuestCreateWithoutReservationsInput, Prisma.GuestUncheckedCreateWithoutReservationsInput>
   connectOrCreate?: Prisma.GuestCreateOrConnectWithoutReservationsInput

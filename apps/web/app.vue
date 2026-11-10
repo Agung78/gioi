@@ -90,4 +90,14 @@ const navLinks = computed(() => {
   if (auth.isSuperAdmin) links.push({ to: '/admin/audit', label: 'Audit' })
   return links
 })
+
+// Staff pages set no title of their own, so the tab fell back to the URL.
+const role = computed(() => (auth.isSuperAdmin ? 'Super Admin' : auth.isAdmin ? 'Admin' : 'Host'))
+useHead({
+  title: computed(() => {
+    if (isPublic.value || !auth.user) return undefined
+    const page = navLinks.value.find((l) => l.to === route.path)?.label
+    return page && page !== role.value ? `${page} · ${role.value} | GIOI` : `${role.value} | GIOI`
+  }),
+})
 </script>

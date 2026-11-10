@@ -1596,11 +1596,15 @@ export const VenueScalarFieldEnum = {
   partyMin: 'partyMin',
   partyMax: 'partyMax',
   diningMinutes: 'diningMinutes',
+  graceMinutes: 'graceMinutes',
   leadTimeMinutes: 'leadTimeMinutes',
   cutoffMinutes: 'cutoffMinutes',
   noShowTargetPercent: 'noShowTargetPercent',
   overCapacityAlertPercent: 'overCapacityAlertPercent',
   cancellationPolicy: 'cancellationPolicy',
+  noticeEnabled: 'noticeEnabled',
+  noticeDate: 'noticeDate',
+  noticeText: 'noticeText',
   feedbackTitle: 'feedbackTitle',
   feedbackSubtitle: 'feedbackSubtitle',
   feedbackTags: 'feedbackTags',
@@ -1712,6 +1716,7 @@ export const ReservationScalarFieldEnum = {
   bookingCode: 'bookingCode',
   guestId: 'guestId',
   seatingAreaId: 'seatingAreaId',
+  tableId: 'tableId',
   startsAt: 'startsAt',
   partySize: 'partySize',
   occasion: 'occasion',
@@ -1883,6 +1888,13 @@ export type ListIntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel,
 
 
 /**
+ * Reference to a field of type 'Boolean'
+ */
+export type BooleanFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Boolean'>
+    
+
+
+/**
  * Reference to a field of type 'DateTime'
  */
 export type DateTimeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'DateTime'>
@@ -1893,13 +1905,6 @@ export type DateTimeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel
  * Reference to a field of type 'DateTime[]'
  */
 export type ListDateTimeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'DateTime[]'>
-    
-
-
-/**
- * Reference to a field of type 'Boolean'
- */
-export type BooleanFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Boolean'>
     
 
 

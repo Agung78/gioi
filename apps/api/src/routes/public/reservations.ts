@@ -3,6 +3,7 @@ import type { PrismaClient } from '@prisma/client'
 import { randomUUID } from 'node:crypto'
 import { notFound, conflict, unprocessable } from '../../lib/errors'
 import { randomBookingCode } from '../../lib/crypto'
+import { claimTable, requestedTableArea } from '../../lib/tables'
 import { track } from '../../lib/analytics'
 import { addDays, canTransition, dayOfWeek, localDate, localTime, toMinutes, toUtc } from '@gioi/domain'
 
@@ -14,6 +15,7 @@ interface CreateReservationBody {
 	time: string
 	partySize: number
 	seatingAreaId?: string
+	tableId?: string
 	occasion?: string
 	guestNotes?: string
 	allergies?: string[]
@@ -21,6 +23,7 @@ interface CreateReservationBody {
 	country?: string
 	idempotencyKey?: string
 	source?: 'website' | 'instagram' | 'google' | 'whatsapp'
+	noticeAccepted?: boolean
 }
 
 interface FeedbackBody {
@@ -48,6 +51,7 @@ export function registerPublicReservationRoutes(app: FastifyInstance, prisma: Pr
 						time: { type: 'string', pattern: '^\\d{2}:\\d{2}$' },
 						partySize: { type: 'integer', minimum: 1 },
 						seatingAreaId: { type: 'string', format: 'uuid' },
+						tableId: { type: 'string', format: 'uuid' },
 						occasion: { type: 'string', maxLength: 100 },
 						guestNotes: { type: 'string', maxLength: 1000 },
 						allergies: { type: 'array', maxItems: 20, items: { type: 'string', minLength: 1, maxLength: 60 } },
@@ -55,6 +59,7 @@ export function registerPublicReservationRoutes(app: FastifyInstance, prisma: Pr
 						idempotencyKey: { type: 'string', format: 'uuid' },
 						// Guests may only claim marketing channels, never staff ones (host, walk_in, ...).
 						source: { type: 'string', enum: ['website', 'instagram', 'google', 'whatsapp'] },
+						noticeAccepted: { type: 'boolean' },
 						website: { type: 'string', maxLength: 200 },
 						country: { type: 'string', maxLength: 80 },
 					},
@@ -91,10 +96,14 @@ export function registerPublicReservationRoutes(app: FastifyInstance, prisma: Pr
 			}
 			if (diffMin < venue.leadTimeMinutes || diffMin <= venue.cutoffMinutes) throw unprocessable('too soon to book')
 			if (body.date > addDays(localDate(new Date(), venue.timeZone), 90)) throw unprocessable('date too far ahead')
+			if (venue.noticeEnabled && venue.noticeDate && venue.noticeDate.toISOString().slice(0, 10) === body.date && !body.noticeAccepted) {
+				throw unprocessable('special notice must be acknowledged')
+			}
 
 			const { reservation, areaId } = await prisma.$transaction(async (tx) => {
 				// Lock the chosen (or candidate) seating area(s) to serialize capacity checks.
 				let areaId = body.seatingAreaId
+				if (body.tableId) areaId = await requestedTableArea(tx, venue.id, body.tableId, body.partySize, areaId)
 				const venueAreas = await tx.seatingArea.findMany({
 					where: { venueId: venue.id, bookable: true },
 					orderBy: { id: 'asc' },
@@ -114,6 +123,8 @@ export function registerPublicReservationRoutes(app: FastifyInstance, prisma: Pr
 						throw unprocessable('party size not allowed in this area')
 					}
 				}
+
+				const tableId = await claimTable(tx, venue.id, areaId, startsAt, venue.diningMinutes, body.partySize, body.tableId)
 
 				const before = new Date(startsAt.getTime() - venue.diningMinutes * 60000)
 				const after = new Date(startsAt.getTime() + venue.diningMinutes * 60000)
@@ -155,6 +166,7 @@ export function registerPublicReservationRoutes(app: FastifyInstance, prisma: Pr
 						venueId: venue.id,
 						bookingCode: randomBookingCode(),
 						guestId: guest.id,
+						tableId,
 						seatingAreaId: areaId,
 						startsAt,
 						partySize: body.partySize,

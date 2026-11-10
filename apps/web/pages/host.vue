@@ -6,10 +6,13 @@ import { PhWarning, PhWheelchair, PhStar, PhWhatsappLogo } from '@phosphor-icons
 import StatusChip from '@/components/StatusChip.vue'
 import StatusButtons from '@/components/StatusButtons.vue'
 import GuestSearch from '@/components/GuestSearch.vue'
+import DatePicker from '@/components/DatePicker.vue'
 import WalkInModal from '@/components/WalkInModal.vue'
+import ChangeTableModal from '@/components/ChangeTableModal.vue'
 import {
 	fetchDay,
 	changeReservationStatus,
+	exportDayCSV,
 	type DayView,
 	type StaffReservation,
 } from '@/composables/useApi'
@@ -23,6 +26,8 @@ const tab = ref<'today' | 'search'>('today')
 const reservations = ref<StaffReservation[]>([])
 const areas = ref<Array<{ id: string; name: string }>>([])
 const venue = ref<{ slug: string; name: string; feedbackMessageTemplate: string } | null>(null)
+const venueId = ref('')
+const changing = ref<StaffReservation | null>(null)
 const poll = ref<ReturnType<typeof setInterval> | null>(null)
 
 async function load(day?: string) {
@@ -32,8 +37,22 @@ async function load(day?: string) {
 		reservations.value = d.reservations
 		areas.value = d.areas
 		venue.value = d.venue
+		venueId.value = d.venueId
 	} catch (e: any) {
 		lastError.value = e.message ?? 'Failed to load day.'
+	}
+}
+
+async function exportCsv() {
+	try {
+		const url = URL.createObjectURL(await exportDayCSV(venueId.value, date.value))
+		const a = document.createElement('a')
+		a.href = url
+		a.download = `gioi-reservations-${date.value}.csv`
+		a.click()
+		URL.revokeObjectURL(url)
+	} catch (e: any) {
+		lastError.value = e.message ?? 'Export failed.'
 	}
 }
 
@@ -147,8 +166,9 @@ definePageMeta({ middleware: 'auth' })
 			<div class="flex flex-wrap items-center gap-2">
 				<button class="btn-ghost min-h-12" type="button" @click="date = addDays(date, -1)">Previous</button>
 				<button class="btn-ghost min-h-12" type="button" @click="date = todayISO()">Today</button>
-				<input v-model="date" type="date" class="field !w-auto !py-1 !px-2.5 text-sm" aria-label="Service date" />
+				<DatePicker v-model="date" aria-label="Service date" class="min-h-12 !w-auto py-1.5 text-sm" />
 				<button class="btn-ghost min-h-12" type="button" @click="date = addDays(date, 1)">Next</button>
+				<button class="btn-ghost min-h-12" type="button" :disabled="!venueId" @click="exportCsv">Export CSV</button>
 				<button class="btn-primary min-h-12" type="button" @click="showWalkIn = true">+ Walk-in</button>
 			</div>
 		</header>
@@ -241,6 +261,7 @@ definePageMeta({ middleware: 'auth' })
 								<button v-if="r.status === 'completed'" class="btn-ghost inline-flex items-center gap-2" type="button" @click="sendFeedback(r)">
 									<PhWhatsappLogo :size="20" aria-hidden="true" /> Send feedback via WhatsApp
 								</button>
+								<button v-if="['pending', 'confirmed', 'arrived', 'seated'].includes(r.status)" class="btn-ghost" type="button" @click="changing = r">Change table</button>
 							</div>
 						</article>
 					</div>
@@ -251,6 +272,7 @@ definePageMeta({ middleware: 'auth' })
 	</Transition>
 
 
-		<WalkInModal :open="showWalkIn" :areas="areas" @close="showWalkIn = false" @created="lastError = null" />
+		<WalkInModal :open="showWalkIn" :areas="areas" :venue-slug="venue?.slug" :venue-id="venueId" :date="date" @close="showWalkIn = false" @created="lastError = null" />
+		<ChangeTableModal :reservation="changing" :venue-id="venueId" :venue-slug="venue?.slug" :areas="areas" @close="changing = null" @saved="changing = null; load(date)" />
 	</div>
 </template>

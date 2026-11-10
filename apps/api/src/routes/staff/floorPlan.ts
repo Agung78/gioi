@@ -88,6 +88,7 @@ export function registerFloorPlanRoutes(app: FastifyInstance, prisma: PrismaClie
 								required: ['seatingAreaId', 'seats', 'x', 'y', 'rotation'],
 								properties: {
 									seatingAreaId: { type: 'string', format: 'uuid' },
+									id: { type: 'string', format: 'uuid' },
 									seats: { type: 'integer', minimum: 1, maximum: 16 },
 									...position,
 								},
@@ -142,14 +143,14 @@ export function registerFloorPlanRoutes(app: FastifyInstance, prisma: PrismaClie
 			for (const t of tables) seats.set(t.seatingAreaId, (seats.get(t.seatingAreaId) ?? 0) + t.seats)
 
 			await prisma.$transaction(async (tx) => {
-				// ponytail: replace-all keeps saves simple; switch to per-id upsert once reservations reference tables.
 				const current = await tx.seatingArea.findMany({ where: { venueId }, select: { id: true, name: true, capacity: true } })
 				const gone = current.filter((a) => !areaIds.has(a.id))
 				if (gone.length) {
 					const used = await tx.reservation.findFirst({ where: { venueId, seatingAreaId: { in: gone.map((a) => a.id) } }, select: { seatingAreaId: true } })
 					if (used) throw conflict(`${gone.find((a) => a.id === used.seatingAreaId)?.name} has reservations and cannot be deleted`)
 				}
-				await tx.floorTable.deleteMany({ where: { venueId } })
+				// Tables are upserted by id so reservations keep their table; unsent tables are deleted (reservations fall back to no table).
+				await tx.floorTable.deleteMany({ where: { venueId, id: { notIn: tables.flatMap((t) => t.id ?? []) } } })
 				await tx.floorObject.deleteMany({ where: { venueId } })
 				await tx.seatingArea.deleteMany({ where: { venueId, id: { in: gone.map((a) => a.id) } } })
 
@@ -163,8 +164,16 @@ export function registerFloorPlanRoutes(app: FastifyInstance, prisma: PrismaClie
 					if (before.get(a.id) !== data.capacity) capacity[a.id] = { from: before.get(a.id), to: data.capacity }
 				}
 
+				const known = new Set((await tx.floorTable.findMany({ where: { venueId }, select: { id: true } })).map((t) => t.id))
+				const fresh: typeof tables = []
+				for (const t of tables) {
+					const data = { seatingAreaId: t.seatingAreaId, seats: t.seats, x: t.x, y: t.y, rotation: t.rotation }
+					if (!t.id) fresh.push(t)
+					else if (known.has(t.id)) await tx.floorTable.update({ where: { id: t.id }, data })
+					else throw unprocessable('unknown table')
+				}
 				await tx.floorTable.createMany({
-					data: tables.map((t) => ({ venueId, seatingAreaId: t.seatingAreaId, seats: t.seats, x: t.x, y: t.y, rotation: t.rotation })),
+					data: fresh.map((t) => ({ venueId, seatingAreaId: t.seatingAreaId, seats: t.seats, x: t.x, y: t.y, rotation: t.rotation })),
 				})
 				await tx.floorObject.createMany({
 					data: objects.map((o) => ({ venueId, label: o.label, width: o.width, height: o.height, color: o.color, x: o.x, y: o.y, rotation: o.rotation })),

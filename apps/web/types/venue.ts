@@ -28,6 +28,9 @@ export interface Venue {
     maxParty?: number
   }>
   cancellationPolicy: string
+  noticeEnabled: boolean
+  noticeDate: string | null
+  noticeText: string
   feedbackTitle?: string
   feedbackSubtitle?: string
   feedbackTags?: string[]
@@ -50,6 +53,7 @@ export interface CreateReservationBody {
   time: string
   partySize: number
   seatingAreaId?: string
+  tableId?: string
   occasion?: string
   guestNotes?: string
   allergies?: string[]
@@ -57,6 +61,7 @@ export interface CreateReservationBody {
   country?: string
   idempotencyKey?: string
   website?: string
+  noticeAccepted?: boolean
 }
 
 export interface CreateReservationResponse {

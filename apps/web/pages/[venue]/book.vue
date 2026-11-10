@@ -7,7 +7,7 @@ import DatePicker from '@/components/DatePicker.vue'
 import AvailabilityGrid from '@/components/AvailabilityGrid.vue'
 import { createReservation } from '@/composables/useGuestApi'
 import FloorPlanSvg from '@/components/FloorPlanSvg.vue'
-import type { PublicFloorPlan } from '@gioi/domain'
+import type { PublicFloorPlan, TableAvailability } from '@gioi/domain'
 import type { CreateReservationBody } from '@/types/venue'
 
 useHead({ title: 'Reserve a table | GIOI Ocean Gourmet', link: [{ rel: 'icon', type: 'image/png', href: '/logo-group.png', key: 'favicon' }] })
@@ -36,6 +36,9 @@ const settings = computed(() => {
     cutoffMinutes: v.cutoffMinutes,
     seatingAreas: v.seatingAreas,
     cancellationPolicy: v.cancellationPolicy,
+    noticeEnabled: v.noticeEnabled,
+    noticeDate: v.noticeDate,
+    noticeText: v.noticeText,
   } as any
 })
 
@@ -58,9 +61,12 @@ const accessibility = ref('')
 const allergiesText = ref('')
 const marketingConsent = ref(false)
 const acceptedPolicy = ref(false)
+const noticeOpen = ref(false)
+const noticeRead = ref(false) // set when the guest closes the modal
+const noticeAccepted = ref(false)
 const submitting = ref(false)
 const dietary = ref<string[]>([])
-const showDetails = ref(false)
+const showDetails = ref(true)
 const DIET = ['Vegetarian', 'Vegan', 'Halal', 'Gluten-free', 'Nut allergy', 'Shellfish allergy']
 const OCCASIONS = ['Birthday', 'Anniversary', 'Business dinner', 'Date night', 'Celebration']
 
@@ -87,6 +93,12 @@ const summary = computed(() => {
 })
 
 const error = ref<string | null>(null)
+const noticeActive = computed(() => !!settings.value?.noticeEnabled && settings.value.noticeDate === date.value)
+watch(noticeActive, (on) => {
+  noticeRead.value = noticeAccepted.value = false
+  noticeOpen.value = on
+}, { immediate: true })
+function closeNotice() { noticeOpen.value = false; noticeRead.value = true }
 
 const days = computed(() => {
   if (!settings.value) return []
@@ -140,6 +152,23 @@ const { data: floorPlan } = useFetch<PublicFloorPlan>(`/api/public/venues/${venu
 const pickedIdx = ref<number | null>(null)
 const chosenIdx = ref<number | null>(null) // the table the guest clicked Choose on; booking itself is by area
 const chosen = computed(() => (seatingAreaId.value && chosenIdx.value != null && floorPlan.value?.tables[chosenIdx.value]?.seatingAreaId === seatingAreaId.value ? chosenIdx.value : null))
+const chosenTableId = computed(() => (chosen.value != null ? floorPlan.value?.tables[chosen.value]?.id : undefined))
+
+const unavailableTableIds = ref<string[]>([])
+async function fetchTableAvailability() {
+  if (!date.value || !time.value || !partySize.value) { unavailableTableIds.value = []; return }
+  try {
+    const r = await $fetch<TableAvailability>(`/api/public/venues/${venue}/table-availability`, { query: { date: date.value, time: time.value, partySize: partySize.value } })
+    unavailableTableIds.value = r.unavailableTableIds
+  } catch {
+    unavailableTableIds.value = []
+  }
+}
+watch([date, time, partySize], fetchTableAvailability)
+// A chosen table that just became unavailable is dropped; the area stays selected.
+watch(unavailableTableIds, (ids) => {
+  if (chosenTableId.value && ids.includes(chosenTableId.value)) chosenIdx.value = null
+})
 const tableInfo = (i: number) => {
   const t = floorPlan.value?.tables[i]
   const area = t && settings.value?.seatingAreas.find((a: any) => a.id === t.seatingAreaId)
@@ -174,6 +203,7 @@ const checkResult = computed(() => {
 const canSubmit = computed(() => {
   if (!time.value) return false
   if (!acceptedPolicy.value) return false
+  if (noticeActive.value && !noticeAccepted.value) return false
   if (!fullName.value.trim() || !phone.value.trim()) return false
   const r = checkResult.value
   return r?.ok === true
@@ -183,6 +213,7 @@ const missingStepPrompt = computed(() => {
   if (!time.value) return 'Pick a time slot'
   if (!fullName.value.trim() || !phone.value.trim() || !email.value.trim()) return 'Enter full name, phone & email'
   if (!acceptedPolicy.value) return 'Accept cancellation policy'
+  if (noticeActive.value && !noticeAccepted.value) return 'Read and accept the special notice'
   return ''
 })
 
@@ -219,6 +250,7 @@ async function submit() {
       time: time.value,
       partySize: partySize.value,
       seatingAreaId: seatingAreaId.value ?? undefined,
+      tableId: chosenTableId.value,
       occasion: occasion.value.trim() || undefined,
       guestNotes: guestNotes.value.trim() || undefined,
       allergies: allergies.length ? allergies : undefined,
@@ -226,12 +258,18 @@ async function submit() {
       idempotencyKey: crypto.randomUUID(),
       source: bookingSource(route.query.src),
       website: website.value,
+      noticeAccepted: noticeActive.value ? true : undefined,
       country: country.value.trim() || undefined,
     }
     const res = await createReservation(venue, body, posthog?.get_distinct_id())
     router.push(`/${venue}/confirmation/${res.bookingCode}`)
   } catch (e: any) {
-    if (e?.statusCode === 409) {
+    if (e?.statusCode === 409 && e.data?.message === 'table taken') {
+      capture('booking_submit_failed', { reason: 'table_taken', date: date.value, party_size: partySize.value })
+      error.value = 'That table was just taken. Pick another table.'
+      chosenIdx.value = null
+      fetchTableAvailability()
+    } else if (e?.statusCode === 409) {
       capture('booking_submit_failed', { reason: 'slot_taken', date: date.value, party_size: partySize.value })
       error.value = 'That time just filled up. Pick another slot above.'
       time.value = null
@@ -313,7 +351,7 @@ onMounted(() => {
           </div>
           <div v-if="floorPlan?.tables.length" class="max-w-xl">
             <span class="label">Pick a table area</span>
-            <FloorPlanSvg :plan="floorPlan" pickable :selected="pickedIdx != null ? `t:${pickedIdx}` : null" :chosen="chosen"
+            <FloorPlanSvg :plan="floorPlan" pickable :selected="pickedIdx != null ? `t:${pickedIdx}` : null" :chosen="chosen" :disabled-ids="unavailableTableIds"
               :highlight-area-id="seatingAreaId" label="Venue floor plan" @table-pick="onTablePick">
               <template #tooltip="{ index }">
                 <template v-for="t in [tableInfo(index)]" :key="index">
@@ -444,6 +482,26 @@ onMounted(() => {
             <input v-model="marketingConsent" type="checkbox" class="mt-0.5 h-5 w-5 accent-[rgb(var(--accent))]" />
             <span>Send me occasional news and events. (Optional)</span>
           </label>
+          <div v-if="noticeActive" class="space-y-1">
+            <button type="button" class="text-sm font-semibold text-accent underline" @click="noticeOpen = true">Read special notice</button>
+            <label class="flex min-h-11 items-start gap-3 py-2 text-sm">
+              <input v-model="noticeAccepted" type="checkbox" :disabled="!noticeRead" class="mt-0.5 h-5 w-5 accent-[rgb(var(--accent))]" />
+              <span>I have read and agree to the special notice.</span>
+            </label>
+          </div>
+          <Teleport to="body">
+            <Transition name="modal">
+              <div v-if="noticeActive && noticeOpen" class="fixed inset-0 z-50 flex items-end justify-center bg-black/40 p-4 md:items-center"
+                @click.self="closeNotice" @keydown.esc="closeNotice">
+                <div role="dialog" aria-modal="true" aria-labelledby="notice-title"
+                  class="modal-panel w-full max-w-md space-y-4 rounded-surface border border-line bg-raised p-5 text-ink shadow-soft">
+                  <h3 id="notice-title" class="text-xl font-extrabold">Special notice</h3>
+                  <p class="max-h-[60vh] overflow-y-auto whitespace-pre-line text-sm leading-relaxed">{{ settings.noticeText }}</p>
+                  <button type="button" class="btn-primary w-full" autofocus @click="closeNotice">Close</button>
+                </div>
+              </div>
+            </Transition>
+          </Teleport>
           <div v-if="error" class="alert-danger" role="alert">{{ error }}</div>
         </section>
       </form>

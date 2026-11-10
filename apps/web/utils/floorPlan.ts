@@ -10,11 +10,9 @@ export function tableShape(seats: number) {
 	const top = Math.ceil(seats / 2)
 	const bottom = seats - top
 	const row = (n: number, y: number) => Array.from({ length: n }, (_, i) => ({ x: (i - (n - 1) / 2) * CHAIR_GAP, y }))
-	const candles = Math.max(1, Math.round(top / 2))
 	return {
 		width: Math.max(38, CHAIR_GAP * top + 12),
 		chairs: [...row(top, -16), ...row(bottom, 16)],
-		candles: Array.from({ length: candles }, (_, i) => (i - (candles - 1) / 2) * 28),
 	}
 }
 

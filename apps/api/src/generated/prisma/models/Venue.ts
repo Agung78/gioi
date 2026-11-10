@@ -31,6 +31,7 @@ export type VenueAvgAggregateOutputType = {
   partyMin: number | null
   partyMax: number | null
   diningMinutes: number | null
+  graceMinutes: number | null
   leadTimeMinutes: number | null
   cutoffMinutes: number | null
   noShowTargetPercent: number | null
@@ -42,6 +43,7 @@ export type VenueSumAggregateOutputType = {
   partyMin: number | null
   partyMax: number | null
   diningMinutes: number | null
+  graceMinutes: number | null
   leadTimeMinutes: number | null
   cutoffMinutes: number | null
   noShowTargetPercent: number | null
@@ -64,11 +66,15 @@ export type VenueMinAggregateOutputType = {
   partyMin: number | null
   partyMax: number | null
   diningMinutes: number | null
+  graceMinutes: number | null
   leadTimeMinutes: number | null
   cutoffMinutes: number | null
   noShowTargetPercent: number | null
   overCapacityAlertPercent: number | null
   cancellationPolicy: string | null
+  noticeEnabled: boolean | null
+  noticeDate: Date | null
+  noticeText: string | null
   feedbackTitle: string | null
   feedbackSubtitle: string | null
   feedbackMessageTemplate: string | null
@@ -92,11 +98,15 @@ export type VenueMaxAggregateOutputType = {
   partyMin: number | null
   partyMax: number | null
   diningMinutes: number | null
+  graceMinutes: number | null
   leadTimeMinutes: number | null
   cutoffMinutes: number | null
   noShowTargetPercent: number | null
   overCapacityAlertPercent: number | null
   cancellationPolicy: string | null
+  noticeEnabled: boolean | null
+  noticeDate: Date | null
+  noticeText: string | null
   feedbackTitle: string | null
   feedbackSubtitle: string | null
   feedbackMessageTemplate: string | null
@@ -120,11 +130,15 @@ export type VenueCountAggregateOutputType = {
   partyMin: number
   partyMax: number
   diningMinutes: number
+  graceMinutes: number
   leadTimeMinutes: number
   cutoffMinutes: number
   noShowTargetPercent: number
   overCapacityAlertPercent: number
   cancellationPolicy: number
+  noticeEnabled: number
+  noticeDate: number
+  noticeText: number
   feedbackTitle: number
   feedbackSubtitle: number
   feedbackTags: number
@@ -140,6 +154,7 @@ export type VenueAvgAggregateInputType = {
   partyMin?: true
   partyMax?: true
   diningMinutes?: true
+  graceMinutes?: true
   leadTimeMinutes?: true
   cutoffMinutes?: true
   noShowTargetPercent?: true
@@ -151,6 +166,7 @@ export type VenueSumAggregateInputType = {
   partyMin?: true
   partyMax?: true
   diningMinutes?: true
+  graceMinutes?: true
   leadTimeMinutes?: true
   cutoffMinutes?: true
   noShowTargetPercent?: true
@@ -173,11 +189,15 @@ export type VenueMinAggregateInputType = {
   partyMin?: true
   partyMax?: true
   diningMinutes?: true
+  graceMinutes?: true
   leadTimeMinutes?: true
   cutoffMinutes?: true
   noShowTargetPercent?: true
   overCapacityAlertPercent?: true
   cancellationPolicy?: true
+  noticeEnabled?: true
+  noticeDate?: true
+  noticeText?: true
   feedbackTitle?: true
   feedbackSubtitle?: true
   feedbackMessageTemplate?: true
@@ -201,11 +221,15 @@ export type VenueMaxAggregateInputType = {
   partyMin?: true
   partyMax?: true
   diningMinutes?: true
+  graceMinutes?: true
   leadTimeMinutes?: true
   cutoffMinutes?: true
   noShowTargetPercent?: true
   overCapacityAlertPercent?: true
   cancellationPolicy?: true
+  noticeEnabled?: true
+  noticeDate?: true
+  noticeText?: true
   feedbackTitle?: true
   feedbackSubtitle?: true
   feedbackMessageTemplate?: true
@@ -229,11 +253,15 @@ export type VenueCountAggregateInputType = {
   partyMin?: true
   partyMax?: true
   diningMinutes?: true
+  graceMinutes?: true
   leadTimeMinutes?: true
   cutoffMinutes?: true
   noShowTargetPercent?: true
   overCapacityAlertPercent?: true
   cancellationPolicy?: true
+  noticeEnabled?: true
+  noticeDate?: true
+  noticeText?: true
   feedbackTitle?: true
   feedbackSubtitle?: true
   feedbackTags?: true
@@ -345,11 +373,15 @@ export type VenueGroupByOutputType = {
   partyMin: number
   partyMax: number
   diningMinutes: number
+  graceMinutes: number
   leadTimeMinutes: number
   cutoffMinutes: number
   noShowTargetPercent: number
   overCapacityAlertPercent: number
   cancellationPolicy: string
+  noticeEnabled: boolean
+  noticeDate: Date | null
+  noticeText: string
   feedbackTitle: string | null
   feedbackSubtitle: string | null
   feedbackTags: string[]
@@ -397,11 +429,15 @@ export type VenueWhereInput = {
   partyMin?: Prisma.IntFilter<"Venue"> | number
   partyMax?: Prisma.IntFilter<"Venue"> | number
   diningMinutes?: Prisma.IntFilter<"Venue"> | number
+  graceMinutes?: Prisma.IntFilter<"Venue"> | number
   leadTimeMinutes?: Prisma.IntFilter<"Venue"> | number
   cutoffMinutes?: Prisma.IntFilter<"Venue"> | number
   noShowTargetPercent?: Prisma.IntFilter<"Venue"> | number
   overCapacityAlertPercent?: Prisma.IntFilter<"Venue"> | number
   cancellationPolicy?: Prisma.StringFilter<"Venue"> | string
+  noticeEnabled?: Prisma.BoolFilter<"Venue"> | boolean
+  noticeDate?: Prisma.DateTimeNullableFilter<"Venue"> | Date | string | null
+  noticeText?: Prisma.StringFilter<"Venue"> | string
   feedbackTitle?: Prisma.StringNullableFilter<"Venue"> | string | null
   feedbackSubtitle?: Prisma.StringNullableFilter<"Venue"> | string | null
   feedbackTags?: Prisma.StringNullableListFilter<"Venue">
@@ -437,11 +473,15 @@ export type VenueOrderByWithRelationInput = {
   partyMin?: Prisma.SortOrder
   partyMax?: Prisma.SortOrder
   diningMinutes?: Prisma.SortOrder
+  graceMinutes?: Prisma.SortOrder
   leadTimeMinutes?: Prisma.SortOrder
   cutoffMinutes?: Prisma.SortOrder
   noShowTargetPercent?: Prisma.SortOrder
   overCapacityAlertPercent?: Prisma.SortOrder
   cancellationPolicy?: Prisma.SortOrder
+  noticeEnabled?: Prisma.SortOrder
+  noticeDate?: Prisma.SortOrderInput | Prisma.SortOrder
+  noticeText?: Prisma.SortOrder
   feedbackTitle?: Prisma.SortOrderInput | Prisma.SortOrder
   feedbackSubtitle?: Prisma.SortOrderInput | Prisma.SortOrder
   feedbackTags?: Prisma.SortOrder
@@ -480,11 +520,15 @@ export type VenueWhereUniqueInput = Prisma.AtLeast<{
   partyMin?: Prisma.IntFilter<"Venue"> | number
   partyMax?: Prisma.IntFilter<"Venue"> | number
   diningMinutes?: Prisma.IntFilter<"Venue"> | number
+  graceMinutes?: Prisma.IntFilter<"Venue"> | number
   leadTimeMinutes?: Prisma.IntFilter<"Venue"> | number
   cutoffMinutes?: Prisma.IntFilter<"Venue"> | number
   noShowTargetPercent?: Prisma.IntFilter<"Venue"> | number
   overCapacityAlertPercent?: Prisma.IntFilter<"Venue"> | number
   cancellationPolicy?: Prisma.StringFilter<"Venue"> | string
+  noticeEnabled?: Prisma.BoolFilter<"Venue"> | boolean
+  noticeDate?: Prisma.DateTimeNullableFilter<"Venue"> | Date | string | null
+  noticeText?: Prisma.StringFilter<"Venue"> | string
   feedbackTitle?: Prisma.StringNullableFilter<"Venue"> | string | null
   feedbackSubtitle?: Prisma.StringNullableFilter<"Venue"> | string | null
   feedbackTags?: Prisma.StringNullableListFilter<"Venue">
@@ -520,11 +564,15 @@ export type VenueOrderByWithAggregationInput = {
   partyMin?: Prisma.SortOrder
   partyMax?: Prisma.SortOrder
   diningMinutes?: Prisma.SortOrder
+  graceMinutes?: Prisma.SortOrder
   leadTimeMinutes?: Prisma.SortOrder
   cutoffMinutes?: Prisma.SortOrder
   noShowTargetPercent?: Prisma.SortOrder
   overCapacityAlertPercent?: Prisma.SortOrder
   cancellationPolicy?: Prisma.SortOrder
+  noticeEnabled?: Prisma.SortOrder
+  noticeDate?: Prisma.SortOrderInput | Prisma.SortOrder
+  noticeText?: Prisma.SortOrder
   feedbackTitle?: Prisma.SortOrderInput | Prisma.SortOrder
   feedbackSubtitle?: Prisma.SortOrderInput | Prisma.SortOrder
   feedbackTags?: Prisma.SortOrder
@@ -557,11 +605,15 @@ export type VenueScalarWhereWithAggregatesInput = {
   partyMin?: Prisma.IntWithAggregatesFilter<"Venue"> | number
   partyMax?: Prisma.IntWithAggregatesFilter<"Venue"> | number
   diningMinutes?: Prisma.IntWithAggregatesFilter<"Venue"> | number
+  graceMinutes?: Prisma.IntWithAggregatesFilter<"Venue"> | number
   leadTimeMinutes?: Prisma.IntWithAggregatesFilter<"Venue"> | number
   cutoffMinutes?: Prisma.IntWithAggregatesFilter<"Venue"> | number
   noShowTargetPercent?: Prisma.IntWithAggregatesFilter<"Venue"> | number
   overCapacityAlertPercent?: Prisma.IntWithAggregatesFilter<"Venue"> | number
   cancellationPolicy?: Prisma.StringWithAggregatesFilter<"Venue"> | string
+  noticeEnabled?: Prisma.BoolWithAggregatesFilter<"Venue"> | boolean
+  noticeDate?: Prisma.DateTimeNullableWithAggregatesFilter<"Venue"> | Date | string | null
+  noticeText?: Prisma.StringWithAggregatesFilter<"Venue"> | string
   feedbackTitle?: Prisma.StringNullableWithAggregatesFilter<"Venue"> | string | null
   feedbackSubtitle?: Prisma.StringNullableWithAggregatesFilter<"Venue"> | string | null
   feedbackTags?: Prisma.StringNullableListFilter<"Venue">
@@ -586,11 +638,15 @@ export type VenueCreateInput = {
   partyMin?: number
   partyMax?: number
   diningMinutes?: number
+  graceMinutes?: number
   leadTimeMinutes?: number
   cutoffMinutes?: number
   noShowTargetPercent?: number
   overCapacityAlertPercent?: number
   cancellationPolicy: string
+  noticeEnabled?: boolean
+  noticeDate?: Date | string | null
+  noticeText?: string
   feedbackTitle?: string | null
   feedbackSubtitle?: string | null
   feedbackTags?: Prisma.VenueCreatefeedbackTagsInput | string[]
@@ -626,11 +682,15 @@ export type VenueUncheckedCreateInput = {
   partyMin?: number
   partyMax?: number
   diningMinutes?: number
+  graceMinutes?: number
   leadTimeMinutes?: number
   cutoffMinutes?: number
   noShowTargetPercent?: number
   overCapacityAlertPercent?: number
   cancellationPolicy: string
+  noticeEnabled?: boolean
+  noticeDate?: Date | string | null
+  noticeText?: string
   feedbackTitle?: string | null
   feedbackSubtitle?: string | null
   feedbackTags?: Prisma.VenueCreatefeedbackTagsInput | string[]
@@ -666,11 +726,15 @@ export type VenueUpdateInput = {
   partyMin?: Prisma.IntFieldUpdateOperationsInput | number
   partyMax?: Prisma.IntFieldUpdateOperationsInput | number
   diningMinutes?: Prisma.IntFieldUpdateOperationsInput | number
+  graceMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   leadTimeMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   cutoffMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   noShowTargetPercent?: Prisma.IntFieldUpdateOperationsInput | number
   overCapacityAlertPercent?: Prisma.IntFieldUpdateOperationsInput | number
   cancellationPolicy?: Prisma.StringFieldUpdateOperationsInput | string
+  noticeEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  noticeDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  noticeText?: Prisma.StringFieldUpdateOperationsInput | string
   feedbackTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   feedbackSubtitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   feedbackTags?: Prisma.VenueUpdatefeedbackTagsInput | string[]
@@ -706,11 +770,15 @@ export type VenueUncheckedUpdateInput = {
   partyMin?: Prisma.IntFieldUpdateOperationsInput | number
   partyMax?: Prisma.IntFieldUpdateOperationsInput | number
   diningMinutes?: Prisma.IntFieldUpdateOperationsInput | number
+  graceMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   leadTimeMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   cutoffMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   noShowTargetPercent?: Prisma.IntFieldUpdateOperationsInput | number
   overCapacityAlertPercent?: Prisma.IntFieldUpdateOperationsInput | number
   cancellationPolicy?: Prisma.StringFieldUpdateOperationsInput | string
+  noticeEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  noticeDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  noticeText?: Prisma.StringFieldUpdateOperationsInput | string
   feedbackTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   feedbackSubtitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   feedbackTags?: Prisma.VenueUpdatefeedbackTagsInput | string[]
@@ -746,11 +814,15 @@ export type VenueCreateManyInput = {
   partyMin?: number
   partyMax?: number
   diningMinutes?: number
+  graceMinutes?: number
   leadTimeMinutes?: number
   cutoffMinutes?: number
   noShowTargetPercent?: number
   overCapacityAlertPercent?: number
   cancellationPolicy: string
+  noticeEnabled?: boolean
+  noticeDate?: Date | string | null
+  noticeText?: string
   feedbackTitle?: string | null
   feedbackSubtitle?: string | null
   feedbackTags?: Prisma.VenueCreatefeedbackTagsInput | string[]
@@ -775,11 +847,15 @@ export type VenueUpdateManyMutationInput = {
   partyMin?: Prisma.IntFieldUpdateOperationsInput | number
   partyMax?: Prisma.IntFieldUpdateOperationsInput | number
   diningMinutes?: Prisma.IntFieldUpdateOperationsInput | number
+  graceMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   leadTimeMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   cutoffMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   noShowTargetPercent?: Prisma.IntFieldUpdateOperationsInput | number
   overCapacityAlertPercent?: Prisma.IntFieldUpdateOperationsInput | number
   cancellationPolicy?: Prisma.StringFieldUpdateOperationsInput | string
+  noticeEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  noticeDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  noticeText?: Prisma.StringFieldUpdateOperationsInput | string
   feedbackTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   feedbackSubtitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   feedbackTags?: Prisma.VenueUpdatefeedbackTagsInput | string[]
@@ -804,11 +880,15 @@ export type VenueUncheckedUpdateManyInput = {
   partyMin?: Prisma.IntFieldUpdateOperationsInput | number
   partyMax?: Prisma.IntFieldUpdateOperationsInput | number
   diningMinutes?: Prisma.IntFieldUpdateOperationsInput | number
+  graceMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   leadTimeMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   cutoffMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   noShowTargetPercent?: Prisma.IntFieldUpdateOperationsInput | number
   overCapacityAlertPercent?: Prisma.IntFieldUpdateOperationsInput | number
   cancellationPolicy?: Prisma.StringFieldUpdateOperationsInput | string
+  noticeEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  noticeDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  noticeText?: Prisma.StringFieldUpdateOperationsInput | string
   feedbackTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   feedbackSubtitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   feedbackTags?: Prisma.VenueUpdatefeedbackTagsInput | string[]
@@ -841,11 +921,15 @@ export type VenueCountOrderByAggregateInput = {
   partyMin?: Prisma.SortOrder
   partyMax?: Prisma.SortOrder
   diningMinutes?: Prisma.SortOrder
+  graceMinutes?: Prisma.SortOrder
   leadTimeMinutes?: Prisma.SortOrder
   cutoffMinutes?: Prisma.SortOrder
   noShowTargetPercent?: Prisma.SortOrder
   overCapacityAlertPercent?: Prisma.SortOrder
   cancellationPolicy?: Prisma.SortOrder
+  noticeEnabled?: Prisma.SortOrder
+  noticeDate?: Prisma.SortOrder
+  noticeText?: Prisma.SortOrder
   feedbackTitle?: Prisma.SortOrder
   feedbackSubtitle?: Prisma.SortOrder
   feedbackTags?: Prisma.SortOrder
@@ -859,6 +943,7 @@ export type VenueAvgOrderByAggregateInput = {
   partyMin?: Prisma.SortOrder
   partyMax?: Prisma.SortOrder
   diningMinutes?: Prisma.SortOrder
+  graceMinutes?: Prisma.SortOrder
   leadTimeMinutes?: Prisma.SortOrder
   cutoffMinutes?: Prisma.SortOrder
   noShowTargetPercent?: Prisma.SortOrder
@@ -881,11 +966,15 @@ export type VenueMaxOrderByAggregateInput = {
   partyMin?: Prisma.SortOrder
   partyMax?: Prisma.SortOrder
   diningMinutes?: Prisma.SortOrder
+  graceMinutes?: Prisma.SortOrder
   leadTimeMinutes?: Prisma.SortOrder
   cutoffMinutes?: Prisma.SortOrder
   noShowTargetPercent?: Prisma.SortOrder
   overCapacityAlertPercent?: Prisma.SortOrder
   cancellationPolicy?: Prisma.SortOrder
+  noticeEnabled?: Prisma.SortOrder
+  noticeDate?: Prisma.SortOrder
+  noticeText?: Prisma.SortOrder
   feedbackTitle?: Prisma.SortOrder
   feedbackSubtitle?: Prisma.SortOrder
   feedbackMessageTemplate?: Prisma.SortOrder
@@ -909,11 +998,15 @@ export type VenueMinOrderByAggregateInput = {
   partyMin?: Prisma.SortOrder
   partyMax?: Prisma.SortOrder
   diningMinutes?: Prisma.SortOrder
+  graceMinutes?: Prisma.SortOrder
   leadTimeMinutes?: Prisma.SortOrder
   cutoffMinutes?: Prisma.SortOrder
   noShowTargetPercent?: Prisma.SortOrder
   overCapacityAlertPercent?: Prisma.SortOrder
   cancellationPolicy?: Prisma.SortOrder
+  noticeEnabled?: Prisma.SortOrder
+  noticeDate?: Prisma.SortOrder
+  noticeText?: Prisma.SortOrder
   feedbackTitle?: Prisma.SortOrder
   feedbackSubtitle?: Prisma.SortOrder
   feedbackMessageTemplate?: Prisma.SortOrder
@@ -926,6 +1019,7 @@ export type VenueSumOrderByAggregateInput = {
   partyMin?: Prisma.SortOrder
   partyMax?: Prisma.SortOrder
   diningMinutes?: Prisma.SortOrder
+  graceMinutes?: Prisma.SortOrder
   leadTimeMinutes?: Prisma.SortOrder
   cutoffMinutes?: Prisma.SortOrder
   noShowTargetPercent?: Prisma.SortOrder
@@ -956,6 +1050,14 @@ export type IntFieldUpdateOperationsInput = {
   decrement?: number
   multiply?: number
   divide?: number
+}
+
+export type BoolFieldUpdateOperationsInput = {
+  set?: boolean
+}
+
+export type NullableDateTimeFieldUpdateOperationsInput = {
+  set?: Date | string | null
 }
 
 export type NullableStringFieldUpdateOperationsInput = {
@@ -1143,11 +1245,15 @@ export type VenueCreateWithoutOpeningHoursInput = {
   partyMin?: number
   partyMax?: number
   diningMinutes?: number
+  graceMinutes?: number
   leadTimeMinutes?: number
   cutoffMinutes?: number
   noShowTargetPercent?: number
   overCapacityAlertPercent?: number
   cancellationPolicy: string
+  noticeEnabled?: boolean
+  noticeDate?: Date | string | null
+  noticeText?: string
   feedbackTitle?: string | null
   feedbackSubtitle?: string | null
   feedbackTags?: Prisma.VenueCreatefeedbackTagsInput | string[]
@@ -1182,11 +1288,15 @@ export type VenueUncheckedCreateWithoutOpeningHoursInput = {
   partyMin?: number
   partyMax?: number
   diningMinutes?: number
+  graceMinutes?: number
   leadTimeMinutes?: number
   cutoffMinutes?: number
   noShowTargetPercent?: number
   overCapacityAlertPercent?: number
   cancellationPolicy: string
+  noticeEnabled?: boolean
+  noticeDate?: Date | string | null
+  noticeText?: string
   feedbackTitle?: string | null
   feedbackSubtitle?: string | null
   feedbackTags?: Prisma.VenueCreatefeedbackTagsInput | string[]
@@ -1237,11 +1347,15 @@ export type VenueUpdateWithoutOpeningHoursInput = {
   partyMin?: Prisma.IntFieldUpdateOperationsInput | number
   partyMax?: Prisma.IntFieldUpdateOperationsInput | number
   diningMinutes?: Prisma.IntFieldUpdateOperationsInput | number
+  graceMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   leadTimeMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   cutoffMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   noShowTargetPercent?: Prisma.IntFieldUpdateOperationsInput | number
   overCapacityAlertPercent?: Prisma.IntFieldUpdateOperationsInput | number
   cancellationPolicy?: Prisma.StringFieldUpdateOperationsInput | string
+  noticeEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  noticeDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  noticeText?: Prisma.StringFieldUpdateOperationsInput | string
   feedbackTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   feedbackSubtitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   feedbackTags?: Prisma.VenueUpdatefeedbackTagsInput | string[]
@@ -1276,11 +1390,15 @@ export type VenueUncheckedUpdateWithoutOpeningHoursInput = {
   partyMin?: Prisma.IntFieldUpdateOperationsInput | number
   partyMax?: Prisma.IntFieldUpdateOperationsInput | number
   diningMinutes?: Prisma.IntFieldUpdateOperationsInput | number
+  graceMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   leadTimeMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   cutoffMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   noShowTargetPercent?: Prisma.IntFieldUpdateOperationsInput | number
   overCapacityAlertPercent?: Prisma.IntFieldUpdateOperationsInput | number
   cancellationPolicy?: Prisma.StringFieldUpdateOperationsInput | string
+  noticeEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  noticeDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  noticeText?: Prisma.StringFieldUpdateOperationsInput | string
   feedbackTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   feedbackSubtitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   feedbackTags?: Prisma.VenueUpdatefeedbackTagsInput | string[]
@@ -1315,11 +1433,15 @@ export type VenueCreateWithoutClosedDatesInput = {
   partyMin?: number
   partyMax?: number
   diningMinutes?: number
+  graceMinutes?: number
   leadTimeMinutes?: number
   cutoffMinutes?: number
   noShowTargetPercent?: number
   overCapacityAlertPercent?: number
   cancellationPolicy: string
+  noticeEnabled?: boolean
+  noticeDate?: Date | string | null
+  noticeText?: string
   feedbackTitle?: string | null
   feedbackSubtitle?: string | null
   feedbackTags?: Prisma.VenueCreatefeedbackTagsInput | string[]
@@ -1354,11 +1476,15 @@ export type VenueUncheckedCreateWithoutClosedDatesInput = {
   partyMin?: number
   partyMax?: number
   diningMinutes?: number
+  graceMinutes?: number
   leadTimeMinutes?: number
   cutoffMinutes?: number
   noShowTargetPercent?: number
   overCapacityAlertPercent?: number
   cancellationPolicy: string
+  noticeEnabled?: boolean
+  noticeDate?: Date | string | null
+  noticeText?: string
   feedbackTitle?: string | null
   feedbackSubtitle?: string | null
   feedbackTags?: Prisma.VenueCreatefeedbackTagsInput | string[]
@@ -1409,11 +1535,15 @@ export type VenueUpdateWithoutClosedDatesInput = {
   partyMin?: Prisma.IntFieldUpdateOperationsInput | number
   partyMax?: Prisma.IntFieldUpdateOperationsInput | number
   diningMinutes?: Prisma.IntFieldUpdateOperationsInput | number
+  graceMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   leadTimeMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   cutoffMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   noShowTargetPercent?: Prisma.IntFieldUpdateOperationsInput | number
   overCapacityAlertPercent?: Prisma.IntFieldUpdateOperationsInput | number
   cancellationPolicy?: Prisma.StringFieldUpdateOperationsInput | string
+  noticeEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  noticeDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  noticeText?: Prisma.StringFieldUpdateOperationsInput | string
   feedbackTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   feedbackSubtitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   feedbackTags?: Prisma.VenueUpdatefeedbackTagsInput | string[]
@@ -1448,11 +1578,15 @@ export type VenueUncheckedUpdateWithoutClosedDatesInput = {
   partyMin?: Prisma.IntFieldUpdateOperationsInput | number
   partyMax?: Prisma.IntFieldUpdateOperationsInput | number
   diningMinutes?: Prisma.IntFieldUpdateOperationsInput | number
+  graceMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   leadTimeMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   cutoffMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   noShowTargetPercent?: Prisma.IntFieldUpdateOperationsInput | number
   overCapacityAlertPercent?: Prisma.IntFieldUpdateOperationsInput | number
   cancellationPolicy?: Prisma.StringFieldUpdateOperationsInput | string
+  noticeEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  noticeDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  noticeText?: Prisma.StringFieldUpdateOperationsInput | string
   feedbackTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   feedbackSubtitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   feedbackTags?: Prisma.VenueUpdatefeedbackTagsInput | string[]
@@ -1487,11 +1621,15 @@ export type VenueCreateWithoutSeatingAreasInput = {
   partyMin?: number
   partyMax?: number
   diningMinutes?: number
+  graceMinutes?: number
   leadTimeMinutes?: number
   cutoffMinutes?: number
   noShowTargetPercent?: number
   overCapacityAlertPercent?: number
   cancellationPolicy: string
+  noticeEnabled?: boolean
+  noticeDate?: Date | string | null
+  noticeText?: string
   feedbackTitle?: string | null
   feedbackSubtitle?: string | null
   feedbackTags?: Prisma.VenueCreatefeedbackTagsInput | string[]
@@ -1526,11 +1664,15 @@ export type VenueUncheckedCreateWithoutSeatingAreasInput = {
   partyMin?: number
   partyMax?: number
   diningMinutes?: number
+  graceMinutes?: number
   leadTimeMinutes?: number
   cutoffMinutes?: number
   noShowTargetPercent?: number
   overCapacityAlertPercent?: number
   cancellationPolicy: string
+  noticeEnabled?: boolean
+  noticeDate?: Date | string | null
+  noticeText?: string
   feedbackTitle?: string | null
   feedbackSubtitle?: string | null
   feedbackTags?: Prisma.VenueCreatefeedbackTagsInput | string[]
@@ -1581,11 +1723,15 @@ export type VenueUpdateWithoutSeatingAreasInput = {
   partyMin?: Prisma.IntFieldUpdateOperationsInput | number
   partyMax?: Prisma.IntFieldUpdateOperationsInput | number
   diningMinutes?: Prisma.IntFieldUpdateOperationsInput | number
+  graceMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   leadTimeMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   cutoffMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   noShowTargetPercent?: Prisma.IntFieldUpdateOperationsInput | number
   overCapacityAlertPercent?: Prisma.IntFieldUpdateOperationsInput | number
   cancellationPolicy?: Prisma.StringFieldUpdateOperationsInput | string
+  noticeEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  noticeDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  noticeText?: Prisma.StringFieldUpdateOperationsInput | string
   feedbackTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   feedbackSubtitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   feedbackTags?: Prisma.VenueUpdatefeedbackTagsInput | string[]
@@ -1620,11 +1766,15 @@ export type VenueUncheckedUpdateWithoutSeatingAreasInput = {
   partyMin?: Prisma.IntFieldUpdateOperationsInput | number
   partyMax?: Prisma.IntFieldUpdateOperationsInput | number
   diningMinutes?: Prisma.IntFieldUpdateOperationsInput | number
+  graceMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   leadTimeMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   cutoffMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   noShowTargetPercent?: Prisma.IntFieldUpdateOperationsInput | number
   overCapacityAlertPercent?: Prisma.IntFieldUpdateOperationsInput | number
   cancellationPolicy?: Prisma.StringFieldUpdateOperationsInput | string
+  noticeEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  noticeDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  noticeText?: Prisma.StringFieldUpdateOperationsInput | string
   feedbackTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   feedbackSubtitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   feedbackTags?: Prisma.VenueUpdatefeedbackTagsInput | string[]
@@ -1659,11 +1809,15 @@ export type VenueCreateWithoutFloorPlanInput = {
   partyMin?: number
   partyMax?: number
   diningMinutes?: number
+  graceMinutes?: number
   leadTimeMinutes?: number
   cutoffMinutes?: number
   noShowTargetPercent?: number
   overCapacityAlertPercent?: number
   cancellationPolicy: string
+  noticeEnabled?: boolean
+  noticeDate?: Date | string | null
+  noticeText?: string
   feedbackTitle?: string | null
   feedbackSubtitle?: string | null
   feedbackTags?: Prisma.VenueCreatefeedbackTagsInput | string[]
@@ -1698,11 +1852,15 @@ export type VenueUncheckedCreateWithoutFloorPlanInput = {
   partyMin?: number
   partyMax?: number
   diningMinutes?: number
+  graceMinutes?: number
   leadTimeMinutes?: number
   cutoffMinutes?: number
   noShowTargetPercent?: number
   overCapacityAlertPercent?: number
   cancellationPolicy: string
+  noticeEnabled?: boolean
+  noticeDate?: Date | string | null
+  noticeText?: string
   feedbackTitle?: string | null
   feedbackSubtitle?: string | null
   feedbackTags?: Prisma.VenueCreatefeedbackTagsInput | string[]
@@ -1753,11 +1911,15 @@ export type VenueUpdateWithoutFloorPlanInput = {
   partyMin?: Prisma.IntFieldUpdateOperationsInput | number
   partyMax?: Prisma.IntFieldUpdateOperationsInput | number
   diningMinutes?: Prisma.IntFieldUpdateOperationsInput | number
+  graceMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   leadTimeMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   cutoffMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   noShowTargetPercent?: Prisma.IntFieldUpdateOperationsInput | number
   overCapacityAlertPercent?: Prisma.IntFieldUpdateOperationsInput | number
   cancellationPolicy?: Prisma.StringFieldUpdateOperationsInput | string
+  noticeEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  noticeDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  noticeText?: Prisma.StringFieldUpdateOperationsInput | string
   feedbackTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   feedbackSubtitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   feedbackTags?: Prisma.VenueUpdatefeedbackTagsInput | string[]
@@ -1792,11 +1954,15 @@ export type VenueUncheckedUpdateWithoutFloorPlanInput = {
   partyMin?: Prisma.IntFieldUpdateOperationsInput | number
   partyMax?: Prisma.IntFieldUpdateOperationsInput | number
   diningMinutes?: Prisma.IntFieldUpdateOperationsInput | number
+  graceMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   leadTimeMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   cutoffMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   noShowTargetPercent?: Prisma.IntFieldUpdateOperationsInput | number
   overCapacityAlertPercent?: Prisma.IntFieldUpdateOperationsInput | number
   cancellationPolicy?: Prisma.StringFieldUpdateOperationsInput | string
+  noticeEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  noticeDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  noticeText?: Prisma.StringFieldUpdateOperationsInput | string
   feedbackTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   feedbackSubtitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   feedbackTags?: Prisma.VenueUpdatefeedbackTagsInput | string[]
@@ -1831,11 +1997,15 @@ export type VenueCreateWithoutFloorTablesInput = {
   partyMin?: number
   partyMax?: number
   diningMinutes?: number
+  graceMinutes?: number
   leadTimeMinutes?: number
   cutoffMinutes?: number
   noShowTargetPercent?: number
   overCapacityAlertPercent?: number
   cancellationPolicy: string
+  noticeEnabled?: boolean
+  noticeDate?: Date | string | null
+  noticeText?: string
   feedbackTitle?: string | null
   feedbackSubtitle?: string | null
   feedbackTags?: Prisma.VenueCreatefeedbackTagsInput | string[]
@@ -1870,11 +2040,15 @@ export type VenueUncheckedCreateWithoutFloorTablesInput = {
   partyMin?: number
   partyMax?: number
   diningMinutes?: number
+  graceMinutes?: number
   leadTimeMinutes?: number
   cutoffMinutes?: number
   noShowTargetPercent?: number
   overCapacityAlertPercent?: number
   cancellationPolicy: string
+  noticeEnabled?: boolean
+  noticeDate?: Date | string | null
+  noticeText?: string
   feedbackTitle?: string | null
   feedbackSubtitle?: string | null
   feedbackTags?: Prisma.VenueCreatefeedbackTagsInput | string[]
@@ -1925,11 +2099,15 @@ export type VenueUpdateWithoutFloorTablesInput = {
   partyMin?: Prisma.IntFieldUpdateOperationsInput | number
   partyMax?: Prisma.IntFieldUpdateOperationsInput | number
   diningMinutes?: Prisma.IntFieldUpdateOperationsInput | number
+  graceMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   leadTimeMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   cutoffMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   noShowTargetPercent?: Prisma.IntFieldUpdateOperationsInput | number
   overCapacityAlertPercent?: Prisma.IntFieldUpdateOperationsInput | number
   cancellationPolicy?: Prisma.StringFieldUpdateOperationsInput | string
+  noticeEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  noticeDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  noticeText?: Prisma.StringFieldUpdateOperationsInput | string
   feedbackTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   feedbackSubtitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   feedbackTags?: Prisma.VenueUpdatefeedbackTagsInput | string[]
@@ -1964,11 +2142,15 @@ export type VenueUncheckedUpdateWithoutFloorTablesInput = {
   partyMin?: Prisma.IntFieldUpdateOperationsInput | number
   partyMax?: Prisma.IntFieldUpdateOperationsInput | number
   diningMinutes?: Prisma.IntFieldUpdateOperationsInput | number
+  graceMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   leadTimeMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   cutoffMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   noShowTargetPercent?: Prisma.IntFieldUpdateOperationsInput | number
   overCapacityAlertPercent?: Prisma.IntFieldUpdateOperationsInput | number
   cancellationPolicy?: Prisma.StringFieldUpdateOperationsInput | string
+  noticeEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  noticeDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  noticeText?: Prisma.StringFieldUpdateOperationsInput | string
   feedbackTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   feedbackSubtitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   feedbackTags?: Prisma.VenueUpdatefeedbackTagsInput | string[]
@@ -2003,11 +2185,15 @@ export type VenueCreateWithoutFloorObjectsInput = {
   partyMin?: number
   partyMax?: number
   diningMinutes?: number
+  graceMinutes?: number
   leadTimeMinutes?: number
   cutoffMinutes?: number
   noShowTargetPercent?: number
   overCapacityAlertPercent?: number
   cancellationPolicy: string
+  noticeEnabled?: boolean
+  noticeDate?: Date | string | null
+  noticeText?: string
   feedbackTitle?: string | null
   feedbackSubtitle?: string | null
   feedbackTags?: Prisma.VenueCreatefeedbackTagsInput | string[]
@@ -2042,11 +2228,15 @@ export type VenueUncheckedCreateWithoutFloorObjectsInput = {
   partyMin?: number
   partyMax?: number
   diningMinutes?: number
+  graceMinutes?: number
   leadTimeMinutes?: number
   cutoffMinutes?: number
   noShowTargetPercent?: number
   overCapacityAlertPercent?: number
   cancellationPolicy: string
+  noticeEnabled?: boolean
+  noticeDate?: Date | string | null
+  noticeText?: string
   feedbackTitle?: string | null
   feedbackSubtitle?: string | null
   feedbackTags?: Prisma.VenueCreatefeedbackTagsInput | string[]
@@ -2097,11 +2287,15 @@ export type VenueUpdateWithoutFloorObjectsInput = {
   partyMin?: Prisma.IntFieldUpdateOperationsInput | number
   partyMax?: Prisma.IntFieldUpdateOperationsInput | number
   diningMinutes?: Prisma.IntFieldUpdateOperationsInput | number
+  graceMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   leadTimeMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   cutoffMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   noShowTargetPercent?: Prisma.IntFieldUpdateOperationsInput | number
   overCapacityAlertPercent?: Prisma.IntFieldUpdateOperationsInput | number
   cancellationPolicy?: Prisma.StringFieldUpdateOperationsInput | string
+  noticeEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  noticeDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  noticeText?: Prisma.StringFieldUpdateOperationsInput | string
   feedbackTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   feedbackSubtitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   feedbackTags?: Prisma.VenueUpdatefeedbackTagsInput | string[]
@@ -2136,11 +2330,15 @@ export type VenueUncheckedUpdateWithoutFloorObjectsInput = {
   partyMin?: Prisma.IntFieldUpdateOperationsInput | number
   partyMax?: Prisma.IntFieldUpdateOperationsInput | number
   diningMinutes?: Prisma.IntFieldUpdateOperationsInput | number
+  graceMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   leadTimeMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   cutoffMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   noShowTargetPercent?: Prisma.IntFieldUpdateOperationsInput | number
   overCapacityAlertPercent?: Prisma.IntFieldUpdateOperationsInput | number
   cancellationPolicy?: Prisma.StringFieldUpdateOperationsInput | string
+  noticeEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  noticeDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  noticeText?: Prisma.StringFieldUpdateOperationsInput | string
   feedbackTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   feedbackSubtitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   feedbackTags?: Prisma.VenueUpdatefeedbackTagsInput | string[]
@@ -2175,11 +2373,15 @@ export type VenueCreateWithoutGuestsInput = {
   partyMin?: number
   partyMax?: number
   diningMinutes?: number
+  graceMinutes?: number
   leadTimeMinutes?: number
   cutoffMinutes?: number
   noShowTargetPercent?: number
   overCapacityAlertPercent?: number
   cancellationPolicy: string
+  noticeEnabled?: boolean
+  noticeDate?: Date | string | null
+  noticeText?: string
   feedbackTitle?: string | null
   feedbackSubtitle?: string | null
   feedbackTags?: Prisma.VenueCreatefeedbackTagsInput | string[]
@@ -2214,11 +2416,15 @@ export type VenueUncheckedCreateWithoutGuestsInput = {
   partyMin?: number
   partyMax?: number
   diningMinutes?: number
+  graceMinutes?: number
   leadTimeMinutes?: number
   cutoffMinutes?: number
   noShowTargetPercent?: number
   overCapacityAlertPercent?: number
   cancellationPolicy: string
+  noticeEnabled?: boolean
+  noticeDate?: Date | string | null
+  noticeText?: string
   feedbackTitle?: string | null
   feedbackSubtitle?: string | null
   feedbackTags?: Prisma.VenueCreatefeedbackTagsInput | string[]
@@ -2269,11 +2475,15 @@ export type VenueUpdateWithoutGuestsInput = {
   partyMin?: Prisma.IntFieldUpdateOperationsInput | number
   partyMax?: Prisma.IntFieldUpdateOperationsInput | number
   diningMinutes?: Prisma.IntFieldUpdateOperationsInput | number
+  graceMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   leadTimeMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   cutoffMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   noShowTargetPercent?: Prisma.IntFieldUpdateOperationsInput | number
   overCapacityAlertPercent?: Prisma.IntFieldUpdateOperationsInput | number
   cancellationPolicy?: Prisma.StringFieldUpdateOperationsInput | string
+  noticeEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  noticeDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  noticeText?: Prisma.StringFieldUpdateOperationsInput | string
   feedbackTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   feedbackSubtitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   feedbackTags?: Prisma.VenueUpdatefeedbackTagsInput | string[]
@@ -2308,11 +2518,15 @@ export type VenueUncheckedUpdateWithoutGuestsInput = {
   partyMin?: Prisma.IntFieldUpdateOperationsInput | number
   partyMax?: Prisma.IntFieldUpdateOperationsInput | number
   diningMinutes?: Prisma.IntFieldUpdateOperationsInput | number
+  graceMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   leadTimeMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   cutoffMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   noShowTargetPercent?: Prisma.IntFieldUpdateOperationsInput | number
   overCapacityAlertPercent?: Prisma.IntFieldUpdateOperationsInput | number
   cancellationPolicy?: Prisma.StringFieldUpdateOperationsInput | string
+  noticeEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  noticeDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  noticeText?: Prisma.StringFieldUpdateOperationsInput | string
   feedbackTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   feedbackSubtitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   feedbackTags?: Prisma.VenueUpdatefeedbackTagsInput | string[]
@@ -2347,11 +2561,15 @@ export type VenueCreateWithoutReservationsInput = {
   partyMin?: number
   partyMax?: number
   diningMinutes?: number
+  graceMinutes?: number
   leadTimeMinutes?: number
   cutoffMinutes?: number
   noShowTargetPercent?: number
   overCapacityAlertPercent?: number
   cancellationPolicy: string
+  noticeEnabled?: boolean
+  noticeDate?: Date | string | null
+  noticeText?: string
   feedbackTitle?: string | null
   feedbackSubtitle?: string | null
   feedbackTags?: Prisma.VenueCreatefeedbackTagsInput | string[]
@@ -2386,11 +2604,15 @@ export type VenueUncheckedCreateWithoutReservationsInput = {
   partyMin?: number
   partyMax?: number
   diningMinutes?: number
+  graceMinutes?: number
   leadTimeMinutes?: number
   cutoffMinutes?: number
   noShowTargetPercent?: number
   overCapacityAlertPercent?: number
   cancellationPolicy: string
+  noticeEnabled?: boolean
+  noticeDate?: Date | string | null
+  noticeText?: string
   feedbackTitle?: string | null
   feedbackSubtitle?: string | null
   feedbackTags?: Prisma.VenueCreatefeedbackTagsInput | string[]
@@ -2441,11 +2663,15 @@ export type VenueUpdateWithoutReservationsInput = {
   partyMin?: Prisma.IntFieldUpdateOperationsInput | number
   partyMax?: Prisma.IntFieldUpdateOperationsInput | number
   diningMinutes?: Prisma.IntFieldUpdateOperationsInput | number
+  graceMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   leadTimeMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   cutoffMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   noShowTargetPercent?: Prisma.IntFieldUpdateOperationsInput | number
   overCapacityAlertPercent?: Prisma.IntFieldUpdateOperationsInput | number
   cancellationPolicy?: Prisma.StringFieldUpdateOperationsInput | string
+  noticeEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  noticeDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  noticeText?: Prisma.StringFieldUpdateOperationsInput | string
   feedbackTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   feedbackSubtitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   feedbackTags?: Prisma.VenueUpdatefeedbackTagsInput | string[]
@@ -2480,11 +2706,15 @@ export type VenueUncheckedUpdateWithoutReservationsInput = {
   partyMin?: Prisma.IntFieldUpdateOperationsInput | number
   partyMax?: Prisma.IntFieldUpdateOperationsInput | number
   diningMinutes?: Prisma.IntFieldUpdateOperationsInput | number
+  graceMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   leadTimeMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   cutoffMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   noShowTargetPercent?: Prisma.IntFieldUpdateOperationsInput | number
   overCapacityAlertPercent?: Prisma.IntFieldUpdateOperationsInput | number
   cancellationPolicy?: Prisma.StringFieldUpdateOperationsInput | string
+  noticeEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  noticeDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  noticeText?: Prisma.StringFieldUpdateOperationsInput | string
   feedbackTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   feedbackSubtitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   feedbackTags?: Prisma.VenueUpdatefeedbackTagsInput | string[]
@@ -2519,11 +2749,15 @@ export type VenueCreateWithoutFeedbackInput = {
   partyMin?: number
   partyMax?: number
   diningMinutes?: number
+  graceMinutes?: number
   leadTimeMinutes?: number
   cutoffMinutes?: number
   noShowTargetPercent?: number
   overCapacityAlertPercent?: number
   cancellationPolicy: string
+  noticeEnabled?: boolean
+  noticeDate?: Date | string | null
+  noticeText?: string
   feedbackTitle?: string | null
   feedbackSubtitle?: string | null
   feedbackTags?: Prisma.VenueCreatefeedbackTagsInput | string[]
@@ -2558,11 +2792,15 @@ export type VenueUncheckedCreateWithoutFeedbackInput = {
   partyMin?: number
   partyMax?: number
   diningMinutes?: number
+  graceMinutes?: number
   leadTimeMinutes?: number
   cutoffMinutes?: number
   noShowTargetPercent?: number
   overCapacityAlertPercent?: number
   cancellationPolicy: string
+  noticeEnabled?: boolean
+  noticeDate?: Date | string | null
+  noticeText?: string
   feedbackTitle?: string | null
   feedbackSubtitle?: string | null
   feedbackTags?: Prisma.VenueCreatefeedbackTagsInput | string[]
@@ -2613,11 +2851,15 @@ export type VenueUpdateWithoutFeedbackInput = {
   partyMin?: Prisma.IntFieldUpdateOperationsInput | number
   partyMax?: Prisma.IntFieldUpdateOperationsInput | number
   diningMinutes?: Prisma.IntFieldUpdateOperationsInput | number
+  graceMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   leadTimeMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   cutoffMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   noShowTargetPercent?: Prisma.IntFieldUpdateOperationsInput | number
   overCapacityAlertPercent?: Prisma.IntFieldUpdateOperationsInput | number
   cancellationPolicy?: Prisma.StringFieldUpdateOperationsInput | string
+  noticeEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  noticeDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  noticeText?: Prisma.StringFieldUpdateOperationsInput | string
   feedbackTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   feedbackSubtitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   feedbackTags?: Prisma.VenueUpdatefeedbackTagsInput | string[]
@@ -2652,11 +2894,15 @@ export type VenueUncheckedUpdateWithoutFeedbackInput = {
   partyMin?: Prisma.IntFieldUpdateOperationsInput | number
   partyMax?: Prisma.IntFieldUpdateOperationsInput | number
   diningMinutes?: Prisma.IntFieldUpdateOperationsInput | number
+  graceMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   leadTimeMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   cutoffMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   noShowTargetPercent?: Prisma.IntFieldUpdateOperationsInput | number
   overCapacityAlertPercent?: Prisma.IntFieldUpdateOperationsInput | number
   cancellationPolicy?: Prisma.StringFieldUpdateOperationsInput | string
+  noticeEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  noticeDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  noticeText?: Prisma.StringFieldUpdateOperationsInput | string
   feedbackTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   feedbackSubtitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   feedbackTags?: Prisma.VenueUpdatefeedbackTagsInput | string[]
@@ -2691,11 +2937,15 @@ export type VenueCreateWithoutUserVenuesInput = {
   partyMin?: number
   partyMax?: number
   diningMinutes?: number
+  graceMinutes?: number
   leadTimeMinutes?: number
   cutoffMinutes?: number
   noShowTargetPercent?: number
   overCapacityAlertPercent?: number
   cancellationPolicy: string
+  noticeEnabled?: boolean
+  noticeDate?: Date | string | null
+  noticeText?: string
   feedbackTitle?: string | null
   feedbackSubtitle?: string | null
   feedbackTags?: Prisma.VenueCreatefeedbackTagsInput | string[]
@@ -2730,11 +2980,15 @@ export type VenueUncheckedCreateWithoutUserVenuesInput = {
   partyMin?: number
   partyMax?: number
   diningMinutes?: number
+  graceMinutes?: number
   leadTimeMinutes?: number
   cutoffMinutes?: number
   noShowTargetPercent?: number
   overCapacityAlertPercent?: number
   cancellationPolicy: string
+  noticeEnabled?: boolean
+  noticeDate?: Date | string | null
+  noticeText?: string
   feedbackTitle?: string | null
   feedbackSubtitle?: string | null
   feedbackTags?: Prisma.VenueCreatefeedbackTagsInput | string[]
@@ -2785,11 +3039,15 @@ export type VenueUpdateWithoutUserVenuesInput = {
   partyMin?: Prisma.IntFieldUpdateOperationsInput | number
   partyMax?: Prisma.IntFieldUpdateOperationsInput | number
   diningMinutes?: Prisma.IntFieldUpdateOperationsInput | number
+  graceMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   leadTimeMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   cutoffMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   noShowTargetPercent?: Prisma.IntFieldUpdateOperationsInput | number
   overCapacityAlertPercent?: Prisma.IntFieldUpdateOperationsInput | number
   cancellationPolicy?: Prisma.StringFieldUpdateOperationsInput | string
+  noticeEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  noticeDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  noticeText?: Prisma.StringFieldUpdateOperationsInput | string
   feedbackTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   feedbackSubtitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   feedbackTags?: Prisma.VenueUpdatefeedbackTagsInput | string[]
@@ -2824,11 +3082,15 @@ export type VenueUncheckedUpdateWithoutUserVenuesInput = {
   partyMin?: Prisma.IntFieldUpdateOperationsInput | number
   partyMax?: Prisma.IntFieldUpdateOperationsInput | number
   diningMinutes?: Prisma.IntFieldUpdateOperationsInput | number
+  graceMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   leadTimeMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   cutoffMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   noShowTargetPercent?: Prisma.IntFieldUpdateOperationsInput | number
   overCapacityAlertPercent?: Prisma.IntFieldUpdateOperationsInput | number
   cancellationPolicy?: Prisma.StringFieldUpdateOperationsInput | string
+  noticeEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  noticeDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  noticeText?: Prisma.StringFieldUpdateOperationsInput | string
   feedbackTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   feedbackSubtitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   feedbackTags?: Prisma.VenueUpdatefeedbackTagsInput | string[]
@@ -2863,11 +3125,15 @@ export type VenueCreateWithoutAuditEventsInput = {
   partyMin?: number
   partyMax?: number
   diningMinutes?: number
+  graceMinutes?: number
   leadTimeMinutes?: number
   cutoffMinutes?: number
   noShowTargetPercent?: number
   overCapacityAlertPercent?: number
   cancellationPolicy: string
+  noticeEnabled?: boolean
+  noticeDate?: Date | string | null
+  noticeText?: string
   feedbackTitle?: string | null
   feedbackSubtitle?: string | null
   feedbackTags?: Prisma.VenueCreatefeedbackTagsInput | string[]
@@ -2902,11 +3168,15 @@ export type VenueUncheckedCreateWithoutAuditEventsInput = {
   partyMin?: number
   partyMax?: number
   diningMinutes?: number
+  graceMinutes?: number
   leadTimeMinutes?: number
   cutoffMinutes?: number
   noShowTargetPercent?: number
   overCapacityAlertPercent?: number
   cancellationPolicy: string
+  noticeEnabled?: boolean
+  noticeDate?: Date | string | null
+  noticeText?: string
   feedbackTitle?: string | null
   feedbackSubtitle?: string | null
   feedbackTags?: Prisma.VenueCreatefeedbackTagsInput | string[]
@@ -2957,11 +3227,15 @@ export type VenueUpdateWithoutAuditEventsInput = {
   partyMin?: Prisma.IntFieldUpdateOperationsInput | number
   partyMax?: Prisma.IntFieldUpdateOperationsInput | number
   diningMinutes?: Prisma.IntFieldUpdateOperationsInput | number
+  graceMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   leadTimeMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   cutoffMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   noShowTargetPercent?: Prisma.IntFieldUpdateOperationsInput | number
   overCapacityAlertPercent?: Prisma.IntFieldUpdateOperationsInput | number
   cancellationPolicy?: Prisma.StringFieldUpdateOperationsInput | string
+  noticeEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  noticeDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  noticeText?: Prisma.StringFieldUpdateOperationsInput | string
   feedbackTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   feedbackSubtitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   feedbackTags?: Prisma.VenueUpdatefeedbackTagsInput | string[]
@@ -2996,11 +3270,15 @@ export type VenueUncheckedUpdateWithoutAuditEventsInput = {
   partyMin?: Prisma.IntFieldUpdateOperationsInput | number
   partyMax?: Prisma.IntFieldUpdateOperationsInput | number
   diningMinutes?: Prisma.IntFieldUpdateOperationsInput | number
+  graceMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   leadTimeMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   cutoffMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   noShowTargetPercent?: Prisma.IntFieldUpdateOperationsInput | number
   overCapacityAlertPercent?: Prisma.IntFieldUpdateOperationsInput | number
   cancellationPolicy?: Prisma.StringFieldUpdateOperationsInput | string
+  noticeEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  noticeDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  noticeText?: Prisma.StringFieldUpdateOperationsInput | string
   feedbackTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   feedbackSubtitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   feedbackTags?: Prisma.VenueUpdatefeedbackTagsInput | string[]
@@ -3147,11 +3425,15 @@ export type VenueSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   partyMin?: boolean
   partyMax?: boolean
   diningMinutes?: boolean
+  graceMinutes?: boolean
   leadTimeMinutes?: boolean
   cutoffMinutes?: boolean
   noShowTargetPercent?: boolean
   overCapacityAlertPercent?: boolean
   cancellationPolicy?: boolean
+  noticeEnabled?: boolean
+  noticeDate?: boolean
+  noticeText?: boolean
   feedbackTitle?: boolean
   feedbackSubtitle?: boolean
   feedbackTags?: boolean
@@ -3188,11 +3470,15 @@ export type VenueSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensi
   partyMin?: boolean
   partyMax?: boolean
   diningMinutes?: boolean
+  graceMinutes?: boolean
   leadTimeMinutes?: boolean
   cutoffMinutes?: boolean
   noShowTargetPercent?: boolean
   overCapacityAlertPercent?: boolean
   cancellationPolicy?: boolean
+  noticeEnabled?: boolean
+  noticeDate?: boolean
+  noticeText?: boolean
   feedbackTitle?: boolean
   feedbackSubtitle?: boolean
   feedbackTags?: boolean
@@ -3217,11 +3503,15 @@ export type VenueSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensi
   partyMin?: boolean
   partyMax?: boolean
   diningMinutes?: boolean
+  graceMinutes?: boolean
   leadTimeMinutes?: boolean
   cutoffMinutes?: boolean
   noShowTargetPercent?: boolean
   overCapacityAlertPercent?: boolean
   cancellationPolicy?: boolean
+  noticeEnabled?: boolean
+  noticeDate?: boolean
+  noticeText?: boolean
   feedbackTitle?: boolean
   feedbackSubtitle?: boolean
   feedbackTags?: boolean
@@ -3246,11 +3536,15 @@ export type VenueSelectScalar = {
   partyMin?: boolean
   partyMax?: boolean
   diningMinutes?: boolean
+  graceMinutes?: boolean
   leadTimeMinutes?: boolean
   cutoffMinutes?: boolean
   noShowTargetPercent?: boolean
   overCapacityAlertPercent?: boolean
   cancellationPolicy?: boolean
+  noticeEnabled?: boolean
+  noticeDate?: boolean
+  noticeText?: boolean
   feedbackTitle?: boolean
   feedbackSubtitle?: boolean
   feedbackTags?: boolean
@@ -3259,7 +3553,7 @@ export type VenueSelectScalar = {
   updatedAt?: boolean
 }
 
-export type VenueOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "slug" | "name" | "timeZone" | "tagline" | "intro" | "address" | "phone" | "whatsapp" | "email" | "mapsUrl" | "bookingIntervalMinutes" | "partyMin" | "partyMax" | "diningMinutes" | "leadTimeMinutes" | "cutoffMinutes" | "noShowTargetPercent" | "overCapacityAlertPercent" | "cancellationPolicy" | "feedbackTitle" | "feedbackSubtitle" | "feedbackTags" | "feedbackMessageTemplate" | "createdAt" | "updatedAt", ExtArgs["result"]["venue"]>
+export type VenueOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "slug" | "name" | "timeZone" | "tagline" | "intro" | "address" | "phone" | "whatsapp" | "email" | "mapsUrl" | "bookingIntervalMinutes" | "partyMin" | "partyMax" | "diningMinutes" | "graceMinutes" | "leadTimeMinutes" | "cutoffMinutes" | "noShowTargetPercent" | "overCapacityAlertPercent" | "cancellationPolicy" | "noticeEnabled" | "noticeDate" | "noticeText" | "feedbackTitle" | "feedbackSubtitle" | "feedbackTags" | "feedbackMessageTemplate" | "createdAt" | "updatedAt", ExtArgs["result"]["venue"]>
 export type VenueInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   openingHours?: boolean | Prisma.Venue$openingHoursArgs<ExtArgs>
   closedDates?: boolean | Prisma.Venue$closedDatesArgs<ExtArgs>
@@ -3308,11 +3602,15 @@ export type $VenuePayload<ExtArgs extends runtime.Types.Extensions.InternalArgs 
     partyMin: number
     partyMax: number
     diningMinutes: number
+    graceMinutes: number
     leadTimeMinutes: number
     cutoffMinutes: number
     noShowTargetPercent: number
     overCapacityAlertPercent: number
     cancellationPolicy: string
+    noticeEnabled: boolean
+    noticeDate: Date | null
+    noticeText: string
     feedbackTitle: string | null
     feedbackSubtitle: string | null
     feedbackTags: string[]
@@ -3768,11 +4066,15 @@ export interface VenueFieldRefs {
   readonly partyMin: Prisma.FieldRef<"Venue", 'Int'>
   readonly partyMax: Prisma.FieldRef<"Venue", 'Int'>
   readonly diningMinutes: Prisma.FieldRef<"Venue", 'Int'>
+  readonly graceMinutes: Prisma.FieldRef<"Venue", 'Int'>
   readonly leadTimeMinutes: Prisma.FieldRef<"Venue", 'Int'>
   readonly cutoffMinutes: Prisma.FieldRef<"Venue", 'Int'>
   readonly noShowTargetPercent: Prisma.FieldRef<"Venue", 'Int'>
   readonly overCapacityAlertPercent: Prisma.FieldRef<"Venue", 'Int'>
   readonly cancellationPolicy: Prisma.FieldRef<"Venue", 'String'>
+  readonly noticeEnabled: Prisma.FieldRef<"Venue", 'Boolean'>
+  readonly noticeDate: Prisma.FieldRef<"Venue", 'DateTime'>
+  readonly noticeText: Prisma.FieldRef<"Venue", 'String'>
   readonly feedbackTitle: Prisma.FieldRef<"Venue", 'String'>
   readonly feedbackSubtitle: Prisma.FieldRef<"Venue", 'String'>
   readonly feedbackTags: Prisma.FieldRef<"Venue", 'String[]'>

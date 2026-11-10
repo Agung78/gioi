@@ -184,7 +184,7 @@ async function save() {
 	try {
 		load(await saveFloorLayout(venueId.value, {
 			areas: areas.value.map((a) => ({ id: a.id, name: a.name.trim(), bookable: a.bookable, minParty: null, maxParty: null })),
-			tables: tables.value.map((t) => ({ seatingAreaId: t.seatingAreaId, seats: t.seats, x: r1(t.x), y: r1(t.y), rotation: t.rotation })),
+			tables: tables.value.map((t) => ({ id: t.id, seatingAreaId: t.seatingAreaId, seats: t.seats, x: r1(t.x), y: r1(t.y), rotation: t.rotation })),
 			objects: objects.value.map((o) => ({ label: o.label, width: o.width, height: o.height, color: o.color, x: r1(o.x), y: r1(o.y), rotation: o.rotation })),
 		}))
 	} catch (e) {
@@ -245,7 +245,7 @@ definePageMeta({ middleware: ['auth', 'admin', () => (useAuthStore().isSuperAdmi
 
 				<div v-if="canEdit" class="mb-3 flex min-h-11 flex-wrap items-center gap-3 rounded-input bg-line/30 px-3 py-2 text-sm">
 					<template v-if="selTable">
-						<b>Selected table <span class="font-normal text-muted">in {{ draft.areas.find((a) => a.id === selTable!.seatingAreaId)?.name }}</span></b>
+						<b>Selected table {{ current!.index + 1 }} <span class="font-normal text-muted">in {{ draft.areas.find((a) => a.id === selTable!.seatingAreaId)?.name }}</span></b>
 						<span class="flex items-center gap-1">Chairs
 							<button class="btn-secondary" type="button" aria-label="Fewer chairs" :disabled="selTable.seats <= 1" @click="chairs(-1)">−</button>
 							<span class="w-6 text-center font-bold tabular-nums">{{ selTable.seats }}</span>
