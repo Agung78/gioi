@@ -5,7 +5,7 @@ import { useRoute } from '#app'
 import FloorPlanSvg from '@/components/FloorPlanSvg.vue'
 import DatePicker from '@/components/DatePicker.vue'
 import type { AdminFloorPlan } from '@gioi/domain'
-import type { User, DayOfWeek } from '@gioi/domain'
+import { todayISO, type User, type DayOfWeek } from '@gioi/domain'
 import {
 	fetchVenue, updateVenue,
 	fetchOpeningHours, saveOpeningHours,
@@ -55,11 +55,13 @@ async function load() {
 			floorPlan.value = venueId ? await fetchFloorPlan(venueId) : null
 			return
 		}
-		const [v, oh, cd] = await Promise.all([
+		let [v, oh, cd] = await Promise.all([
 			fetchVenue(venueId),
 			fetchOpeningHours(venueId),
 			fetchClosedDates(venueId),
 		])
+		// Expired notice (date before today): switch it off using the admin session.
+		if (v.noticeDate && v.noticeDate < todayISO()) v = await updateVenue(venueId, { noticeEnabled: false, noticeDate: null })
 		venue.value = v
 		draft.value = clone(v)
 		opening.value = oh.map((r) => ({ weekday: r.weekday, openMinute: r.openMinute, closeMinute: r.closeMinute }))
