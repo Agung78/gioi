@@ -2,7 +2,8 @@ import type { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify'
 import type { PrismaClient, OpeningHours, ClosedDate, SeatingArea, Reservation } from '@prisma/client'
 import { notFound } from '../../lib/errors'
 import { venueToSettings } from '../../lib/settings'
-import { fromMinutes, getDayAvailability, localDate, localTime, toUtc } from '@gioi/domain'
+import { fromMinutes, getDayAvailability, localDate, localTime, toUtc, type TableAvailability } from '@gioi/domain'
+import { tableHolders } from '../../lib/tables'
 
 export function registerPublicVenueRoutes(app: FastifyInstance, prisma: PrismaClient): void {
 	app.get(
@@ -127,6 +128,33 @@ export function registerPublicVenueRoutes(app: FastifyInstance, prisma: PrismaCl
 			const slots = getDayAvailability(settings, reservations, date, partySize, { now: new Date(), seatingAreaId: area })
 
 			return { date, timeZone: venue.timeZone, slots }
+		},
+	)
+
+	app.get(
+		'/public/venues/:slug/table-availability',
+		{
+			schema: {
+				params: { type: 'object', properties: { slug: { type: 'string' } }, required: ['slug'] },
+				querystring: {
+					type: 'object',
+					properties: {
+						date: { type: 'string', pattern: '^\\d{4}-\\d{2}-\\d{2}$' },
+						time: { type: 'string', pattern: '^\\d{2}:\\d{2}$' },
+						partySize: { type: 'integer', minimum: 1 },
+					},
+					required: ['date', 'time', 'partySize'],
+				},
+			},
+		},
+		async (request: FastifyRequest<{ Params: { slug: string }; Querystring: { date: string; time: string; partySize: number } }>): Promise<TableAvailability> => {
+			const { date, time, partySize } = request.query
+			const venue = await prisma.venue.findUnique({ where: { slug: request.params.slug }, select: { id: true, timeZone: true, diningMinutes: true } })
+			if (!venue) throw notFound('venue not found')
+
+			const held = (await tableHolders(prisma, venue.id, toUtc(date, time, venue.timeZone), venue.diningMinutes)).map((h) => h.tableId)
+			const small = await prisma.floorTable.findMany({ where: { venueId: venue.id, seats: { lt: partySize } }, select: { id: true } })
+			return { unavailableTableIds: [...new Set([...held, ...small.map((t) => t.id)])] }
 		},
 	)
 }

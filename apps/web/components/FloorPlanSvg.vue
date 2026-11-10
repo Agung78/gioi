@@ -13,7 +13,8 @@ const props = withDefaults(defineProps<{
 	label?: string
 	pickable?: boolean // guest mode: tables are click/keyboard targets with a roomy hit area
 	chosen?: number | null // guest mode: the table the guest confirmed; gets a persistent ring
-}>(), { highlightAreaId: null, selected: null, chosen: null, interactive: false, label: 'Floor plan', pickable: false })
+	disabledIds?: string[] // guest mode: table ids that cannot be picked (dimmed)
+}>(), { highlightAreaId: null, selected: null, chosen: null, interactive: false, label: 'Floor plan', pickable: false, disabledIds: () => [] })
 
 const emit = defineEmits<{
 	(e: 'item-down', kind: 't' | 'o', index: number, ev: PointerEvent): void
@@ -37,7 +38,8 @@ const tables = computed(() => props.plan.tables.map((t) => ({
 	...t,
 	shape: tableShape(t.seats),
 	fill: areaColor(props.plan.areas, t.seatingAreaId),
-	opacity: props.highlightAreaId && t.seatingAreaId !== props.highlightAreaId ? 0.22 : bookable.value.get(t.seatingAreaId) === false ? 0.5 : 1,
+	off: !!t.id && props.disabledIds.includes(t.id),
+	opacity: t.id && props.disabledIds.includes(t.id) ? 0.35 : props.highlightAreaId && t.seatingAreaId !== props.highlightAreaId ? 0.22 : bookable.value.get(t.seatingAreaId) === false ? 0.5 : 1,
 })))
 const objects = computed(() => props.plan.objects.map((o) => ({ ...o, text: objectText(o) })))
 const areaName = (id: string) => props.plan.areas.find((a) => a.id === id)?.name ?? 'Table'
@@ -79,15 +81,16 @@ const tip = computed(() => {
 			v-for="(t, i) in tables"
 			:key="`t${i}`"
 			:transform="`translate(${t.x} ${t.y}) rotate(${t.rotation}) scale(${TABLE_SCALE})`"
-			:class="[interactive && 'cursor-grab', pickable && 'floor-pick', !pickable && selected === `t:${i}` && 'floor-sel', 'floor-fade']"
+			:class="[interactive && 'cursor-grab', pickable && 'floor-pick', pickable && t.off && 'floor-off', !pickable && selected === `t:${i}` && 'floor-sel', 'floor-fade']"
 			:style="pickable ? { animationDelay: `${Math.min(i * 30, 360)}ms` } : undefined"
 			:opacity="t.opacity"
 			:role="pickable ? 'button' : undefined"
-			:tabindex="pickable ? 0 : undefined"
-			:aria-label="pickable ? `Table for ${t.seats}, ${areaName(t.seatingAreaId)}` : undefined"
+			:aria-disabled="pickable && t.off ? 'true' : undefined"
+			:tabindex="pickable && !t.off ? 0 : undefined"
+			:aria-label="pickable ? `Table for ${t.seats}, ${areaName(t.seatingAreaId)}${t.off ? ' (unavailable)' : ''}` : undefined"
 			@pointerdown="emit('item-down', 't', i, $event)"
-			@click="pickable && emit('table-pick', i)"
-			@keydown.enter.space.prevent="pickable && emit('table-pick', i)"
+			@click="pickable && !t.off && emit('table-pick', i)"
+			@keydown.enter.space.prevent="pickable && !t.off && emit('table-pick', i)"
 			@pointerenter="pickable && $event.pointerType === 'mouse' && (hovered = i)"
 			@pointerleave="hovered = null"
 			@focus="hovered = i"
@@ -122,6 +125,7 @@ const tip = computed(() => {
 .floor-fade { transition: opacity 200ms cubic-bezier(0.23, 1, 0.32, 1); }
 .floor-sel { filter: drop-shadow(0 0 4px #e87a3a) drop-shadow(0 0 1px #e87a3a); }
 .floor-pick { cursor: pointer; outline: none; }
+.floor-pick.floor-off { cursor: not-allowed; }
 .floor-pick .floor-hit { transition: fill 150ms ease, stroke 150ms ease; }
 .floor-pick:focus-visible .floor-hit { fill: rgba(232, 122, 58, 0.18); stroke: #e87a3a; stroke-width: 1.5; }
 /* press feedback on the table body (the group's own transform positions it, so scale the child) */

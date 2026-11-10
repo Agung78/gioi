@@ -7,6 +7,7 @@ import StatusChip from '@/components/StatusChip.vue'
 import StatusButtons from '@/components/StatusButtons.vue'
 import GuestSearch from '@/components/GuestSearch.vue'
 import WalkInModal from '@/components/WalkInModal.vue'
+import ChangeTableModal from '@/components/ChangeTableModal.vue'
 import {
 	fetchDay,
 	changeReservationStatus,
@@ -23,6 +24,8 @@ const tab = ref<'today' | 'search'>('today')
 const reservations = ref<StaffReservation[]>([])
 const areas = ref<Array<{ id: string; name: string }>>([])
 const venue = ref<{ slug: string; name: string; feedbackMessageTemplate: string } | null>(null)
+const venueId = ref('')
+const changing = ref<StaffReservation | null>(null)
 const poll = ref<ReturnType<typeof setInterval> | null>(null)
 
 async function load(day?: string) {
@@ -32,6 +35,7 @@ async function load(day?: string) {
 		reservations.value = d.reservations
 		areas.value = d.areas
 		venue.value = d.venue
+		venueId.value = d.venueId
 	} catch (e: any) {
 		lastError.value = e.message ?? 'Failed to load day.'
 	}
@@ -241,6 +245,7 @@ definePageMeta({ middleware: 'auth' })
 								<button v-if="r.status === 'completed'" class="btn-ghost inline-flex items-center gap-2" type="button" @click="sendFeedback(r)">
 									<PhWhatsappLogo :size="20" aria-hidden="true" /> Send feedback via WhatsApp
 								</button>
+								<button v-if="['pending', 'confirmed', 'arrived', 'seated'].includes(r.status)" class="btn-ghost" type="button" @click="changing = r">Change table</button>
 							</div>
 						</article>
 					</div>
@@ -251,6 +256,7 @@ definePageMeta({ middleware: 'auth' })
 	</Transition>
 
 
-		<WalkInModal :open="showWalkIn" :areas="areas" @close="showWalkIn = false" @created="lastError = null" />
+		<WalkInModal :open="showWalkIn" :areas="areas" :venue-slug="venue?.slug" :venue-id="venueId" @close="showWalkIn = false" @created="lastError = null" />
+		<ChangeTableModal :reservation="changing" :venue-id="venueId" :venue-slug="venue?.slug" :areas="areas" @close="changing = null" @saved="changing = null; load(date)" />
 	</div>
 </template>

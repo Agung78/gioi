@@ -31,6 +31,7 @@ export type VenueAvgAggregateOutputType = {
   partyMin: number | null
   partyMax: number | null
   diningMinutes: number | null
+  graceMinutes: number | null
   leadTimeMinutes: number | null
   cutoffMinutes: number | null
   noShowTargetPercent: number | null
@@ -42,6 +43,7 @@ export type VenueSumAggregateOutputType = {
   partyMin: number | null
   partyMax: number | null
   diningMinutes: number | null
+  graceMinutes: number | null
   leadTimeMinutes: number | null
   cutoffMinutes: number | null
   noShowTargetPercent: number | null
@@ -64,6 +66,7 @@ export type VenueMinAggregateOutputType = {
   partyMin: number | null
   partyMax: number | null
   diningMinutes: number | null
+  graceMinutes: number | null
   leadTimeMinutes: number | null
   cutoffMinutes: number | null
   noShowTargetPercent: number | null
@@ -92,6 +95,7 @@ export type VenueMaxAggregateOutputType = {
   partyMin: number | null
   partyMax: number | null
   diningMinutes: number | null
+  graceMinutes: number | null
   leadTimeMinutes: number | null
   cutoffMinutes: number | null
   noShowTargetPercent: number | null
@@ -120,6 +124,7 @@ export type VenueCountAggregateOutputType = {
   partyMin: number
   partyMax: number
   diningMinutes: number
+  graceMinutes: number
   leadTimeMinutes: number
   cutoffMinutes: number
   noShowTargetPercent: number
@@ -140,6 +145,7 @@ export type VenueAvgAggregateInputType = {
   partyMin?: true
   partyMax?: true
   diningMinutes?: true
+  graceMinutes?: true
   leadTimeMinutes?: true
   cutoffMinutes?: true
   noShowTargetPercent?: true
@@ -151,6 +157,7 @@ export type VenueSumAggregateInputType = {
   partyMin?: true
   partyMax?: true
   diningMinutes?: true
+  graceMinutes?: true
   leadTimeMinutes?: true
   cutoffMinutes?: true
   noShowTargetPercent?: true
@@ -173,6 +180,7 @@ export type VenueMinAggregateInputType = {
   partyMin?: true
   partyMax?: true
   diningMinutes?: true
+  graceMinutes?: true
   leadTimeMinutes?: true
   cutoffMinutes?: true
   noShowTargetPercent?: true
@@ -201,6 +209,7 @@ export type VenueMaxAggregateInputType = {
   partyMin?: true
   partyMax?: true
   diningMinutes?: true
+  graceMinutes?: true
   leadTimeMinutes?: true
   cutoffMinutes?: true
   noShowTargetPercent?: true
@@ -229,6 +238,7 @@ export type VenueCountAggregateInputType = {
   partyMin?: true
   partyMax?: true
   diningMinutes?: true
+  graceMinutes?: true
   leadTimeMinutes?: true
   cutoffMinutes?: true
   noShowTargetPercent?: true
@@ -345,6 +355,7 @@ export type VenueGroupByOutputType = {
   partyMin: number
   partyMax: number
   diningMinutes: number
+  graceMinutes: number
   leadTimeMinutes: number
   cutoffMinutes: number
   noShowTargetPercent: number
@@ -397,6 +408,7 @@ export type VenueWhereInput = {
   partyMin?: Prisma.IntFilter<"Venue"> | number
   partyMax?: Prisma.IntFilter<"Venue"> | number
   diningMinutes?: Prisma.IntFilter<"Venue"> | number
+  graceMinutes?: Prisma.IntFilter<"Venue"> | number
   leadTimeMinutes?: Prisma.IntFilter<"Venue"> | number
   cutoffMinutes?: Prisma.IntFilter<"Venue"> | number
   noShowTargetPercent?: Prisma.IntFilter<"Venue"> | number
@@ -437,6 +449,7 @@ export type VenueOrderByWithRelationInput = {
   partyMin?: Prisma.SortOrder
   partyMax?: Prisma.SortOrder
   diningMinutes?: Prisma.SortOrder
+  graceMinutes?: Prisma.SortOrder
   leadTimeMinutes?: Prisma.SortOrder
   cutoffMinutes?: Prisma.SortOrder
   noShowTargetPercent?: Prisma.SortOrder
@@ -480,6 +493,7 @@ export type VenueWhereUniqueInput = Prisma.AtLeast<{
   partyMin?: Prisma.IntFilter<"Venue"> | number
   partyMax?: Prisma.IntFilter<"Venue"> | number
   diningMinutes?: Prisma.IntFilter<"Venue"> | number
+  graceMinutes?: Prisma.IntFilter<"Venue"> | number
   leadTimeMinutes?: Prisma.IntFilter<"Venue"> | number
   cutoffMinutes?: Prisma.IntFilter<"Venue"> | number
   noShowTargetPercent?: Prisma.IntFilter<"Venue"> | number
@@ -520,6 +534,7 @@ export type VenueOrderByWithAggregationInput = {
   partyMin?: Prisma.SortOrder
   partyMax?: Prisma.SortOrder
   diningMinutes?: Prisma.SortOrder
+  graceMinutes?: Prisma.SortOrder
   leadTimeMinutes?: Prisma.SortOrder
   cutoffMinutes?: Prisma.SortOrder
   noShowTargetPercent?: Prisma.SortOrder
@@ -557,6 +572,7 @@ export type VenueScalarWhereWithAggregatesInput = {
   partyMin?: Prisma.IntWithAggregatesFilter<"Venue"> | number
   partyMax?: Prisma.IntWithAggregatesFilter<"Venue"> | number
   diningMinutes?: Prisma.IntWithAggregatesFilter<"Venue"> | number
+  graceMinutes?: Prisma.IntWithAggregatesFilter<"Venue"> | number
   leadTimeMinutes?: Prisma.IntWithAggregatesFilter<"Venue"> | number
   cutoffMinutes?: Prisma.IntWithAggregatesFilter<"Venue"> | number
   noShowTargetPercent?: Prisma.IntWithAggregatesFilter<"Venue"> | number
@@ -586,6 +602,7 @@ export type VenueCreateInput = {
   partyMin?: number
   partyMax?: number
   diningMinutes?: number
+  graceMinutes?: number
   leadTimeMinutes?: number
   cutoffMinutes?: number
   noShowTargetPercent?: number
@@ -626,6 +643,7 @@ export type VenueUncheckedCreateInput = {
   partyMin?: number
   partyMax?: number
   diningMinutes?: number
+  graceMinutes?: number
   leadTimeMinutes?: number
   cutoffMinutes?: number
   noShowTargetPercent?: number
@@ -666,6 +684,7 @@ export type VenueUpdateInput = {
   partyMin?: Prisma.IntFieldUpdateOperationsInput | number
   partyMax?: Prisma.IntFieldUpdateOperationsInput | number
   diningMinutes?: Prisma.IntFieldUpdateOperationsInput | number
+  graceMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   leadTimeMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   cutoffMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   noShowTargetPercent?: Prisma.IntFieldUpdateOperationsInput | number
@@ -706,6 +725,7 @@ export type VenueUncheckedUpdateInput = {
   partyMin?: Prisma.IntFieldUpdateOperationsInput | number
   partyMax?: Prisma.IntFieldUpdateOperationsInput | number
   diningMinutes?: Prisma.IntFieldUpdateOperationsInput | number
+  graceMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   leadTimeMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   cutoffMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   noShowTargetPercent?: Prisma.IntFieldUpdateOperationsInput | number
@@ -746,6 +766,7 @@ export type VenueCreateManyInput = {
   partyMin?: number
   partyMax?: number
   diningMinutes?: number
+  graceMinutes?: number
   leadTimeMinutes?: number
   cutoffMinutes?: number
   noShowTargetPercent?: number
@@ -775,6 +796,7 @@ export type VenueUpdateManyMutationInput = {
   partyMin?: Prisma.IntFieldUpdateOperationsInput | number
   partyMax?: Prisma.IntFieldUpdateOperationsInput | number
   diningMinutes?: Prisma.IntFieldUpdateOperationsInput | number
+  graceMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   leadTimeMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   cutoffMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   noShowTargetPercent?: Prisma.IntFieldUpdateOperationsInput | number
@@ -804,6 +826,7 @@ export type VenueUncheckedUpdateManyInput = {
   partyMin?: Prisma.IntFieldUpdateOperationsInput | number
   partyMax?: Prisma.IntFieldUpdateOperationsInput | number
   diningMinutes?: Prisma.IntFieldUpdateOperationsInput | number
+  graceMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   leadTimeMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   cutoffMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   noShowTargetPercent?: Prisma.IntFieldUpdateOperationsInput | number
@@ -841,6 +864,7 @@ export type VenueCountOrderByAggregateInput = {
   partyMin?: Prisma.SortOrder
   partyMax?: Prisma.SortOrder
   diningMinutes?: Prisma.SortOrder
+  graceMinutes?: Prisma.SortOrder
   leadTimeMinutes?: Prisma.SortOrder
   cutoffMinutes?: Prisma.SortOrder
   noShowTargetPercent?: Prisma.SortOrder
@@ -859,6 +883,7 @@ export type VenueAvgOrderByAggregateInput = {
   partyMin?: Prisma.SortOrder
   partyMax?: Prisma.SortOrder
   diningMinutes?: Prisma.SortOrder
+  graceMinutes?: Prisma.SortOrder
   leadTimeMinutes?: Prisma.SortOrder
   cutoffMinutes?: Prisma.SortOrder
   noShowTargetPercent?: Prisma.SortOrder
@@ -881,6 +906,7 @@ export type VenueMaxOrderByAggregateInput = {
   partyMin?: Prisma.SortOrder
   partyMax?: Prisma.SortOrder
   diningMinutes?: Prisma.SortOrder
+  graceMinutes?: Prisma.SortOrder
   leadTimeMinutes?: Prisma.SortOrder
   cutoffMinutes?: Prisma.SortOrder
   noShowTargetPercent?: Prisma.SortOrder
@@ -909,6 +935,7 @@ export type VenueMinOrderByAggregateInput = {
   partyMin?: Prisma.SortOrder
   partyMax?: Prisma.SortOrder
   diningMinutes?: Prisma.SortOrder
+  graceMinutes?: Prisma.SortOrder
   leadTimeMinutes?: Prisma.SortOrder
   cutoffMinutes?: Prisma.SortOrder
   noShowTargetPercent?: Prisma.SortOrder
@@ -926,6 +953,7 @@ export type VenueSumOrderByAggregateInput = {
   partyMin?: Prisma.SortOrder
   partyMax?: Prisma.SortOrder
   diningMinutes?: Prisma.SortOrder
+  graceMinutes?: Prisma.SortOrder
   leadTimeMinutes?: Prisma.SortOrder
   cutoffMinutes?: Prisma.SortOrder
   noShowTargetPercent?: Prisma.SortOrder
@@ -1143,6 +1171,7 @@ export type VenueCreateWithoutOpeningHoursInput = {
   partyMin?: number
   partyMax?: number
   diningMinutes?: number
+  graceMinutes?: number
   leadTimeMinutes?: number
   cutoffMinutes?: number
   noShowTargetPercent?: number
@@ -1182,6 +1211,7 @@ export type VenueUncheckedCreateWithoutOpeningHoursInput = {
   partyMin?: number
   partyMax?: number
   diningMinutes?: number
+  graceMinutes?: number
   leadTimeMinutes?: number
   cutoffMinutes?: number
   noShowTargetPercent?: number
@@ -1237,6 +1267,7 @@ export type VenueUpdateWithoutOpeningHoursInput = {
   partyMin?: Prisma.IntFieldUpdateOperationsInput | number
   partyMax?: Prisma.IntFieldUpdateOperationsInput | number
   diningMinutes?: Prisma.IntFieldUpdateOperationsInput | number
+  graceMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   leadTimeMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   cutoffMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   noShowTargetPercent?: Prisma.IntFieldUpdateOperationsInput | number
@@ -1276,6 +1307,7 @@ export type VenueUncheckedUpdateWithoutOpeningHoursInput = {
   partyMin?: Prisma.IntFieldUpdateOperationsInput | number
   partyMax?: Prisma.IntFieldUpdateOperationsInput | number
   diningMinutes?: Prisma.IntFieldUpdateOperationsInput | number
+  graceMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   leadTimeMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   cutoffMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   noShowTargetPercent?: Prisma.IntFieldUpdateOperationsInput | number
@@ -1315,6 +1347,7 @@ export type VenueCreateWithoutClosedDatesInput = {
   partyMin?: number
   partyMax?: number
   diningMinutes?: number
+  graceMinutes?: number
   leadTimeMinutes?: number
   cutoffMinutes?: number
   noShowTargetPercent?: number
@@ -1354,6 +1387,7 @@ export type VenueUncheckedCreateWithoutClosedDatesInput = {
   partyMin?: number
   partyMax?: number
   diningMinutes?: number
+  graceMinutes?: number
   leadTimeMinutes?: number
   cutoffMinutes?: number
   noShowTargetPercent?: number
@@ -1409,6 +1443,7 @@ export type VenueUpdateWithoutClosedDatesInput = {
   partyMin?: Prisma.IntFieldUpdateOperationsInput | number
   partyMax?: Prisma.IntFieldUpdateOperationsInput | number
   diningMinutes?: Prisma.IntFieldUpdateOperationsInput | number
+  graceMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   leadTimeMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   cutoffMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   noShowTargetPercent?: Prisma.IntFieldUpdateOperationsInput | number
@@ -1448,6 +1483,7 @@ export type VenueUncheckedUpdateWithoutClosedDatesInput = {
   partyMin?: Prisma.IntFieldUpdateOperationsInput | number
   partyMax?: Prisma.IntFieldUpdateOperationsInput | number
   diningMinutes?: Prisma.IntFieldUpdateOperationsInput | number
+  graceMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   leadTimeMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   cutoffMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   noShowTargetPercent?: Prisma.IntFieldUpdateOperationsInput | number
@@ -1487,6 +1523,7 @@ export type VenueCreateWithoutSeatingAreasInput = {
   partyMin?: number
   partyMax?: number
   diningMinutes?: number
+  graceMinutes?: number
   leadTimeMinutes?: number
   cutoffMinutes?: number
   noShowTargetPercent?: number
@@ -1526,6 +1563,7 @@ export type VenueUncheckedCreateWithoutSeatingAreasInput = {
   partyMin?: number
   partyMax?: number
   diningMinutes?: number
+  graceMinutes?: number
   leadTimeMinutes?: number
   cutoffMinutes?: number
   noShowTargetPercent?: number
@@ -1581,6 +1619,7 @@ export type VenueUpdateWithoutSeatingAreasInput = {
   partyMin?: Prisma.IntFieldUpdateOperationsInput | number
   partyMax?: Prisma.IntFieldUpdateOperationsInput | number
   diningMinutes?: Prisma.IntFieldUpdateOperationsInput | number
+  graceMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   leadTimeMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   cutoffMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   noShowTargetPercent?: Prisma.IntFieldUpdateOperationsInput | number
@@ -1620,6 +1659,7 @@ export type VenueUncheckedUpdateWithoutSeatingAreasInput = {
   partyMin?: Prisma.IntFieldUpdateOperationsInput | number
   partyMax?: Prisma.IntFieldUpdateOperationsInput | number
   diningMinutes?: Prisma.IntFieldUpdateOperationsInput | number
+  graceMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   leadTimeMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   cutoffMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   noShowTargetPercent?: Prisma.IntFieldUpdateOperationsInput | number
@@ -1659,6 +1699,7 @@ export type VenueCreateWithoutFloorPlanInput = {
   partyMin?: number
   partyMax?: number
   diningMinutes?: number
+  graceMinutes?: number
   leadTimeMinutes?: number
   cutoffMinutes?: number
   noShowTargetPercent?: number
@@ -1698,6 +1739,7 @@ export type VenueUncheckedCreateWithoutFloorPlanInput = {
   partyMin?: number
   partyMax?: number
   diningMinutes?: number
+  graceMinutes?: number
   leadTimeMinutes?: number
   cutoffMinutes?: number
   noShowTargetPercent?: number
@@ -1753,6 +1795,7 @@ export type VenueUpdateWithoutFloorPlanInput = {
   partyMin?: Prisma.IntFieldUpdateOperationsInput | number
   partyMax?: Prisma.IntFieldUpdateOperationsInput | number
   diningMinutes?: Prisma.IntFieldUpdateOperationsInput | number
+  graceMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   leadTimeMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   cutoffMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   noShowTargetPercent?: Prisma.IntFieldUpdateOperationsInput | number
@@ -1792,6 +1835,7 @@ export type VenueUncheckedUpdateWithoutFloorPlanInput = {
   partyMin?: Prisma.IntFieldUpdateOperationsInput | number
   partyMax?: Prisma.IntFieldUpdateOperationsInput | number
   diningMinutes?: Prisma.IntFieldUpdateOperationsInput | number
+  graceMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   leadTimeMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   cutoffMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   noShowTargetPercent?: Prisma.IntFieldUpdateOperationsInput | number
@@ -1831,6 +1875,7 @@ export type VenueCreateWithoutFloorTablesInput = {
   partyMin?: number
   partyMax?: number
   diningMinutes?: number
+  graceMinutes?: number
   leadTimeMinutes?: number
   cutoffMinutes?: number
   noShowTargetPercent?: number
@@ -1870,6 +1915,7 @@ export type VenueUncheckedCreateWithoutFloorTablesInput = {
   partyMin?: number
   partyMax?: number
   diningMinutes?: number
+  graceMinutes?: number
   leadTimeMinutes?: number
   cutoffMinutes?: number
   noShowTargetPercent?: number
@@ -1925,6 +1971,7 @@ export type VenueUpdateWithoutFloorTablesInput = {
   partyMin?: Prisma.IntFieldUpdateOperationsInput | number
   partyMax?: Prisma.IntFieldUpdateOperationsInput | number
   diningMinutes?: Prisma.IntFieldUpdateOperationsInput | number
+  graceMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   leadTimeMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   cutoffMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   noShowTargetPercent?: Prisma.IntFieldUpdateOperationsInput | number
@@ -1964,6 +2011,7 @@ export type VenueUncheckedUpdateWithoutFloorTablesInput = {
   partyMin?: Prisma.IntFieldUpdateOperationsInput | number
   partyMax?: Prisma.IntFieldUpdateOperationsInput | number
   diningMinutes?: Prisma.IntFieldUpdateOperationsInput | number
+  graceMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   leadTimeMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   cutoffMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   noShowTargetPercent?: Prisma.IntFieldUpdateOperationsInput | number
@@ -2003,6 +2051,7 @@ export type VenueCreateWithoutFloorObjectsInput = {
   partyMin?: number
   partyMax?: number
   diningMinutes?: number
+  graceMinutes?: number
   leadTimeMinutes?: number
   cutoffMinutes?: number
   noShowTargetPercent?: number
@@ -2042,6 +2091,7 @@ export type VenueUncheckedCreateWithoutFloorObjectsInput = {
   partyMin?: number
   partyMax?: number
   diningMinutes?: number
+  graceMinutes?: number
   leadTimeMinutes?: number
   cutoffMinutes?: number
   noShowTargetPercent?: number
@@ -2097,6 +2147,7 @@ export type VenueUpdateWithoutFloorObjectsInput = {
   partyMin?: Prisma.IntFieldUpdateOperationsInput | number
   partyMax?: Prisma.IntFieldUpdateOperationsInput | number
   diningMinutes?: Prisma.IntFieldUpdateOperationsInput | number
+  graceMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   leadTimeMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   cutoffMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   noShowTargetPercent?: Prisma.IntFieldUpdateOperationsInput | number
@@ -2136,6 +2187,7 @@ export type VenueUncheckedUpdateWithoutFloorObjectsInput = {
   partyMin?: Prisma.IntFieldUpdateOperationsInput | number
   partyMax?: Prisma.IntFieldUpdateOperationsInput | number
   diningMinutes?: Prisma.IntFieldUpdateOperationsInput | number
+  graceMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   leadTimeMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   cutoffMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   noShowTargetPercent?: Prisma.IntFieldUpdateOperationsInput | number
@@ -2175,6 +2227,7 @@ export type VenueCreateWithoutGuestsInput = {
   partyMin?: number
   partyMax?: number
   diningMinutes?: number
+  graceMinutes?: number
   leadTimeMinutes?: number
   cutoffMinutes?: number
   noShowTargetPercent?: number
@@ -2214,6 +2267,7 @@ export type VenueUncheckedCreateWithoutGuestsInput = {
   partyMin?: number
   partyMax?: number
   diningMinutes?: number
+  graceMinutes?: number
   leadTimeMinutes?: number
   cutoffMinutes?: number
   noShowTargetPercent?: number
@@ -2269,6 +2323,7 @@ export type VenueUpdateWithoutGuestsInput = {
   partyMin?: Prisma.IntFieldUpdateOperationsInput | number
   partyMax?: Prisma.IntFieldUpdateOperationsInput | number
   diningMinutes?: Prisma.IntFieldUpdateOperationsInput | number
+  graceMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   leadTimeMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   cutoffMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   noShowTargetPercent?: Prisma.IntFieldUpdateOperationsInput | number
@@ -2308,6 +2363,7 @@ export type VenueUncheckedUpdateWithoutGuestsInput = {
   partyMin?: Prisma.IntFieldUpdateOperationsInput | number
   partyMax?: Prisma.IntFieldUpdateOperationsInput | number
   diningMinutes?: Prisma.IntFieldUpdateOperationsInput | number
+  graceMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   leadTimeMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   cutoffMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   noShowTargetPercent?: Prisma.IntFieldUpdateOperationsInput | number
@@ -2347,6 +2403,7 @@ export type VenueCreateWithoutReservationsInput = {
   partyMin?: number
   partyMax?: number
   diningMinutes?: number
+  graceMinutes?: number
   leadTimeMinutes?: number
   cutoffMinutes?: number
   noShowTargetPercent?: number
@@ -2386,6 +2443,7 @@ export type VenueUncheckedCreateWithoutReservationsInput = {
   partyMin?: number
   partyMax?: number
   diningMinutes?: number
+  graceMinutes?: number
   leadTimeMinutes?: number
   cutoffMinutes?: number
   noShowTargetPercent?: number
@@ -2441,6 +2499,7 @@ export type VenueUpdateWithoutReservationsInput = {
   partyMin?: Prisma.IntFieldUpdateOperationsInput | number
   partyMax?: Prisma.IntFieldUpdateOperationsInput | number
   diningMinutes?: Prisma.IntFieldUpdateOperationsInput | number
+  graceMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   leadTimeMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   cutoffMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   noShowTargetPercent?: Prisma.IntFieldUpdateOperationsInput | number
@@ -2480,6 +2539,7 @@ export type VenueUncheckedUpdateWithoutReservationsInput = {
   partyMin?: Prisma.IntFieldUpdateOperationsInput | number
   partyMax?: Prisma.IntFieldUpdateOperationsInput | number
   diningMinutes?: Prisma.IntFieldUpdateOperationsInput | number
+  graceMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   leadTimeMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   cutoffMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   noShowTargetPercent?: Prisma.IntFieldUpdateOperationsInput | number
@@ -2519,6 +2579,7 @@ export type VenueCreateWithoutFeedbackInput = {
   partyMin?: number
   partyMax?: number
   diningMinutes?: number
+  graceMinutes?: number
   leadTimeMinutes?: number
   cutoffMinutes?: number
   noShowTargetPercent?: number
@@ -2558,6 +2619,7 @@ export type VenueUncheckedCreateWithoutFeedbackInput = {
   partyMin?: number
   partyMax?: number
   diningMinutes?: number
+  graceMinutes?: number
   leadTimeMinutes?: number
   cutoffMinutes?: number
   noShowTargetPercent?: number
@@ -2613,6 +2675,7 @@ export type VenueUpdateWithoutFeedbackInput = {
   partyMin?: Prisma.IntFieldUpdateOperationsInput | number
   partyMax?: Prisma.IntFieldUpdateOperationsInput | number
   diningMinutes?: Prisma.IntFieldUpdateOperationsInput | number
+  graceMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   leadTimeMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   cutoffMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   noShowTargetPercent?: Prisma.IntFieldUpdateOperationsInput | number
@@ -2652,6 +2715,7 @@ export type VenueUncheckedUpdateWithoutFeedbackInput = {
   partyMin?: Prisma.IntFieldUpdateOperationsInput | number
   partyMax?: Prisma.IntFieldUpdateOperationsInput | number
   diningMinutes?: Prisma.IntFieldUpdateOperationsInput | number
+  graceMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   leadTimeMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   cutoffMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   noShowTargetPercent?: Prisma.IntFieldUpdateOperationsInput | number
@@ -2691,6 +2755,7 @@ export type VenueCreateWithoutUserVenuesInput = {
   partyMin?: number
   partyMax?: number
   diningMinutes?: number
+  graceMinutes?: number
   leadTimeMinutes?: number
   cutoffMinutes?: number
   noShowTargetPercent?: number
@@ -2730,6 +2795,7 @@ export type VenueUncheckedCreateWithoutUserVenuesInput = {
   partyMin?: number
   partyMax?: number
   diningMinutes?: number
+  graceMinutes?: number
   leadTimeMinutes?: number
   cutoffMinutes?: number
   noShowTargetPercent?: number
@@ -2785,6 +2851,7 @@ export type VenueUpdateWithoutUserVenuesInput = {
   partyMin?: Prisma.IntFieldUpdateOperationsInput | number
   partyMax?: Prisma.IntFieldUpdateOperationsInput | number
   diningMinutes?: Prisma.IntFieldUpdateOperationsInput | number
+  graceMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   leadTimeMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   cutoffMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   noShowTargetPercent?: Prisma.IntFieldUpdateOperationsInput | number
@@ -2824,6 +2891,7 @@ export type VenueUncheckedUpdateWithoutUserVenuesInput = {
   partyMin?: Prisma.IntFieldUpdateOperationsInput | number
   partyMax?: Prisma.IntFieldUpdateOperationsInput | number
   diningMinutes?: Prisma.IntFieldUpdateOperationsInput | number
+  graceMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   leadTimeMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   cutoffMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   noShowTargetPercent?: Prisma.IntFieldUpdateOperationsInput | number
@@ -2863,6 +2931,7 @@ export type VenueCreateWithoutAuditEventsInput = {
   partyMin?: number
   partyMax?: number
   diningMinutes?: number
+  graceMinutes?: number
   leadTimeMinutes?: number
   cutoffMinutes?: number
   noShowTargetPercent?: number
@@ -2902,6 +2971,7 @@ export type VenueUncheckedCreateWithoutAuditEventsInput = {
   partyMin?: number
   partyMax?: number
   diningMinutes?: number
+  graceMinutes?: number
   leadTimeMinutes?: number
   cutoffMinutes?: number
   noShowTargetPercent?: number
@@ -2957,6 +3027,7 @@ export type VenueUpdateWithoutAuditEventsInput = {
   partyMin?: Prisma.IntFieldUpdateOperationsInput | number
   partyMax?: Prisma.IntFieldUpdateOperationsInput | number
   diningMinutes?: Prisma.IntFieldUpdateOperationsInput | number
+  graceMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   leadTimeMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   cutoffMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   noShowTargetPercent?: Prisma.IntFieldUpdateOperationsInput | number
@@ -2996,6 +3067,7 @@ export type VenueUncheckedUpdateWithoutAuditEventsInput = {
   partyMin?: Prisma.IntFieldUpdateOperationsInput | number
   partyMax?: Prisma.IntFieldUpdateOperationsInput | number
   diningMinutes?: Prisma.IntFieldUpdateOperationsInput | number
+  graceMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   leadTimeMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   cutoffMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   noShowTargetPercent?: Prisma.IntFieldUpdateOperationsInput | number
@@ -3147,6 +3219,7 @@ export type VenueSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   partyMin?: boolean
   partyMax?: boolean
   diningMinutes?: boolean
+  graceMinutes?: boolean
   leadTimeMinutes?: boolean
   cutoffMinutes?: boolean
   noShowTargetPercent?: boolean
@@ -3188,6 +3261,7 @@ export type VenueSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensi
   partyMin?: boolean
   partyMax?: boolean
   diningMinutes?: boolean
+  graceMinutes?: boolean
   leadTimeMinutes?: boolean
   cutoffMinutes?: boolean
   noShowTargetPercent?: boolean
@@ -3217,6 +3291,7 @@ export type VenueSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensi
   partyMin?: boolean
   partyMax?: boolean
   diningMinutes?: boolean
+  graceMinutes?: boolean
   leadTimeMinutes?: boolean
   cutoffMinutes?: boolean
   noShowTargetPercent?: boolean
@@ -3246,6 +3321,7 @@ export type VenueSelectScalar = {
   partyMin?: boolean
   partyMax?: boolean
   diningMinutes?: boolean
+  graceMinutes?: boolean
   leadTimeMinutes?: boolean
   cutoffMinutes?: boolean
   noShowTargetPercent?: boolean
@@ -3259,7 +3335,7 @@ export type VenueSelectScalar = {
   updatedAt?: boolean
 }
 
-export type VenueOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "slug" | "name" | "timeZone" | "tagline" | "intro" | "address" | "phone" | "whatsapp" | "email" | "mapsUrl" | "bookingIntervalMinutes" | "partyMin" | "partyMax" | "diningMinutes" | "leadTimeMinutes" | "cutoffMinutes" | "noShowTargetPercent" | "overCapacityAlertPercent" | "cancellationPolicy" | "feedbackTitle" | "feedbackSubtitle" | "feedbackTags" | "feedbackMessageTemplate" | "createdAt" | "updatedAt", ExtArgs["result"]["venue"]>
+export type VenueOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "slug" | "name" | "timeZone" | "tagline" | "intro" | "address" | "phone" | "whatsapp" | "email" | "mapsUrl" | "bookingIntervalMinutes" | "partyMin" | "partyMax" | "diningMinutes" | "graceMinutes" | "leadTimeMinutes" | "cutoffMinutes" | "noShowTargetPercent" | "overCapacityAlertPercent" | "cancellationPolicy" | "feedbackTitle" | "feedbackSubtitle" | "feedbackTags" | "feedbackMessageTemplate" | "createdAt" | "updatedAt", ExtArgs["result"]["venue"]>
 export type VenueInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   openingHours?: boolean | Prisma.Venue$openingHoursArgs<ExtArgs>
   closedDates?: boolean | Prisma.Venue$closedDatesArgs<ExtArgs>
@@ -3308,6 +3384,7 @@ export type $VenuePayload<ExtArgs extends runtime.Types.Extensions.InternalArgs 
     partyMin: number
     partyMax: number
     diningMinutes: number
+    graceMinutes: number
     leadTimeMinutes: number
     cutoffMinutes: number
     noShowTargetPercent: number
@@ -3768,6 +3845,7 @@ export interface VenueFieldRefs {
   readonly partyMin: Prisma.FieldRef<"Venue", 'Int'>
   readonly partyMax: Prisma.FieldRef<"Venue", 'Int'>
   readonly diningMinutes: Prisma.FieldRef<"Venue", 'Int'>
+  readonly graceMinutes: Prisma.FieldRef<"Venue", 'Int'>
   readonly leadTimeMinutes: Prisma.FieldRef<"Venue", 'Int'>
   readonly cutoffMinutes: Prisma.FieldRef<"Venue", 'Int'>
   readonly noShowTargetPercent: Prisma.FieldRef<"Venue", 'Int'>

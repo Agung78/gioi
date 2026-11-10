@@ -184,7 +184,7 @@ async function save() {
 	try {
 		load(await saveFloorLayout(venueId.value, {
 			areas: areas.value.map((a) => ({ id: a.id, name: a.name.trim(), bookable: a.bookable, minParty: null, maxParty: null })),
-			tables: tables.value.map((t) => ({ seatingAreaId: t.seatingAreaId, seats: t.seats, x: r1(t.x), y: r1(t.y), rotation: t.rotation })),
+			tables: tables.value.map((t) => ({ id: t.id, seatingAreaId: t.seatingAreaId, seats: t.seats, x: r1(t.x), y: r1(t.y), rotation: t.rotation })),
 			objects: objects.value.map((o) => ({ label: o.label, width: o.width, height: o.height, color: o.color, x: r1(o.x), y: r1(o.y), rotation: o.rotation })),
 		}))
 	} catch (e) {

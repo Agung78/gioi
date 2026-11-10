@@ -1,5 +1,5 @@
 import { useAuthStore } from '@/stores/auth' // circular with the store, but only used at call time
-import type { Channel, ReservationStatus } from '@gioi/domain'
+import type { Channel, ReservationStatus, StaffTableAvailability } from '@gioi/domain'
 import type { AdminFloorPlan, FloorObject, FloorPlanArea, FloorTable } from '@gioi/domain'
 
 export interface StaffReservation {
@@ -16,6 +16,7 @@ export interface StaffReservation {
 	occasion?: string | null
 	guestNotes?: string | null
 	internalNotes?: string | null
+	tableId: string | null
 	allergies: string[]
 	accessibility?: string | null
 	time: string
@@ -79,6 +80,8 @@ export interface CreateWalkInBody {
 	time: string
 	partySize: number
 	seatingAreaId?: string
+	tableId?: string
+	takeOver?: boolean
 	occasion?: string
 	guestNotes?: string
 	internalNotes?: string
@@ -92,6 +95,7 @@ export async function createWalkIn(body: CreateWalkInBody): Promise<{ bookingCod
 
 export interface UpdateReservationBody {
 	partySize?: number
+	tableId?: string
 	seatingAreaId?: string
 	startsAt?: string
 	occasion?: string
@@ -105,6 +109,13 @@ export async function updateReservation(
 	body: UpdateReservationBody,
 ): Promise<{ bookingCode: string; status: ReservationStatus }> {
 	return apiFetch(`/staff/reservations/${id}`, { method: 'PATCH', body })
+}
+
+export async function fetchStaffTableAvailability(
+	venueId: string,
+	query: { date: string; time: string; partySize: number; excludeReservationId?: string },
+): Promise<StaffTableAvailability> {
+	return apiFetch<StaffTableAvailability>(`/admin/venues/${venueId}/table-availability`, { query })
 }
 
 export interface ChangeStatusBody {
@@ -308,6 +319,7 @@ export interface VenueSettings {
 	diningMinutes: number
 	leadTimeMinutes: number
 	cutoffMinutes: number
+	graceMinutes: number
 	noShowTargetPercent: number
 	overCapacityAlertPercent: number
 	cancellationPolicy: string

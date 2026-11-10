@@ -7,7 +7,7 @@ import DatePicker from '@/components/DatePicker.vue'
 import AvailabilityGrid from '@/components/AvailabilityGrid.vue'
 import { createReservation } from '@/composables/useGuestApi'
 import FloorPlanSvg from '@/components/FloorPlanSvg.vue'
-import type { PublicFloorPlan } from '@gioi/domain'
+import type { PublicFloorPlan, TableAvailability } from '@gioi/domain'
 import type { CreateReservationBody } from '@/types/venue'
 
 useHead({ title: 'Reserve a table | GIOI Ocean Gourmet', link: [{ rel: 'icon', type: 'image/png', href: '/logo-group.png', key: 'favicon' }] })
@@ -140,6 +140,23 @@ const { data: floorPlan } = useFetch<PublicFloorPlan>(`/api/public/venues/${venu
 const pickedIdx = ref<number | null>(null)
 const chosenIdx = ref<number | null>(null) // the table the guest clicked Choose on; booking itself is by area
 const chosen = computed(() => (seatingAreaId.value && chosenIdx.value != null && floorPlan.value?.tables[chosenIdx.value]?.seatingAreaId === seatingAreaId.value ? chosenIdx.value : null))
+const chosenTableId = computed(() => (chosen.value != null ? floorPlan.value?.tables[chosen.value]?.id : undefined))
+
+const unavailableTableIds = ref<string[]>([])
+async function fetchTableAvailability() {
+  if (!date.value || !time.value || !partySize.value) { unavailableTableIds.value = []; return }
+  try {
+    const r = await $fetch<TableAvailability>(`/api/public/venues/${venue}/table-availability`, { query: { date: date.value, time: time.value, partySize: partySize.value } })
+    unavailableTableIds.value = r.unavailableTableIds
+  } catch {
+    unavailableTableIds.value = []
+  }
+}
+watch([date, time, partySize], fetchTableAvailability)
+// A chosen table that just became unavailable is dropped; the area stays selected.
+watch(unavailableTableIds, (ids) => {
+  if (chosenTableId.value && ids.includes(chosenTableId.value)) chosenIdx.value = null
+})
 const tableInfo = (i: number) => {
   const t = floorPlan.value?.tables[i]
   const area = t && settings.value?.seatingAreas.find((a: any) => a.id === t.seatingAreaId)
@@ -219,6 +236,7 @@ async function submit() {
       time: time.value,
       partySize: partySize.value,
       seatingAreaId: seatingAreaId.value ?? undefined,
+      tableId: chosenTableId.value,
       occasion: occasion.value.trim() || undefined,
       guestNotes: guestNotes.value.trim() || undefined,
       allergies: allergies.length ? allergies : undefined,
@@ -231,7 +249,12 @@ async function submit() {
     const res = await createReservation(venue, body, posthog?.get_distinct_id())
     router.push(`/${venue}/confirmation/${res.bookingCode}`)
   } catch (e: any) {
-    if (e?.statusCode === 409) {
+    if (e?.statusCode === 409 && e.data?.message === 'table taken') {
+      capture('booking_submit_failed', { reason: 'table_taken', date: date.value, party_size: partySize.value })
+      error.value = 'That table was just taken. Pick another table.'
+      chosenIdx.value = null
+      fetchTableAvailability()
+    } else if (e?.statusCode === 409) {
       capture('booking_submit_failed', { reason: 'slot_taken', date: date.value, party_size: partySize.value })
       error.value = 'That time just filled up. Pick another slot above.'
       time.value = null
@@ -313,7 +336,7 @@ onMounted(() => {
           </div>
           <div v-if="floorPlan?.tables.length" class="max-w-xl">
             <span class="label">Pick a table area</span>
-            <FloorPlanSvg :plan="floorPlan" pickable :selected="pickedIdx != null ? `t:${pickedIdx}` : null" :chosen="chosen"
+            <FloorPlanSvg :plan="floorPlan" pickable :selected="pickedIdx != null ? `t:${pickedIdx}` : null" :chosen="chosen" :disabled-ids="unavailableTableIds"
               :highlight-area-id="seatingAreaId" label="Venue floor plan" @table-pick="onTablePick">
               <template #tooltip="{ index }">
                 <template v-for="t in [tableInfo(index)]" :key="index">

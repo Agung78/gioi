@@ -50,6 +50,7 @@ export interface CreateReservationBody {
   time: string
   partySize: number
   seatingAreaId?: string
+  tableId?: string
   occasion?: string
   guestNotes?: string
   allergies?: string[]

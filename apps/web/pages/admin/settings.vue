@@ -129,7 +129,7 @@ function saveSettings() {
 	if (!d) return
 	const keys = ['tagline', 'intro', 'address', 'phone', 'whatsapp', 'email', 'mapsUrl',
 		'bookingIntervalMinutes', 'partyMin', 'partyMax', 'diningMinutes', 'leadTimeMinutes',
-		'cutoffMinutes', 'noShowTargetPercent', 'overCapacityAlertPercent', 'cancellationPolicy',
+		'cutoffMinutes', 'graceMinutes', 'noShowTargetPercent', 'overCapacityAlertPercent', 'cancellationPolicy',
 		'feedbackTitle', 'feedbackSubtitle', 'feedbackMessageTemplate'] as const
 	const body = Object.fromEntries(keys.map((k) => [k, d[k]]))
 	return run(async () => {
@@ -304,6 +304,10 @@ definePageMeta({ middleware: ['auth', 'admin'] })
 					<div>
 						<label class="label">Cut-off (minutes)</label>
 						<input v-model.number="draft!.cutoffMinutes" type="number" min="0" class="field" />
+					</div>
+					<div>
+						<label class="label">Table hold grace (minutes)</label>
+						<input v-model.number="draft!.graceMinutes" type="number" min="0" max="120" class="field" />
 					</div>
 					<div>
 						<label class="label">No-show target %</label>

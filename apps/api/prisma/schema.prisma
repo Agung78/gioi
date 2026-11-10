@@ -63,6 +63,7 @@ model Venue {
   partyMin                 Int      @default(1) @map("party_min") @db.SmallInt
   partyMax                 Int      @default(8) @map("party_max") @db.SmallInt
   diningMinutes           Int      @default(120) @map("dining_minutes") @db.SmallInt // typical table time per party, minutes
+  graceMinutes             Int      @default(15) @map("grace_minutes") @db.SmallInt // after startsAt + this, an unarrived table holder is "late" and a walk-in may take the table
   leadTimeMinutes          Int      @default(60) @map("lead_time_minutes") @db.SmallInt
   cutoffMinutes            Int      @default(120) @map("cutoff_minutes") @db.SmallInt
   noShowTargetPercent      Int      @default(8) @map("no_show_target_percent") @db.SmallInt
@@ -159,6 +160,7 @@ model FloorTable {
 
   venue       Venue       @relation(fields: [venueId], references: [id], onDelete: Cascade)
   seatingArea SeatingArea @relation(fields: [seatingAreaId, venueId], references: [id, venueId], onDelete: Cascade)
+  reservations Reservation[]
 
   @@index([venueId])
   @@index([seatingAreaId])
@@ -214,6 +216,7 @@ model Reservation {
   bookingCode    String            @unique @map("booking_code")
   guestId        String            @map("guest_id") @db.Uuid
   seatingAreaId  String            @map("seating_area_id") @db.Uuid
+  tableId        String?           @map("table_id") @db.Uuid
   startsAt       DateTime          @map("starts_at") @db.Timestamptz(6)
   partySize      Int               @map("party_size") @db.SmallInt
   occasion       String?
@@ -230,6 +233,7 @@ model Reservation {
   venue        Venue                    @relation(fields: [venueId], references: [id])
   guest        Guest                    @relation(fields: [guestId, venueId], references: [id, venueId])
   seatingArea  SeatingArea              @relation(fields: [seatingAreaId, venueId], references: [id, venueId])
+  table        FloorTable?              @relation(fields: [tableId], references: [id], onDelete: SetNull)
   createdBy    User?                    @relation("ReservationCreatedBy", fields: [createdById], references: [id])
   updatedBy    User?                    @relation("ReservationUpdatedBy", fields: [updatedById], references: [id])
   statusEvents ReservationStatusEvent[]
@@ -237,6 +241,7 @@ model Reservation {
 
   @@index([venueId, startsAt])
   @@index([seatingAreaId, startsAt])
+  @@index([tableId, startsAt])
   @@index([guestId, startsAt])
   @@map("reservations")
 }

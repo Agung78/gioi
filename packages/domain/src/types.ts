@@ -298,6 +298,22 @@ export interface PublicFloorPlan {
   objects: FloorObject[]
 }
 
+// GET /public/venues/:slug/table-availability?date&time&partySize. Tables a new booking cannot take at that time.
+export interface TableAvailability {
+  unavailableTableIds: string[] // already held in the dining window, or fewer seats than partySize
+}
+
+// GET /admin/venues/:id/table-availability?date&time&partySize[&excludeReservationId]. Staff view of why a table can't be taken.
+// held = guest arrived/seated, or reservation not yet past its grace window. late = pending/confirmed holder past start + graceMinutes (staff may take over).
+export interface StaffTableState {
+  tableId: string
+  reason: 'small' | 'held' | 'late'
+  holder?: { reservationId: string; guestName: string; time: string; status: ReservationStatus } // time = local HH:MM
+}
+export interface StaffTableAvailability {
+  tables: StaffTableState[]
+}
+
 export interface AdminFloorPlan extends PublicFloorPlan {
   canEdit: boolean // venue admin of this venue
 }
