@@ -39,8 +39,8 @@ export const VENUE_SEO: Record<string, VenueSeo> = {
     cuisine: ['Seafood', 'Asian'],
     sameAs: ['https://www.instagram.com/gioioceangourmet/'],
     menus: [
-      { label: 'Menu (PDF)', path: '/menus/bali-menu.pdf' },
-      { label: 'Drinks menu (PDF)', path: '/menus/bali-alcohol-menu.pdf' },
+      { label: 'Food and Beverage Menu', path: '/menus/bali-menu.pdf' },
+      { label: 'Alcohol Menu', path: '/menus/bali-alcohol-menu.pdf' },
     ],
     tzLabel: 'WITA',
     languages: ['en', 'id'],
