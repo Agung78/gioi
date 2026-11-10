@@ -3,6 +3,7 @@ import { computed, onMounted, ref, watch } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import { useRoute } from '#app'
 import FloorPlanSvg from '@/components/FloorPlanSvg.vue'
+import DatePicker from '@/components/DatePicker.vue'
 import type { AdminFloorPlan } from '@gioi/domain'
 import type { User, DayOfWeek } from '@gioi/domain'
 import {
@@ -130,6 +131,7 @@ function saveSettings() {
 	const keys = ['tagline', 'intro', 'address', 'phone', 'whatsapp', 'email', 'mapsUrl',
 		'bookingIntervalMinutes', 'partyMin', 'partyMax', 'diningMinutes', 'leadTimeMinutes',
 		'cutoffMinutes', 'graceMinutes', 'noShowTargetPercent', 'overCapacityAlertPercent', 'cancellationPolicy',
+		'noticeEnabled', 'noticeDate', 'noticeText',
 		'feedbackTitle', 'feedbackSubtitle', 'feedbackMessageTemplate'] as const
 	const body = Object.fromEntries(keys.map((k) => [k, d[k]]))
 	return run(async () => {
@@ -268,6 +270,22 @@ definePageMeta({ middleware: ['auth', 'admin'] })
 					<div class="sm:col-span-2">
 						<label class="label">Cancellation policy</label>
 						<textarea v-model="draft!.cancellationPolicy" rows="2" class="field" />
+					</div>
+					<div class="sm:col-span-2 space-y-3">
+						<label class="flex items-center gap-2 text-sm">
+							<input v-model="draft!.noticeEnabled" type="checkbox" class="h-5 w-5 accent-[rgb(var(--accent))]" />
+							<span>Enable special notice</span>
+						</label>
+						<div v-if="draft!.noticeEnabled" class="grid gap-4 sm:grid-cols-2">
+							<div>
+								<label class="label">Notice date</label>
+								<DatePicker :model-value="draft!.noticeDate ?? ''" @update:model-value="draft!.noticeDate = $event" />
+							</div>
+							<div>
+								<label class="label">Notice text</label>
+								<input v-model="draft!.noticeText" class="field" />
+							</div>
+						</div>
 					</div>
 				</div>
 				<div class="mt-4 flex justify-end">

@@ -89,6 +89,9 @@ export interface Settings {
   diningMinutes: number
   seatingAreas: SeatingArea[]
   cancellationPolicy: string
+  noticeEnabled?: boolean
+  noticeDate?: string | null
+  noticeText?: string
   feedbackMessageTemplate: string
   feedbackTitle?: string
   feedbackSubtitle?: string
@@ -203,6 +206,9 @@ export interface PublicVenue {
   cutoffMinutes: number
   seatingAreas: SeatingArea[]
   cancellationPolicy: string
+  noticeEnabled: boolean
+  noticeDate: string | null
+  noticeText: string
   feedbackTitle?: string
   feedbackSubtitle?: string
   feedbackTags?: string[]

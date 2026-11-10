@@ -91,7 +91,7 @@ async function submit() {
 				<FloorPlanSvg :plan="floorPlan" pickable :chosen="chosenIdx" :selected="chosenIdx != null ? `t:${chosenIdx}` : null" :disabled-ids="disabledIds"
 					label="Venue floor plan" @table-pick="onPick">
 					<template #tooltip="{ index }">
-						<strong>{{ areaName(floorPlan.tables[index].seatingAreaId) }}</strong> · seats {{ floorPlan.tables[index].seats }}
+						<strong>Table {{ index + 1 }} · {{ areaName(floorPlan.tables[index].seatingAreaId) }}</strong> · seats {{ floorPlan.tables[index].seats }}
 						<template v-if="stateOf(index)?.holder"><br />{{ stateOf(index)!.holder!.guestName }} · {{ stateOf(index)!.holder!.time }}</template>
 					</template>
 				</FloorPlanSvg>

@@ -3,6 +3,10 @@ import { fromMinutes, type Settings } from '@gioi/domain'
 
 const DAYS = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun']
 
+export function noticeDateOf(venue: { noticeDate: Date | null }): string | null {
+	return venue.noticeDate ? venue.noticeDate.toISOString().slice(0, 10) : null
+}
+
 export function venueToSettings(
 	venue: Venue & { openingHours: OpeningHours[]; closedDates: ClosedDate[]; seatingAreas: SeatingArea[] },
 ): Settings {
@@ -38,6 +42,9 @@ export function venueToSettings(
 			maxParty: a.maxParty ?? undefined,
 		})) as Settings['seatingAreas'],
 		cancellationPolicy: venue.cancellationPolicy,
+		noticeEnabled: venue.noticeEnabled,
+		noticeDate: noticeDateOf(venue),
+		noticeText: venue.noticeText,
 		feedbackMessageTemplate: venue.feedbackMessageTemplate,
 	}
 }

@@ -1,7 +1,7 @@
 import type { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify'
 import type { PrismaClient, OpeningHours, ClosedDate, SeatingArea, Reservation } from '@prisma/client'
 import { notFound } from '../../lib/errors'
-import { venueToSettings } from '../../lib/settings'
+import { venueToSettings, noticeDateOf } from '../../lib/settings'
 import { fromMinutes, getDayAvailability, localDate, localTime, toUtc, type TableAvailability } from '@gioi/domain'
 import { tableHolders } from '../../lib/tables'
 
@@ -61,6 +61,9 @@ export function registerPublicVenueRoutes(app: FastifyInstance, prisma: PrismaCl
 					maxParty: a.maxParty ?? undefined,
 				})),
 				cancellationPolicy: venue.cancellationPolicy,
+				noticeEnabled: venue.noticeEnabled,
+				noticeDate: noticeDateOf(venue),
+				noticeText: venue.noticeText,
 				feedbackTitle: venue.feedbackTitle,
 				feedbackSubtitle: venue.feedbackSubtitle,
 				feedbackTags: venue.feedbackTags,

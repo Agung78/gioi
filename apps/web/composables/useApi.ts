@@ -74,7 +74,7 @@ export async function fetchDay(date?: string): Promise<DayView> {
 
 export interface CreateWalkInBody {
 	guestName: string
-	phone: string
+	phone?: string
 	email?: string
 	date: string
 	time: string
@@ -323,6 +323,9 @@ export interface VenueSettings {
 	noShowTargetPercent: number
 	overCapacityAlertPercent: number
 	cancellationPolicy: string
+	noticeEnabled: boolean
+	noticeDate: string | null
+	noticeText: string
 	feedbackTitle?: string
 	feedbackSubtitle?: string
 	feedbackTags?: string[]
@@ -424,4 +427,8 @@ export async function saveFloorLayout(venueId: string, body: { areas: FloorPlanA
 
 export async function saveFloorImage(venueId: string, body: { image: string | null; width?: number; height?: number }): Promise<AdminFloorPlan> {
 	return apiFetch<AdminFloorPlan>(`/admin/venues/${venueId}/floor-plan/image`, { method: 'PUT', body })
+}
+
+export async function exportDayCSV(venueId: string, date: string): Promise<Blob> {
+	return apiFetch<Blob>(`/staff/venues/${venueId}/export.csv`, { query: { date }, responseType: 'blob' })
 }

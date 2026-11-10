@@ -69,6 +69,9 @@ model Venue {
   noShowTargetPercent      Int      @default(8) @map("no_show_target_percent") @db.SmallInt
   overCapacityAlertPercent Int      @default(85) @map("over_capacity_alert_percent") @db.SmallInt
   cancellationPolicy       String   @map("cancellation_policy")
+  noticeEnabled            Boolean  @default(false) @map("notice_enabled")
+  noticeDate               DateTime? @map("notice_date") @db.Date // local date in the venue zone
+  noticeText               String   @default("") @map("notice_text")
   feedbackTitle            String?  @map("feedback_title")
   feedbackSubtitle         String?  @map("feedback_subtitle")
   feedbackTags             String[] @map("feedback_tags")

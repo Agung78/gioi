@@ -36,6 +36,9 @@ const settings = computed(() => {
     cutoffMinutes: v.cutoffMinutes,
     seatingAreas: v.seatingAreas,
     cancellationPolicy: v.cancellationPolicy,
+    noticeEnabled: v.noticeEnabled,
+    noticeDate: v.noticeDate,
+    noticeText: v.noticeText,
   } as any
 })
 
@@ -58,9 +61,12 @@ const accessibility = ref('')
 const allergiesText = ref('')
 const marketingConsent = ref(false)
 const acceptedPolicy = ref(false)
+const noticeOpen = ref(false)
+const noticeRead = ref(false) // set when the guest closes the modal
+const noticeAccepted = ref(false)
 const submitting = ref(false)
 const dietary = ref<string[]>([])
-const showDetails = ref(false)
+const showDetails = ref(true)
 const DIET = ['Vegetarian', 'Vegan', 'Halal', 'Gluten-free', 'Nut allergy', 'Shellfish allergy']
 const OCCASIONS = ['Birthday', 'Anniversary', 'Business dinner', 'Date night', 'Celebration']
 
@@ -87,6 +93,12 @@ const summary = computed(() => {
 })
 
 const error = ref<string | null>(null)
+const noticeActive = computed(() => !!settings.value?.noticeEnabled && settings.value.noticeDate === date.value)
+watch(noticeActive, (on) => {
+  noticeRead.value = noticeAccepted.value = false
+  noticeOpen.value = on
+}, { immediate: true })
+function closeNotice() { noticeOpen.value = false; noticeRead.value = true }
 
 const days = computed(() => {
   if (!settings.value) return []
@@ -191,6 +203,7 @@ const checkResult = computed(() => {
 const canSubmit = computed(() => {
   if (!time.value) return false
   if (!acceptedPolicy.value) return false
+  if (noticeActive.value && !noticeAccepted.value) return false
   if (!fullName.value.trim() || !phone.value.trim()) return false
   const r = checkResult.value
   return r?.ok === true
@@ -200,6 +213,7 @@ const missingStepPrompt = computed(() => {
   if (!time.value) return 'Pick a time slot'
   if (!fullName.value.trim() || !phone.value.trim() || !email.value.trim()) return 'Enter full name, phone & email'
   if (!acceptedPolicy.value) return 'Accept cancellation policy'
+  if (noticeActive.value && !noticeAccepted.value) return 'Read and accept the special notice'
   return ''
 })
 
@@ -244,6 +258,7 @@ async function submit() {
       idempotencyKey: crypto.randomUUID(),
       source: bookingSource(route.query.src),
       website: website.value,
+      noticeAccepted: noticeActive.value ? true : undefined,
       country: country.value.trim() || undefined,
     }
     const res = await createReservation(venue, body, posthog?.get_distinct_id())
@@ -467,6 +482,26 @@ onMounted(() => {
             <input v-model="marketingConsent" type="checkbox" class="mt-0.5 h-5 w-5 accent-[rgb(var(--accent))]" />
             <span>Send me occasional news and events. (Optional)</span>
           </label>
+          <div v-if="noticeActive" class="space-y-1">
+            <button type="button" class="text-sm font-semibold text-accent underline" @click="noticeOpen = true">Read special notice</button>
+            <label class="flex min-h-11 items-start gap-3 py-2 text-sm">
+              <input v-model="noticeAccepted" type="checkbox" :disabled="!noticeRead" class="mt-0.5 h-5 w-5 accent-[rgb(var(--accent))]" />
+              <span>I have read and agree to the special notice.</span>
+            </label>
+          </div>
+          <Teleport to="body">
+            <Transition name="modal">
+              <div v-if="noticeActive && noticeOpen" class="fixed inset-0 z-50 flex items-end justify-center bg-black/40 p-4 md:items-center"
+                @click.self="closeNotice" @keydown.esc="closeNotice">
+                <div role="dialog" aria-modal="true" aria-labelledby="notice-title"
+                  class="modal-panel w-full max-w-md space-y-4 rounded-surface border border-line bg-raised p-5 text-ink shadow-soft">
+                  <h3 id="notice-title" class="text-xl font-extrabold">Special notice</h3>
+                  <p class="max-h-[60vh] overflow-y-auto whitespace-pre-line text-sm leading-relaxed">{{ settings.noticeText }}</p>
+                  <button type="button" class="btn-primary w-full" autofocus @click="closeNotice">Close</button>
+                </div>
+              </div>
+            </Transition>
+          </Teleport>
           <div v-if="error" class="alert-danger" role="alert">{{ error }}</div>
         </section>
       </form>

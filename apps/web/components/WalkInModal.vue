@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
-import { todayISO } from '@gioi/domain'
 import type { Channel, PublicFloorPlan, StaffTableState } from '@gioi/domain'
 import FloorPlanSvg from '@/components/FloorPlanSvg.vue'
 import { createWalkIn, changeReservationStatus, fetchStaffTableAvailability } from '@/composables/useApi'
@@ -10,6 +9,7 @@ const props = defineProps<{
 	areas: Array<{ id: string; name: string }>
 	venueSlug?: string
 	venueId?: string
+	date: string
 }>()
 
 const emit = defineEmits<{
@@ -55,12 +55,12 @@ const lateHolder = computed(() => {
 async function fetchTableAvailability() {
 	if (!props.open || !props.venueId || !time.value || !partySize.value) { tableStates.value = []; return }
 	try {
-		tableStates.value = (await fetchStaffTableAvailability(props.venueId, { date: todayISO(), time: time.value, partySize: partySize.value })).tables
+		tableStates.value = (await fetchStaffTableAvailability(props.venueId, { date: props.date, time: time.value, partySize: partySize.value })).tables
 	} catch {
 		tableStates.value = []
 	}
 }
-watch([() => props.open, time, partySize], fetchTableAvailability)
+watch([() => props.open, () => props.date, time, partySize], fetchTableAvailability)
 watch(unavailableTableIds, (ids) => {
 	if (chosenTableId.value && ids.includes(chosenTableId.value)) chosenIdx.value = null
 })
@@ -87,8 +87,8 @@ watch(() => props.open, (val) => {
 
 async function submit() {
 	error.value = null
-	if (!fullName.value.trim() || !phone.value.trim()) {
-		error.value = 'Name and phone are required.'
+	if (!fullName.value.trim()) {
+		error.value = 'Name is required.'
 		return
 	}
 	submitting.value = true
@@ -96,8 +96,8 @@ async function submit() {
 		// API enforces capacity; empty area = best-fit auto assignment
 		const r = await createWalkIn({
 			guestName: fullName.value.trim(),
-			phone: phone.value.trim(),
-			date: todayISO(),
+			phone: phone.value.trim() || undefined,
+			date: props.date,
 			time: time.value,
 			partySize: partySize.value,
 			seatingAreaId: seatingAreaId.value || undefined,
@@ -125,7 +125,7 @@ async function submit() {
 	<div v-if="open" class="modal-backdrop fixed inset-0 z-40 grid place-items-center overflow-y-auto bg-ink/50 p-4" @click.self="emit('close')">
 		<div class="modal-panel card max-h-[calc(100dvh-2rem)] w-full max-w-lg overflow-y-auto">
 			<div class="flex items-center justify-between">
-				<h2 class="font-display text-xl font-semibold text-ink">Add walk-in</h2>
+				<h2 class="font-display text-xl font-semibold text-ink">Add walk-in <span class="text-base font-normal text-muted">· {{ date }}</span></h2>
 				<button class="btn-ghost" type="button" @click="emit('close')">Close</button>
 			</div>
 			<form class="mt-4 space-y-3" @submit.prevent="submit">
@@ -135,8 +135,8 @@ async function submit() {
 						<input v-model="fullName" required class="field" />
 					</div>
 					<div>
-						<label class="label">Phone *</label>
-						<input v-model="phone" required class="field" />
+						<label class="label">Phone (optional)</label>
+						<input v-model="phone" class="field" />
 					</div>
 					<div>
 						<label class="label">Party size</label>
@@ -167,7 +167,7 @@ async function submit() {
 						<FloorPlanSvg :plan="floorPlan" pickable :chosen="chosen" :selected="chosen != null ? `t:${chosen}` : null" :disabled-ids="unavailableTableIds"
 							:highlight-area-id="seatingAreaId || null" label="Venue floor plan" @table-pick="onTablePick">
 							<template #tooltip="{ index }">
-								<strong>{{ areaName(floorPlan.tables[index].seatingAreaId) }}</strong> · seats {{ floorPlan.tables[index].seats }}
+								<strong>Table {{ index + 1 }} · {{ areaName(floorPlan.tables[index].seatingAreaId) }}</strong> · seats {{ floorPlan.tables[index].seats }}
 								<template v-if="stateOf(index)?.holder"><br />{{ stateOf(index)!.holder!.guestName }} · {{ stateOf(index)!.holder!.time }}</template>
 							</template>
 						</FloorPlanSvg>

@@ -11,6 +11,7 @@ import ChangeTableModal from '@/components/ChangeTableModal.vue'
 import {
 	fetchDay,
 	changeReservationStatus,
+	exportDayCSV,
 	type DayView,
 	type StaffReservation,
 } from '@/composables/useApi'
@@ -38,6 +39,19 @@ async function load(day?: string) {
 		venueId.value = d.venueId
 	} catch (e: any) {
 		lastError.value = e.message ?? 'Failed to load day.'
+	}
+}
+
+async function exportCsv() {
+	try {
+		const url = URL.createObjectURL(await exportDayCSV(venueId.value, date.value))
+		const a = document.createElement('a')
+		a.href = url
+		a.download = `gioi-reservations-${date.value}.csv`
+		a.click()
+		URL.revokeObjectURL(url)
+	} catch (e: any) {
+		lastError.value = e.message ?? 'Export failed.'
 	}
 }
 
@@ -153,6 +167,7 @@ definePageMeta({ middleware: 'auth' })
 				<button class="btn-ghost min-h-12" type="button" @click="date = todayISO()">Today</button>
 				<input v-model="date" type="date" class="field !w-auto !py-1 !px-2.5 text-sm" aria-label="Service date" />
 				<button class="btn-ghost min-h-12" type="button" @click="date = addDays(date, 1)">Next</button>
+				<button class="btn-ghost min-h-12" type="button" :disabled="!venueId" @click="exportCsv">Export CSV</button>
 				<button class="btn-primary min-h-12" type="button" @click="showWalkIn = true">+ Walk-in</button>
 			</div>
 		</header>
@@ -256,7 +271,7 @@ definePageMeta({ middleware: 'auth' })
 	</Transition>
 
 
-		<WalkInModal :open="showWalkIn" :areas="areas" :venue-slug="venue?.slug" :venue-id="venueId" @close="showWalkIn = false" @created="lastError = null" />
+		<WalkInModal :open="showWalkIn" :areas="areas" :venue-slug="venue?.slug" :venue-id="venueId" :date="date" @close="showWalkIn = false" @created="lastError = null" />
 		<ChangeTableModal :reservation="changing" :venue-id="venueId" :venue-slug="venue?.slug" :areas="areas" @close="changing = null" @saved="changing = null; load(date)" />
 	</div>
 </template>

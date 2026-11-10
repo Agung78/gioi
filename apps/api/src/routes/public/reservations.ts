@@ -23,6 +23,7 @@ interface CreateReservationBody {
 	country?: string
 	idempotencyKey?: string
 	source?: 'website' | 'instagram' | 'google' | 'whatsapp'
+	noticeAccepted?: boolean
 }
 
 interface FeedbackBody {
@@ -58,6 +59,7 @@ export function registerPublicReservationRoutes(app: FastifyInstance, prisma: Pr
 						idempotencyKey: { type: 'string', format: 'uuid' },
 						// Guests may only claim marketing channels, never staff ones (host, walk_in, ...).
 						source: { type: 'string', enum: ['website', 'instagram', 'google', 'whatsapp'] },
+						noticeAccepted: { type: 'boolean' },
 						website: { type: 'string', maxLength: 200 },
 						country: { type: 'string', maxLength: 80 },
 					},
@@ -94,6 +96,9 @@ export function registerPublicReservationRoutes(app: FastifyInstance, prisma: Pr
 			}
 			if (diffMin < venue.leadTimeMinutes || diffMin <= venue.cutoffMinutes) throw unprocessable('too soon to book')
 			if (body.date > addDays(localDate(new Date(), venue.timeZone), 90)) throw unprocessable('date too far ahead')
+			if (venue.noticeEnabled && venue.noticeDate && venue.noticeDate.toISOString().slice(0, 10) === body.date && !body.noticeAccepted) {
+				throw unprocessable('special notice must be acknowledged')
+			}
 
 			const { reservation, areaId } = await prisma.$transaction(async (tx) => {
 				// Lock the chosen (or candidate) seating area(s) to serialize capacity checks.

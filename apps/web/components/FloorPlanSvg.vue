@@ -87,7 +87,7 @@ const tip = computed(() => {
 			:role="pickable ? 'button' : undefined"
 			:aria-disabled="pickable && t.off ? 'true' : undefined"
 			:tabindex="pickable && !t.off ? 0 : undefined"
-			:aria-label="pickable ? `Table for ${t.seats}, ${areaName(t.seatingAreaId)}${t.off ? ' (unavailable)' : ''}` : undefined"
+			:aria-label="pickable ? `Table ${i + 1} for ${t.seats}, ${areaName(t.seatingAreaId)}${t.off ? ' (unavailable)' : ''}` : undefined"
 			@pointerdown="emit('item-down', 't', i, $event)"
 			@click="pickable && !t.off && emit('table-pick', i)"
 			@keydown.enter.space.prevent="pickable && !t.off && emit('table-pick', i)"
@@ -101,7 +101,8 @@ const tip = computed(() => {
 			<g class="floor-body">
 				<rect v-for="(c, j) in t.shape.chairs" :key="j" :x="c.x - 4.5" :y="c.y - 4" width="9" height="8" rx="3.5" fill="#1F4A6B" stroke="#F6F1E6" stroke-width=".9" />
 				<rect :x="-t.shape.width / 2" y="-12" :width="t.shape.width" height="24" rx="6" :fill="chosen === i ? '#E87A3A' : t.fill" stroke="#102638" stroke-width="1.2" class="floor-top" />
-				<circle v-for="(cx, j) in t.shape.candles" :key="`c${j}`" :cx="cx" r="2.6" :fill="chosen === i ? '#fff' : '#E87A3A'" stroke="#102638" stroke-width=".8" />
+				<!-- number = position in the plan's table order; counter-rotated to stay upright, halo keeps it legible on any fill -->
+				<text :transform="`rotate(${-t.rotation})`" dy=".35em" text-anchor="middle" :font-size="i > 98 ? 10 : 13" font-weight="800" font-family="ui-sans-serif,system-ui,sans-serif" fill="#102638" :stroke="chosen === i ? '#E87A3A' : t.fill" stroke-width="2.5" stroke-linejoin="round" paint-order="stroke" pointer-events="none">{{ i + 1 }}</text>
 			</g>
 		</g>
 		<!-- "Your table" badge: upright, not rotated/scaled with the table -->

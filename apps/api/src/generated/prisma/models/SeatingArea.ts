@@ -534,10 +534,6 @@ export type SeatingAreaUncheckedUpdateManyWithoutVenueNestedInput = {
   deleteMany?: Prisma.SeatingAreaScalarWhereInput | Prisma.SeatingAreaScalarWhereInput[]
 }
 
-export type BoolFieldUpdateOperationsInput = {
-  set?: boolean
-}
-
 export type NullableIntFieldUpdateOperationsInput = {
   set?: number | null
   increment?: number

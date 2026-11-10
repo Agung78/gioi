@@ -16,7 +16,7 @@ import {
 import { notFound, conflict, forbidden, unprocessable, AppError } from '../../lib/errors'
 import { csvEscape } from '../../lib/csv'
 import { hash } from '@node-rs/argon2'
-import { venueToSettings } from '../../lib/settings'
+import { venueToSettings, noticeDateOf } from '../../lib/settings'
 import { requireAuth, requireAdmin, requireVenueAccess } from '../../lib/middleware'
 import { claimTable, isLate, requestedTableArea, tableHolders, type TableHolder } from '../../lib/tables'
 import {
@@ -203,16 +203,16 @@ export function registerStaffRoutes(app: FastifyInstance, prisma: PrismaClient):
 					takeOver: body.takeOver === true ? { graceMinutes: venue.graceMinutes, actorUserId: session.user.id } : undefined,
 				})
 
-				const guest = await tx.guest.upsert({
-					where: { venueId_phone: { venueId, phone: (body.phone as string | undefined) ?? '' } },
-					update: { fullName: body.guestName as string, email: (body.email as string | undefined) ?? null },
-					create: {
-						venueId,
-						fullName: body.guestName as string,
-						phone: (body.phone as string | undefined) ?? null,
-						email: (body.email as string | undefined) ?? null,
-					},
-				})
+				const phone = ((body.phone as string | undefined) ?? '').trim() || null
+				const guestFields = { fullName: body.guestName as string, email: (body.email as string | undefined) ?? null }
+				// Phone is optional: without one there is nothing to dedupe on, so always create a new guest.
+				const guest = phone
+					? await tx.guest.upsert({
+						where: { venueId_phone: { venueId, phone } },
+						update: guestFields,
+						create: { venueId, phone, ...guestFields },
+					})
+					: await tx.guest.create({ data: { venueId, ...guestFields } })
 
 				const reservation = await tx.reservation.create({
 					data: {
@@ -570,7 +570,7 @@ export function registerStaffRoutes(app: FastifyInstance, prisma: PrismaClient):
 			requireAdmin(session, request.params.id)
 			const venue = await prisma.venue.findUnique({ where: { id: request.params.id } })
 			if (!venue) throw notFound('venue not found')
-			return venue
+			return { ...venue, noticeDate: noticeDateOf(venue) }
 		},
 	)
 
@@ -590,7 +590,7 @@ export function registerStaffRoutes(app: FastifyInstance, prisma: PrismaClient):
 				'bookingIntervalMinutes', 'partyMin', 'partyMax', 'diningMinutes', 'graceMinutes',
 				'leadTimeMinutes', 'cutoffMinutes', 'noShowTargetPercent',
 				'overCapacityAlertPercent', 'cancellationPolicy', 'feedbackTitle',
-				'feedbackSubtitle', 'feedbackMessageTemplate',
+				'feedbackSubtitle', 'feedbackMessageTemplate', 'noticeEnabled', 'noticeText',
 			]
 			const changes: Record<string, { from: unknown; to: unknown }> = {}
 			const data: Record<string, unknown> = {}
@@ -600,6 +600,15 @@ export function registerStaffRoutes(app: FastifyInstance, prisma: PrismaClient):
 					data[key] = request.body[key]
 				}
 			}
+			if ('noticeDate' in request.body) {
+				const to = request.body.noticeDate
+				if (to !== null && (typeof to !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(to) || Number.isNaN(Date.parse(to)))) throw unprocessable('noticeDate must be YYYY-MM-DD or null')
+				if (to !== noticeDateOf(venue)) {
+					changes.noticeDate = { from: noticeDateOf(venue), to }
+					data.noticeDate = to === null ? null : new Date(to)
+				}
+			}
+			if (typeof (data.noticeEnabled ?? venue.noticeEnabled) !== 'boolean') throw unprocessable('noticeEnabled must be a boolean')
 			for (const key of ['bookingIntervalMinutes', 'partyMin', 'partyMax', 'diningMinutes', 'leadTimeMinutes', 'cutoffMinutes', 'noShowTargetPercent', 'overCapacityAlertPercent']) {
 				const v = data[key]
 				if (v !== undefined && (!Number.isInteger(v) || (v as number) < 0)) throw unprocessable(`${key} must be a non-negative integer`)
@@ -627,7 +636,7 @@ export function registerStaffRoutes(app: FastifyInstance, prisma: PrismaClient):
 				},
 			})
 
-			return updated
+			return { ...updated, noticeDate: noticeDateOf(updated) }
 		},
 	)
 
@@ -1185,6 +1194,55 @@ export function registerStaffRoutes(app: FastifyInstance, prisma: PrismaClient):
 
 			reply.header('Content-Type', 'text/csv')
 			reply.header('Content-Disposition', `attachment; filename=gioi-export-${request.params.id}.csv`)
+			return csv
+		},
+	)
+
+	// ---- Host/admin: CSV export of one day ----------------------------------
+	app.get(
+		'/staff/venues/:venueId/export.csv',
+		{
+			schema: {
+				querystring: {
+					type: 'object',
+					required: ['date'],
+					properties: { date: { type: 'string', pattern: '^\\d{4}-\\d{2}-\\d{2}$' } },
+				},
+			},
+		},
+		async (request: FastifyRequest<{ Params: { venueId: string }; Querystring: { date: string } }>, reply) => {
+			const session = await requireAuth(prisma, request.cookies as Record<string, string>)
+			const { venueId } = request.params
+			const { date } = request.query
+			requireVenueAccess(session, venueId)
+			const venue = await prisma.venue.findUnique({ where: { id: venueId }, select: { timeZone: true } })
+			if (!venue) throw notFound('venue not found')
+
+			const reservations = await prisma.reservation.findMany({
+				where: { venueId, startsAt: { gte: startOfLocalDay(date, venue.timeZone), lt: startOfNextLocalDay(date, venue.timeZone) } },
+				include: { guest: true },
+				orderBy: { startsAt: 'asc' },
+			})
+
+			let csv = 'booking_code,guest_name,phone,email,party_size,date,time,status,allergies,accessibility\n'
+			for (const r of reservations) {
+				csv +=
+					[
+						r.bookingCode,
+						r.guest.fullName,
+						r.guest.phone ?? '',
+						r.guest.email ?? '',
+						r.partySize,
+						localDate(r.startsAt, venue.timeZone),
+						localTime(r.startsAt, venue.timeZone),
+						r.status,
+						(r.guest.allergies ?? []).join(';'),
+						r.guest.accessibility ?? '',
+					].map(csvEscape).join(',') + '\n'
+			}
+
+			reply.header('Content-Type', 'text/csv')
+			reply.header('Content-Disposition', `attachment; filename=gioi-reservations-${date}.csv`)
 			return csv
 		},
 	)
