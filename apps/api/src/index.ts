@@ -11,11 +11,11 @@ import { registerStaffAuthRoutes } from './routes/staff/auth'
 
 const app = Fastify({ logger: true, trustProxy: !!process.env.VERCEL })
 
-// CORS_ORIGIN: comma-separated (book. + admin. hosts).
-const allowedOrigins = process.env.CORS_ORIGIN?.split(',').map((o) => o.trim())
+// CORS_ORIGIN: comma-separated (book. + admin. hosts). Unset → no cross-origin access (web proxies /api same-origin).
+const allowedOrigins = process.env.CORS_ORIGIN?.split(',').map((o) => o.trim()) ?? []
 
 await app.register(fastifyCors, {
-	origin: allowedOrigins ?? true,
+	origin: allowedOrigins.length ? allowedOrigins : false,
 	credentials: true,
 })
 
@@ -24,7 +24,7 @@ await app.register(fastifyCookie)
 // CSRF: cookie auth + unsafe method → Origin (when sent) must be a configured web origin.
 app.addHook('onRequest', async (request, reply) => {
 	const origin = request.headers.origin
-	if (allowedOrigins && origin && !allowedOrigins.includes(origin) && !['GET', 'HEAD', 'OPTIONS'].includes(request.method)) {
+	if (allowedOrigins.length && origin && !allowedOrigins.includes(origin) && !['GET', 'HEAD', 'OPTIONS'].includes(request.method)) {
 		return reply.status(403).send({ error: 'ERR_FORBIDDEN', message: 'origin not allowed' })
 	}
 })
@@ -44,7 +44,7 @@ registerFloorPlanRoutes(app, prisma)
 
 // Vercel imports the default export; locally there is no platform to call it.
 if (!process.env.VERCEL) {
-	await app.listen({ port: Number(process.env.PORT ?? 3001), host: '127.0.0.1' })
+	await app.listen({ port: Number(process.env.PORT ?? 3001), host: process.env.HOST ?? '127.0.0.1' })
 }
 
 export default app

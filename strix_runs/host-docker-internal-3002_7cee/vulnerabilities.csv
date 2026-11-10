@@ -1,0 +1,4 @@
+id,title,severity,timestamp,file
+vuln-0001,Reflected credentialed CORS allows cross-origin reads of authenticated admin data,MEDIUM,2026-11-10 01:12:44 UTC,vulnerabilities/vuln-0001.md
+vuln-0002,Unauthenticated Nuxt development server exposes application source and Vite internals,MEDIUM,2026-11-10 01:13:00 UTC,vulnerabilities/vuln-0002.md
+vuln-0003,CSV Formula Injection in Admin Venue Reservation Export,MEDIUM,2026-11-10 01:17:57 UTC,vulnerabilities/vuln-0003.md

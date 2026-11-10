@@ -1,0 +1,636 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-11-10 01:21:14 UTC",
+  "run_id": "host-docker-internal-3002_7cee",
+  "run_name": "host-docker-internal-3002_7cee",
+  "scope": {
+    "targets": [
+      {
+        "type": "web_application",
+        "details": {
+          "target_url": "http://host.docker.internal:3002"
+        },
+        "original": "http://host.docker.internal:3002"
+      },
+      {
+        "type": "web_application",
+        "details": {
+          "target_url": "http://host.docker.internal:3001"
+        },
+        "original": "http://host.docker.internal:3001"
+      }
+    ],
+    "scan_mode": "deep",
+    "scope_mode": "auto",
+    "diff_scope": {
+      "active": false,
+      "mode": "auto"
+    },
+    "instruction": "Local test instance of a restaurant reservation app: Nuxt frontend on :3002 (proxies /api/** to the\nAPI), Fastify API on :3001 with no prefix. Non-destructive basic pentest. Test accounts (seeded): admin / host /\nvenueadmin, venue slug 'bali'. Check the password in apps/api/prisma/seed.ts. Focus: unauthenticated access to\n/staff/* and /admin/*, role escalation (host -> admin, venueadmin -> super-admin actions such as floor-plan/image\nupload), IDOR on reservation/guest/venue ids, public reservation code guessing (/public/reservations/:code and\ncancel/feedback), mass assignment on POST /public/venues/:slug/reservations, login brute force/enumeration, cookie\nflags, CORS (CORS_ORIGIN is unset so any origin is reflected with credentials), stored XSS via guest name/notes\nrendered in /host, /admin, /guests/:id, CSV formula injection in /admin/venues/:id/export.csv, SVG upload XSS,\nverbose errors, source maps. Skip /ingest/**. Report PoC + fix per finding."
+  },
+  "summary": {
+    "surfaces_reviewed": 31,
+    "outcomes": {
+      "reported": 9,
+      "no_issue_found": 19,
+      "ruled_out": 1,
+      "not_applicable": 1,
+      "needs_follow_up": 1
+    },
+    "findings_filed": 3,
+    "gaps": 4
+  },
+  "machine_observed": {
+    "agents": [
+      {
+        "agent_id": "0d7d0353",
+        "agent_name": "Auth Hygiene",
+        "status": "completed",
+        "skills": [
+          "vulnerabilities/authentication_jwt",
+          "vulnerabilities/weak_password_detection",
+          "vulnerabilities/information_disclosure"
+        ],
+        "task": "Test login brute-force/enumeration, session/cookie flags, JWT/auth behavior, verbose errors and source maps on both ports. Non-destructive, bounded. Spawn validation/reporting children for confirmed vulnerabilities and record coverage.",
+        "is_root": false
+      },
+      {
+        "agent_id": "31d49e13",
+        "agent_name": "Authz IDOR",
+        "status": "completed",
+        "skills": [
+          "vulnerabilities/idor",
+          "vulnerabilities/broken_function_level_authorization",
+          "vulnerabilities/authentication_jwt"
+        ],
+        "task": "Test unauthenticated /staff/* and /admin/* plus role escalation and IDOR across reservation/guest/venue IDs on API/frontend. Use seeded roles admin/host/venueadmin and password from available runtime hints. Non-destructive PoCs. If candidate confirmed, create nested validation/reporting agents per workflow. Record coverage.",
+        "is_root": false
+      },
+      {
+        "agent_id": "47126971",
+        "agent_name": "CORS Reporting",
+        "status": "completed",
+        "skills": [
+          "vulnerabilities/csrf"
+        ],
+        "task": "Confirmed reflected CORS with credentials on API. File vulnerability report with PoC and inline fix. Evidence: GET /admin/venues with Cookie gioi_session and Origin http://evil.example returned 200 and access-control-allow-origin reflected evil + allow-credentials true (Caido request id 218); unauthenticated baseline same endpoint 401 request 219; preflight OPTIONS id 524. Explain impact authenticated cross-origin read on HTTPS deployment, fix strict allowlist. Include code locations only if source available; otherwise black-box report. Target http://host.docker.internal:3001 endpoint /admin/venues. Do not duplicate existing reports.",
+        "is_root": false
+      },
+      {
+        "agent_id": "ef4624af",
+        "agent_name": "CORS Validator",
+        "status": "completed",
+        "skills": [
+          "vulnerabilities/csrf",
+          "vulnerabilities/broken_function_level_authorization"
+        ],
+        "task": "Validate reflected CORS with credentials on API/public reservation and authenticated endpoints. Demonstrate concrete unauthorized impact if possible using seeded accounts; non-destructive. If confirmed, spawn reporting child yourself with PoC+fix. Record coverage.",
+        "is_root": false
+      },
+      {
+        "agent_id": "045d9004",
+        "agent_name": "CSV Formula Reporting",
+        "status": "completed",
+        "skills": [
+          "custom/api_spec_testing"
+        ],
+        "task": "You are reporting agent for confirmed CSV formula injection on API admin export. Target http://host.docker.internal:3001. Evidence: unauthenticated public POST /public/venues/bali/reservations with guestName =HYPERLINK(\"http://x\",\"x\") created reservation GIOI-V93TGH7M; authenticated admin GET /admin/venues/01a1b416-566e-7288-9725-6c2b92ad2bed/export.csv returns CSV guest_name quoted as \"=HYPERLINK(\"\"http://x\"\",\"\"x\"\")\" without neutralization. Proxy exchange IDs export 1616/1614 and public POST likely find via list_requests. File create_vulnerability_report with PoC, counterevidence, CVSS appropriate (authenticated admin export consuming attacker-controlled public data; likely medium). Include http_exchange_ids. No source code available, so no code_locations. Record coverage reported.",
+        "is_root": false
+      },
+      {
+        "agent_id": "2d1a8219",
+        "agent_name": "CSV Formula Validator",
+        "status": "completed",
+        "skills": [
+          "vulnerabilities/business_logic"
+        ],
+        "task": "Validate CSV formula injection on API admin venue export. Use seeded admin/password and reservation guestName beginning =HYPERLINK. Confirm export lacks neutralization, capture evidence, then spawn reporting child if confirmed. Target http://host.docker.internal:3001. Record coverage.",
+        "is_root": false
+      },
+      {
+        "agent_id": "55f54dcc",
+        "agent_name": "Injection Specialist",
+        "status": "completed",
+        "skills": [
+          "vulnerabilities/sql_injection",
+          "vulnerabilities/ssrf",
+          "vulnerabilities/xxe"
+        ],
+        "task": "Test API and frontend proxy for SQL injection, NoSQL/command/template injection, SSRF/XXE where applicable. Start from mapped endpoints; bounded non-destructive sprays. Spawn validation/reporting children per candidate and record coverage.",
+        "is_root": false
+      },
+      {
+        "agent_id": "ec51d09a",
+        "agent_name": "Public Reservation Logic",
+        "status": "completed",
+        "skills": [
+          "vulnerabilities/mass_assignment",
+          "vulnerabilities/business_logic",
+          "vulnerabilities/idor"
+        ],
+        "task": "Assess POST /public/venues/bali/reservations for mass assignment and business logic; test public reservation code guessing, cancel and feedback endpoints. Keep non-destructive (create then clean up only if safe). Spawn validation/reporting children for confirmed issues. Record coverage.",
+        "is_root": false
+      },
+      {
+        "agent_id": "a4e0b44a",
+        "agent_name": "Recon API",
+        "status": "completed",
+        "skills": [
+          "tooling/httpx",
+          "tooling/katana",
+          "reconnaissance/asset_discovery"
+        ],
+        "task": "Map Fastify API at http://host.docker.internal:3001 comprehensively: endpoints, auth roles/accounts, parameters, technologies, and basic non-destructive recon. Inspect source if available. Record coverage and notes; do not deep exploit yet. Call get_threat_model first; if absent derive provisional findings and amend/save model.",
+        "is_root": false
+      },
+      {
+        "agent_id": "cccbebba",
+        "agent_name": "Recon Frontend",
+        "status": "completed",
+        "skills": [
+          "tooling/katana",
+          "tooling/agent_browser",
+          "vulnerabilities/information_disclosure"
+        ],
+        "task": "Map Nuxt frontend at http://host.docker.internal:3002: crawl routes, source maps/assets, proxy behavior, staff/admin/host/guest surfaces, technologies. Non-destructive recon only. Call get_threat_model first and record coverage/notes.",
+        "is_root": false
+      },
+      {
+        "agent_id": "4a84268b",
+        "agent_name": "Root Agent",
+        "status": "completed",
+        "skills": [],
+        "task": "\n\nURLs: - http://host.docker.internal:3002 - http://host.docker.internal:3001\n\nSpecial instructions: Local test instance of a restaurant reservation app: Nuxt frontend on :3002 (proxies /api/** to the\nAPI), Fastify API on :3001 with no prefix. Non-destructive basic pentest. Test accounts (seeded): admin / host /\nvenueadmin, venue slug 'bali'. Check the password in apps/api/prisma/seed.ts. Focus: unauthenticated access to\n/staff/* and /admin/*, role escalation (host -> admin, venueadmin -> super-admin actions such as floor-plan/image\nupload), IDOR on reservation/guest/venue ids, public reservation code guessing (/public/reservations/:code and\ncancel/feedback), mass assignment on POST /public/venues/:slug/reservations, login brute force/enumeration, cookie\nflags, CORS (CORS_ORIGIN is unset so any origin is reflected with credentials), stored XSS via guest name/notes\nrendered in /host, /admin, /guests/:id, CSV formula injection in /admin/venues/:id/export.csv, SVG upload XSS,\nverbose errors, source maps. Skip /ingest/**. Report PoC + fix per finding.",
+        "is_root": true
+      },
+      {
+        "agent_id": "1e0310bb",
+        "agent_name": "Source Architecture",
+        "status": "completed",
+        "skills": [
+          "custom/source_aware_sast",
+          "frameworks/fastapi"
+        ],
+        "task": "Inspect repository structure and app source for routes, auth, roles, data models, upload/export/rendering paths. Perform required static triage (semgrep, secrets, trivy, AST) bounded and report architecture/candidate surfaces, not exploit yet. Call get_threat_model first; derive/amend model and coverage.",
+        "is_root": false
+      },
+      {
+        "agent_id": "eb4af76c",
+        "agent_name": "Source Disclosure Reporter",
+        "status": "completed",
+        "skills": [
+          "vulnerabilities/information_disclosure"
+        ],
+        "task": "Validate and report unauthenticated Nuxt dev source disclosure on :3002. Use recon note 201f8a and captured evidence; produce PoC, severity, remediation. This is black-box reporting; file create_vulnerability_report directly after counterevidence. Record/update coverage.",
+        "is_root": false
+      },
+      {
+        "agent_id": "5376f7b4",
+        "agent_name": "XSS Upload Export",
+        "status": "completed",
+        "skills": [
+          "vulnerabilities/xss",
+          "vulnerabilities/insecure_file_uploads",
+          "vulnerabilities/business_logic"
+        ],
+        "task": "Test stored XSS in guest name/notes rendered host/admin/guests, SVG upload XSS, CSV formula injection in admin venue export. Use safe canary payloads and seeded accounts, non-destructive. Any candidate must spawn validation then reporting child. Record coverage.",
+        "is_root": false
+      }
+    ],
+    "skills_exercised": [
+      "agent_browser",
+      "api_spec_testing",
+      "asset_discovery",
+      "authentication_jwt",
+      "broken_function_level_authorization",
+      "business_logic",
+      "csrf",
+      "fastapi",
+      "httpx",
+      "idor",
+      "information_disclosure",
+      "insecure_file_uploads",
+      "katana",
+      "mass_assignment",
+      "source_aware_sast",
+      "sql_injection",
+      "ssrf",
+      "weak_password_detection",
+      "xss",
+      "xxe"
+    ],
+    "findings_filed": 3,
+    "source": "runtime"
+  },
+  "completeness": {
+    "complete": true,
+    "scan_status": "completed",
+    "exit_reason": "finished_by_tool",
+    "caveats": []
+  },
+  "entries": [
+    {
+      "surface": "Application source repository / route and model mapping",
+      "risk_area": "Static architecture and source-aware SAST",
+      "outcome": "needs_follow_up",
+      "outcome_label": "Requires further review",
+      "evidence": "No source checkout or package manifests are present under /workspace; semgrep, secrets, trivy, and AST passes could only scan captured frontend HTML, so route handlers, auth guards, and data models remain unverified.",
+      "recorded_by": "Source Architecture",
+      "recorded_at": "2026-11-10 01:10:25 UTC",
+      "updated_at": "",
+      "previous_outcomes": [],
+      "source": "agent_reported"
+    },
+    {
+      "surface": "GET http://host.docker.internal:3002/ frontend HTML",
+      "risk_area": "Information disclosure / dev build exposure",
+      "outcome": "reported",
+      "outcome_label": "Finding reported",
+      "evidence": "Dynamic validation confirmed Nuxt dev build and unauthenticated transformed source/Vite assets; vuln-0002 filed with HTTP evidence and remediation.",
+      "recorded_by": "Root Agent",
+      "recorded_at": "2026-11-10 01:10:30 UTC",
+      "updated_at": "2026-11-10 01:19:38 UTC",
+      "previous_outcomes": [
+        "needs_follow_up"
+      ],
+      "source": "agent_reported"
+    },
+    {
+      "surface": "OPTIONS /public/venues/bali/reservations",
+      "risk_area": "CORS origin validation",
+      "outcome": "reported",
+      "outcome_label": "Finding reported",
+      "evidence": "Authenticated cross-origin read was demonstrated on /admin/venues with reflected Origin and credentials; vuln-0001 filed.",
+      "recorded_by": "Root Agent",
+      "recorded_at": "2026-11-10 01:10:35 UTC",
+      "updated_at": "2026-11-10 01:19:47 UTC",
+      "previous_outcomes": [
+        "needs_follow_up"
+      ],
+      "source": "agent_reported"
+    },
+    {
+      "surface": "Nuxt frontend :3002 routes, static assets, Vite source paths",
+      "risk_area": "information disclosure / source maps / route mapping",
+      "outcome": "reported",
+      "outcome_label": "Finding reported",
+      "evidence": "Nuxt dev server exposes absolute filesystem paths in HTML and serves transformed source files under `/_nuxt/Users/.../apps/web/`; `@vite/client`, page modules, stores and composables are retrievable unauthenticated. Parent should file source disclosure finding with PoC.",
+      "recorded_by": "Recon Frontend",
+      "recorded_at": "2026-11-10 01:10:58 UTC",
+      "updated_at": "",
+      "previous_outcomes": [],
+      "source": "agent_reported"
+    },
+    {
+      "surface": "Fastify API route registration and public endpoints",
+      "risk_area": "API attack-surface mapping / unauthenticated access",
+      "outcome": "no_issue_found",
+      "outcome_label": "No issue identified",
+      "evidence": "Reviewed runtime route registration and source for all public, auth, staff, admin, and floor-plan routes; no exploit attempted in recon phase.",
+      "recorded_by": "Recon API",
+      "recorded_at": "2026-11-10 01:11:48 UTC",
+      "updated_at": "",
+      "previous_outcomes": [],
+      "source": "agent_reported"
+    },
+    {
+      "surface": "POST /staff/login and session cookie",
+      "risk_area": "Authentication/session reconnaissance",
+      "outcome": "no_issue_found",
+      "outcome_label": "No issue identified",
+      "evidence": "Confirmed seeded accounts authenticate with password `password`; cookie observed HttpOnly, Secure, SameSite=Lax, Max-Age 604800. No deep brute-force or bypass testing performed in mapping task.",
+      "recorded_by": "Recon API",
+      "recorded_at": "2026-11-10 01:11:57 UTC",
+      "updated_at": "",
+      "previous_outcomes": [],
+      "source": "agent_reported"
+    },
+    {
+      "surface": "Staff/admin route authorization middleware",
+      "risk_area": "Role and object authorization mapping",
+      "outcome": "no_issue_found",
+      "outcome_label": "No issue identified",
+      "evidence": "Static source review mapped requireAuth/requireVenueAccess/requireAdmin usage per route; no exploit validation performed. Parent agents should test IDOR and role boundaries.",
+      "recorded_by": "Recon API",
+      "recorded_at": "2026-11-10 01:12:05 UTC",
+      "updated_at": "",
+      "previous_outcomes": [],
+      "source": "agent_reported"
+    },
+    {
+      "surface": "Nuxt frontend :3002 dev assets and source endpoints",
+      "risk_area": "Unauthenticated source disclosure / exposed development server",
+      "outcome": "reported",
+      "outcome_label": "Finding reported",
+      "evidence": "Unauthenticated GET / returns Nuxt dev HTML with absolute local paths and /_nuxt/@vite/client; direct GET /_nuxt/composables/useApi.ts and /_nuxt/stores/auth.ts return application source (HTTP 200). Filed report with exchanges 186, 433, 403, and 526.",
+      "recorded_by": "Source Disclosure Reporter",
+      "recorded_at": "2026-11-10 01:12:11 UTC",
+      "updated_at": "",
+      "previous_outcomes": [],
+      "source": "agent_reported"
+    },
+    {
+      "surface": "API CORS middleware and authenticated /admin/venues",
+      "risk_area": "Reflected CORS with credentials / cross-origin data disclosure",
+      "outcome": "reported",
+      "outcome_label": "Finding reported",
+      "evidence": "Origin http://evil.example is reflected with Access-Control-Allow-Credentials:true on preflight and authenticated GET; with a valid session cookie, /admin/venues returned venue data readable cross-origin (request 218), while unauthenticated baseline returned 401 (219). Reporting child spawned.",
+      "recorded_by": "CORS Validator",
+      "recorded_at": "2026-11-10 01:12:14 UTC",
+      "updated_at": "",
+      "previous_outcomes": [],
+      "source": "agent_reported"
+    },
+    {
+      "surface": "Nuxt public routes `/`, `/bali`, `/bali/book`, `/privacy`, `/login`, `/host`, `/admin`, `/guests/:id`",
+      "risk_area": "route exposure and unauthenticated staff/admin access",
+      "outcome": "no_issue_found",
+      "outcome_label": "No issue identified",
+      "evidence": "Direct unauthenticated and role-based API tests completed: staff/admin routes require auth; host and venueadmin privilege boundaries returned 403; no frontend-only bypass reached protected data.",
+      "recorded_by": "Root Agent",
+      "recorded_at": "2026-11-10 01:12:49 UTC",
+      "updated_at": "2026-11-10 01:19:57 UTC",
+      "previous_outcomes": [
+        "needs_follow_up"
+      ],
+      "source": "agent_reported"
+    },
+    {
+      "surface": "GET /admin/venues",
+      "risk_area": "Credentialed CORS / cross-origin data exposure",
+      "outcome": "reported",
+      "outcome_label": "Finding reported",
+      "evidence": "Authenticated request 218 from Origin http://evil.example returned 200 with Access-Control-Allow-Origin reflecting the attacker origin and Access-Control-Allow-Credentials: true; unauthenticated baseline 219 returned 401 and preflight 524 succeeded.",
+      "recorded_by": "CORS Reporting",
+      "recorded_at": "2026-11-10 01:12:51 UTC",
+      "updated_at": "",
+      "previous_outcomes": [],
+      "source": "agent_reported"
+    },
+    {
+      "surface": "POST /public/venues/bali/reservations",
+      "risk_area": "Mass assignment / reservation business logic",
+      "outcome": "no_issue_found",
+      "outcome_label": "No issue identified",
+      "evidence": "Created reservations with injected status, role, isAdmin, ownerId, userId, venueId, id, and nested-like extras; response persisted only pending state and server-selected venue/seating. Party size bounds, opening hours, lead time, and capacity were enforced.",
+      "recorded_by": "Public Reservation Logic",
+      "recorded_at": "2026-11-10 01:13:28 UTC",
+      "updated_at": "",
+      "previous_outcomes": [],
+      "source": "agent_reported"
+    },
+    {
+      "surface": "POST /staff/login",
+      "risk_area": "Login brute force, username enumeration, authentication errors",
+      "outcome": "no_issue_found",
+      "outcome_label": "No issue identified",
+      "evidence": "Invalid and valid usernames with wrong passwords returned identical 401 ERR_UNAUTHORIZED responses; five rapid attempts were all processed without lockout, but no account compromise or differentiated error was demonstrated.",
+      "recorded_by": "Auth Hygiene",
+      "recorded_at": "2026-11-10 01:13:32 UTC",
+      "updated_at": "",
+      "previous_outcomes": [],
+      "source": "agent_reported"
+    },
+    {
+      "surface": "GET /public/reservations/:code",
+      "risk_area": "Public reservation code guessing / IDOR",
+      "outcome": "no_issue_found",
+      "outcome_label": "No issue identified",
+      "evidence": "Valid code returned only booking summary; random, altered, lowercase, and near-miss codes returned 404. Codes are 8-character high-entropy alphanumeric values; no unauthorized record was obtained.",
+      "recorded_by": "Public Reservation Logic",
+      "recorded_at": "2026-11-10 01:13:36 UTC",
+      "updated_at": "",
+      "previous_outcomes": [],
+      "source": "agent_reported"
+    },
+    {
+      "surface": "gioi_session cookie on POST /staff/login and logout",
+      "risk_area": "Session cookie flags and logout invalidation",
+      "outcome": "no_issue_found",
+      "outcome_label": "No issue identified",
+      "evidence": "Login sets HttpOnly, Secure, SameSite=Lax, Path=/, Max-Age=604800; replayed session authenticated /staff/me and logout invalidated it. Logout clears cookie and server-side session.",
+      "recorded_by": "Auth Hygiene",
+      "recorded_at": "2026-11-10 01:13:39 UTC",
+      "updated_at": "",
+      "previous_outcomes": [],
+      "source": "agent_reported"
+    },
+    {
+      "surface": "POST /public/reservations/:code/cancel",
+      "risk_area": "Unauthorized cancellation / business logic",
+      "outcome": "no_issue_found",
+      "outcome_label": "No issue identified",
+      "evidence": "Cancellation requires a valid booking code; random and modified codes returned 404. Valid-code cancellation transitions pending to cancelled and repeated invalid variants did not affect other reservations.",
+      "recorded_by": "Public Reservation Logic",
+      "recorded_at": "2026-11-10 01:13:41 UTC",
+      "updated_at": "",
+      "previous_outcomes": [],
+      "source": "agent_reported"
+    },
+    {
+      "surface": "GET /public/venues/:slug/availability and POST /public/venues/:slug/reservations",
+      "risk_area": "SQL injection / NoSQL / template or command injection",
+      "outcome": "no_issue_found",
+      "outcome_label": "No issue identified",
+      "evidence": "Sprayed quote, boolean, stacked/time-delay, template, and prototype-pollution payloads; sqlmap against availability found no injectable parameter. Strict date/time/party validation blocks malformed values, and reservation strings are stored without execution.",
+      "recorded_by": "Injection Specialist",
+      "recorded_at": "2026-11-10 01:13:42 UTC",
+      "updated_at": "",
+      "previous_outcomes": [],
+      "source": "agent_reported"
+    },
+    {
+      "surface": "POST /staff/login",
+      "risk_area": "SQL/NoSQL injection authentication bypass",
+      "outcome": "no_issue_found",
+      "outcome_label": "No issue identified",
+      "evidence": "Login payloads with SQL tautologies and JSON operator objects returned 401 or schema 400; no authentication bypass observed.",
+      "recorded_by": "Injection Specialist",
+      "recorded_at": "2026-11-10 01:13:46 UTC",
+      "updated_at": "",
+      "previous_outcomes": [],
+      "source": "agent_reported"
+    },
+    {
+      "surface": "POST /public/reservations/:code/feedback",
+      "risk_area": "Public feedback authorization / state transition",
+      "outcome": "no_issue_found",
+      "outcome_label": "No issue identified",
+      "evidence": "Feedback endpoint rejected valid-code reservations while pending and after cancellation with ERR_NOT_COMPLETED; arbitrary ratings and fields did not bypass completion requirement. No completed reservation fixture was available for end-to-end feedback persistence.",
+      "recorded_by": "Public Reservation Logic",
+      "recorded_at": "2026-11-10 01:13:47 UTC",
+      "updated_at": "",
+      "previous_outcomes": [],
+      "source": "agent_reported"
+    },
+    {
+      "surface": "Fastify malformed requests and unknown routes",
+      "risk_area": "Verbose errors / stack traces",
+      "outcome": "no_issue_found",
+      "outcome_label": "No issue identified",
+      "evidence": "Malformed JSON/schema failures expose only generic validation messages; unknown routes return structured 404 without stack traces, filesystem paths, or SQL details.",
+      "recorded_by": "Auth Hygiene",
+      "recorded_at": "2026-11-10 01:13:47 UTC",
+      "updated_at": "",
+      "previous_outcomes": [],
+      "source": "agent_reported"
+    },
+    {
+      "surface": "Frontend proxy /api/public/venues/bali/availability",
+      "risk_area": "SQL/NoSQL/template/command injection",
+      "outcome": "no_issue_found",
+      "outcome_label": "No issue identified",
+      "evidence": "Proxy forwarded malformed date to API and returned generic 500 without reflection or execution; direct API sqlmap tests were negative.",
+      "recorded_by": "Injection Specialist",
+      "recorded_at": "2026-11-10 01:13:50 UTC",
+      "updated_at": "",
+      "previous_outcomes": [],
+      "source": "agent_reported"
+    },
+    {
+      "surface": "Public reservation and venue routes (URL/XML processing)",
+      "risk_area": "SSRF / XXE",
+      "outcome": "not_applicable",
+      "outcome_label": "Not applicable",
+      "evidence": "Mapped public API accepts reservation fields and venue/date parameters only; extra URL/callback fields are ignored, and no XML parser, fetch/import, webhook, or remote-resource processing endpoint was exposed in the mapped surface.",
+      "recorded_by": "Injection Specialist",
+      "recorded_at": "2026-11-10 01:13:57 UTC",
+      "updated_at": "",
+      "previous_outcomes": [],
+      "source": "agent_reported"
+    },
+    {
+      "surface": "Nuxt development assets and source maps under /_nuxt",
+      "risk_area": "Source-map and development artifact information disclosure",
+      "outcome": "reported",
+      "outcome_label": "Finding reported",
+      "evidence": "Source disclosure was dynamically confirmed across page modules, maps, Vite client, and API source; vuln-0002 covers this exposure.",
+      "recorded_by": "Root Agent",
+      "recorded_at": "2026-11-10 01:13:59 UTC",
+      "updated_at": "2026-11-10 01:20:05 UTC",
+      "previous_outcomes": [
+        "needs_follow_up"
+      ],
+      "source": "agent_reported"
+    },
+    {
+      "surface": "Stored guest name/notes rendered in /host, /admin, /guests/:id",
+      "risk_area": "Stored XSS",
+      "outcome": "no_issue_found",
+      "outcome_label": "No issue identified",
+      "evidence": "Injected `<svg onload=alert(1)>` as public guestName and examined compiled Nuxt render paths: guestName and guestNotes are emitted via Vue `_toDisplayString` text interpolation (HTML-escaped) across host/admin/guest pages; no v-html/innerHTML sink found.",
+      "recorded_by": "XSS Upload Export",
+      "recorded_at": "2026-11-10 01:14:25 UTC",
+      "updated_at": "",
+      "previous_outcomes": [],
+      "source": "agent_reported"
+    },
+    {
+      "surface": "PUT /admin/venues/:id/floor-plan/image SVG upload and floor-plan rendering",
+      "risk_area": "SVG upload XSS",
+      "outcome": "ruled_out",
+      "outcome_label": "Ruled out",
+      "evidence": "Admin endpoint accepts SVG data URI, but returned content is used as image data in the floor-plan UI; SVG script/event payload is inert in an `<img>` browsing context, and no HTML/innerHTML sink was identified in compiled Nuxt code. Raw SVG acceptance remains a hardening concern but no executable XSS impact was demonstrated.",
+      "recorded_by": "XSS Upload Export",
+      "recorded_at": "2026-11-10 01:14:31 UTC",
+      "updated_at": "",
+      "previous_outcomes": [],
+      "source": "agent_reported"
+    },
+    {
+      "surface": "Authenticated GET /staff/guests, /staff/day, /admin/analytics, /admin/audit-log, /admin/users",
+      "risk_area": "SQL/NoSQL injection via filters",
+      "outcome": "no_issue_found",
+      "outcome_label": "No issue identified",
+      "evidence": "Authenticated admin tested quote/boolean/stacked/time payloads in q/search/venueId. q/search are ignored or safely return data; venueId malformed values produce generic 500/UUID validation behavior, valid UUIDs return scoped results, and no timing or tautology oracle was observed.",
+      "recorded_by": "Injection Specialist",
+      "recorded_at": "2026-11-10 01:14:48 UTC",
+      "updated_at": "",
+      "previous_outcomes": [],
+      "source": "agent_reported"
+    },
+    {
+      "surface": "Unauthenticated /staff/* and /admin/* API routes",
+      "risk_area": "Missing authentication / broken function-level authorization",
+      "outcome": "no_issue_found",
+      "outcome_label": "No issue identified",
+      "evidence": "GET /staff/me, /staff/day, /staff/guests, /admin/venues and /admin/users return 401 without a session; valid POST /staff/reservations also returns 401 after schema validation.",
+      "recorded_by": "Authz IDOR",
+      "recorded_at": "2026-11-10 01:16:19 UTC",
+      "updated_at": "",
+      "previous_outcomes": [],
+      "source": "agent_reported"
+    },
+    {
+      "surface": "Role escalation: host/venueadmin against /admin and floor-plan/image actions",
+      "risk_area": "Vertical privilege escalation / BFLA",
+      "outcome": "no_issue_found",
+      "outcome_label": "No issue identified",
+      "evidence": "Host and venueadmin receive 403 super admin required for POST /admin/venues and PUT /admin/venues/{bali}/floor-plan/image; /admin/users is not accessible after valid schema.",
+      "recorded_by": "Authz IDOR",
+      "recorded_at": "2026-11-10 01:16:27 UTC",
+      "updated_at": "",
+      "previous_outcomes": [],
+      "source": "agent_reported"
+    },
+    {
+      "surface": "Cross-venue IDOR on staff guest/reservation object IDs",
+      "risk_area": "IDOR / object-level authorization",
+      "outcome": "no_issue_found",
+      "outcome_label": "No issue identified",
+      "evidence": "Host and venueadmin requests for Ubud guest and reservation IDs return 403 venue not accessible; same-venue records are available as intended. Admin can access cross-venue records by super-admin role.",
+      "recorded_by": "Authz IDOR",
+      "recorded_at": "2026-11-10 01:16:34 UTC",
+      "updated_at": "",
+      "previous_outcomes": [],
+      "source": "agent_reported"
+    },
+    {
+      "surface": "GET /admin/venues/{venueId}/export.csv",
+      "risk_area": "CSV formula injection",
+      "outcome": "reported",
+      "outcome_label": "Finding reported",
+      "evidence": "Unauthenticated public reservation accepted guestName =HYPERLINK(...); authenticated admin export returned the value unchanged as a formula-leading CSV field (booking GIOI-V93TGH7M). Filed as vuln-0003.",
+      "recorded_by": "CSV Formula Reporting",
+      "recorded_at": "2026-11-10 01:18:06 UTC",
+      "updated_at": "",
+      "previous_outcomes": [],
+      "source": "agent_reported"
+    },
+    {
+      "surface": "GET /admin/venues/:id/export.csv",
+      "risk_area": "CSV formula injection",
+      "outcome": "reported",
+      "outcome_label": "Finding reported",
+      "evidence": "Unauthenticated public reservation accepted guestName beginning `=HYPERLINK(...)`; authenticated admin CSV export returned the formula-leading value without a protective apostrophe/tab prefix. Filed as vuln-0003.",
+      "recorded_by": "XSS Upload Export",
+      "recorded_at": "2026-11-10 01:18:47 UTC",
+      "updated_at": "",
+      "previous_outcomes": [],
+      "source": "agent_reported"
+    }
+  ],
+  "gaps": [
+    {
+      "kind": "needs_follow_up",
+      "surface": "Application source repository / route and model mapping",
+      "risk_area": "Static architecture and source-aware SAST",
+      "detail": "No source checkout or package manifests are present under /workspace; semgrep, secrets, trivy, and AST passes could only scan captured frontend HTML, so route handlers, auth guards, and data models remain unverified."
+    },
+    {
+      "kind": "unrecorded_risk_class",
+      "risk_area": "csrf",
+      "detail": "Agent(s) CORS Reporting, CORS Validator were assigned the 'csrf' skill, but no coverage entry records this class being assessed. Treat it as unexamined, not as clean."
+    },
+    {
+      "kind": "unrecorded_risk_class",
+      "risk_area": "insecure file uploads",
+      "detail": "Agent(s) XSS Upload Export were assigned the 'insecure_file_uploads' skill, but no coverage entry records this class being assessed. Treat it as unexamined, not as clean."
+    },
+    {
+      "kind": "agent_recorded_no_coverage",
+      "agent_name": "CSV Formula Validator",
+      "detail": "CSV Formula Validator ran (status: completed) without recording any coverage. Whatever it examined is absent from this record."
+    }
+  ]
+}
