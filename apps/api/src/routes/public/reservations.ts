@@ -18,6 +18,7 @@ interface CreateReservationBody {
 	guestNotes?: string
 	allergies?: string[]
 	accessibility?: string
+	country?: string
 	idempotencyKey?: string
 	source?: 'website' | 'instagram' | 'google' | 'whatsapp'
 }
@@ -55,6 +56,7 @@ export function registerPublicReservationRoutes(app: FastifyInstance, prisma: Pr
 						// Guests may only claim marketing channels, never staff ones (host, walk_in, ...).
 						source: { type: 'string', enum: ['website', 'instagram', 'google', 'whatsapp'] },
 						website: { type: 'string', maxLength: 200 },
+						country: { type: 'string', maxLength: 80 },
 					},
 				},
 			},
@@ -135,6 +137,7 @@ export function registerPublicReservationRoutes(app: FastifyInstance, prisma: Pr
 						email: body.email ?? null,
 						...(body.allergies?.length ? { allergies: { set: [...new Set([...(existing?.allergies ?? []), ...body.allergies])] } } : {}),
 						...(body.accessibility ? { accessibility: body.accessibility } : {}),
+						...(body.country ? { country: body.country } : {}),
 					},
 					create: {
 						venueId: venue.id,
@@ -142,6 +145,7 @@ export function registerPublicReservationRoutes(app: FastifyInstance, prisma: Pr
 						phone: body.phone,
 						email: body.email ?? null,
 						allergies: body.allergies ?? [],
+						country: body.country || null,
 						accessibility: body.accessibility ?? null,
 					},
 				})

@@ -54,6 +54,7 @@ export interface CreateReservationBody {
   guestNotes?: string
   allergies?: string[]
   accessibility?: string
+  country?: string
   idempotencyKey?: string
   website?: string
 }

@@ -226,6 +226,7 @@ async function submit() {
       idempotencyKey: crypto.randomUUID(),
       source: bookingSource(route.query.src),
       website: website.value,
+      country: country.value.trim() || undefined,
     }
     const res = await createReservation(venue, body, posthog?.get_distinct_id())
     router.push(`/${venue}/confirmation/${res.bookingCode}`)
@@ -386,9 +387,8 @@ onMounted(() => {
                 placeholder="you@example.com" />
             </div>
             <div>
-              <label class="label" for="country">Country / city (optional)</label>
-              <input id="country" v-model="country" autocomplete="country-name" class="field"
-                placeholder="Perth, Australia" />
+              <label class="label" for="country">Country (optional)</label>
+              <CountryCombobox id="country" v-model="country" placeholder="Australia" />
             </div>
           </div>
         </section>
