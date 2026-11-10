@@ -51,7 +51,7 @@ export async function useVenueSeo(venue = (useRoute().params.venue as string)) {
   })
 
   useHead({
-    link: [{ rel: 'canonical', href: pageUrl }, ...(seo ? [{ rel: 'preload', as: 'image', href: seo.image.url, fetchpriority: 'high' }] : [])],
+    link: [{ rel: 'canonical', href: pageUrl }, ...(seo ? [{ rel: 'preload', as: 'image', href: seo.image.url, fetchpriority: 'high' } as const] : [])],
     script: [
       {
         type: 'application/ld+json',
