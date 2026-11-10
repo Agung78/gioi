@@ -1,0 +1,1344 @@
+{
+  "version": "2.1.0",
+  "$schema": "https://json.schemastore.org/sarif-2.1.0.json",
+  "runs": [
+    {
+      "tool": {
+        "driver": {
+          "name": "Strix",
+          "informationUri": "https://strix.ai",
+          "rules": [
+            {
+              "id": "CWE-942",
+              "name": "Reflected credentialed CORS allows cross-origin reads of authenticated admin data",
+              "shortDescription": {
+                "text": "Reflected credentialed CORS allows cross-origin reads of authenticated admin data"
+              },
+              "fullDescription": {
+                "text": "The API reflects arbitrary `Origin` values while enabling credentials, allowing a malicious website to read responses from authenticated endpoints when a user is logged in. This permits cross-origin disclosure of administrative venue data."
+              },
+              "defaultConfiguration": {
+                "level": "warning"
+              },
+              "help": {
+                "text": "The API reflects arbitrary `Origin` values while enabling credentials, allowing a malicious website to read responses from authenticated endpoints when a user is logged in. This permits cross-origin disclosure of administrative venue data.\n\nAn attacker can host a page on an arbitrary origin and induce an authenticated administrator or staff user to visit it. The browser sends the `gioi_session` cookie and exposes API responses to attacker-controlled JavaScript, allowing unauthorized reading of data returned by `/admin/venues` and potentially other credentialed endpoints.\n\nConfigure CORS with an explicit allowlist of trusted production origins and reject all other origins. Never reflect the request `Origin` when credentials are enabled. Apply the same policy consistently to preflight and actual responses, and avoid enabling credentialed CORS on administrative endpoints unless it is strictly required.",
+                "markdown": "The API reflects arbitrary `Origin` values while enabling credentials, allowing a malicious website to read responses from authenticated endpoints when a user is logged in. This permits cross-origin disclosure of administrative venue data.\n\nAn attacker can host a page on an arbitrary origin and induce an authenticated administrator or staff user to visit it. The browser sends the `gioi_session` cookie and exposes API responses to attacker-controlled JavaScript, allowing unauthorized reading of data returned by `/admin/venues` and potentially other credentialed endpoints.\n\nConfigure CORS with an explicit allowlist of trusted production origins and reject all other origins. Never reflect the request `Origin` when credentials are enabled. Apply the same policy consistently to preflight and actual responses, and avoid enabling credentialed CORS on administrative endpoints unless it is strictly required."
+              },
+              "properties": {
+                "security-severity": "4.3",
+                "tags": [
+                  "security",
+                  "CWE-942",
+                  "stride:T",
+                  "stride:I"
+                ]
+              },
+              "helpUri": "https://cwe.mitre.org/data/definitions/942.html"
+            },
+            {
+              "id": "CWE-200",
+              "name": "Unauthenticated Nuxt development server exposes application source and Vite internals",
+              "shortDescription": {
+                "text": "Unauthenticated Nuxt development server exposes application source and Vite internals"
+              },
+              "fullDescription": {
+                "text": "The frontend on `http://host.docker.internal:3002` is running in Nuxt development mode and serves application source modules and Vite development assets to unauthenticated clients. Attackers can retrieve route, authentication, API, and business-logic source code, along with absolute developer filesystem paths."
+              },
+              "defaultConfiguration": {
+                "level": "warning"
+              },
+              "help": {
+                "text": "The frontend on `http://host.docker.internal:3002` is running in Nuxt development mode and serves application source modules and Vite development assets to unauthenticated clients. Attackers can retrieve route, authentication, API, and business-logic source code, along with absolute developer filesystem paths.\n\nAn unauthenticated remote attacker can download internal frontend source such as `composables/useApi.ts` and `stores/auth.ts`, enumerate privileged API operations and client-side authorization assumptions, and retrieve the Vite runtime. The disclosure materially lowers the effort required to target the separate API, identify hidden administrative workflows, and chain authorization or object-access weaknesses. Absolute local paths and dependency versions also disclose deployment details.\n\nRun the Nuxt frontend in a production build (`nuxt build` followed by the production server) for any exposed environment. Bind the Vite/Nuxt development server only to a local interface or a protected development network, and require authentication at the reverse proxy if development access is unavoidable. Disable public access to Vite source modules, `@fs` paths, `@vite/client`, source maps, and HMR endpoints. Review deployment automation so `dev` mode cannot be started in production.",
+                "markdown": "The frontend on `http://host.docker.internal:3002` is running in Nuxt development mode and serves application source modules and Vite development assets to unauthenticated clients. Attackers can retrieve route, authentication, API, and business-logic source code, along with absolute developer filesystem paths.\n\nAn unauthenticated remote attacker can download internal frontend source such as `composables/useApi.ts` and `stores/auth.ts`, enumerate privileged API operations and client-side authorization assumptions, and retrieve the Vite runtime. The disclosure materially lowers the effort required to target the separate API, identify hidden administrative workflows, and chain authorization or object-access weaknesses. Absolute local paths and dependency versions also disclose deployment details.\n\nRun the Nuxt frontend in a production build (`nuxt build` followed by the production server) for any exposed environment. Bind the Vite/Nuxt development server only to a local interface or a protected development network, and require authentication at the reverse proxy if development access is unavoidable. Disable public access to Vite source modules, `@fs` paths, `@vite/client`, source maps, and HMR endpoints. Review deployment automation so `dev` mode cannot be started in production."
+              },
+              "properties": {
+                "security-severity": "5.3",
+                "tags": [
+                  "security",
+                  "CWE-200",
+                  "stride:I"
+                ]
+              },
+              "helpUri": "https://cwe.mitre.org/data/definitions/200.html"
+            },
+            {
+              "id": "CWE-1236",
+              "name": "CSV Formula Injection in Admin Venue Reservation Export",
+              "shortDescription": {
+                "text": "CSV Formula Injection in Admin Venue Reservation Export"
+              },
+              "fullDescription": {
+                "text": "The public reservation endpoint accepts guest names beginning with spreadsheet formula syntax, and the admin venue CSV export emits that value without neutralization. An administrator opening the downloaded CSV in a spreadsheet can trigger the injected formula, enabling phishing or outbound navigation from the administrative workstation."
+              },
+              "defaultConfiguration": {
+                "level": "warning"
+              },
+              "help": {
+                "text": "The public reservation endpoint accepts guest names beginning with spreadsheet formula syntax, and the admin venue CSV export emits that value without neutralization. An administrator opening the downloaded CSV in a spreadsheet can trigger the injected formula, enabling phishing or outbound navigation from the administrative workstation.\n\nAn unauthenticated user can persist a formula in a reservation and have it delivered to administrators through `/admin/venues/{venueId}/export.csv`. When opened by a spreadsheet application, the `HYPERLINK` formula is interpreted rather than treated as text, allowing attacker-controlled navigation and potentially other spreadsheet actions depending on the client and formula payload.\n\nNeutralize spreadsheet formula prefixes in every exported cell derived from user-controlled data. Before CSV serialization, prefix values whose first non- whitespace character is one of `=`, `+`, `-`, or `@` with a single quote (or use an equivalent proven CSV-injection mitigation), while preserving CSV quoting. Apply the same policy to all export fields and add regression tests covering formula prefixes and leading whitespace.",
+                "markdown": "The public reservation endpoint accepts guest names beginning with spreadsheet formula syntax, and the admin venue CSV export emits that value without neutralization. An administrator opening the downloaded CSV in a spreadsheet can trigger the injected formula, enabling phishing or outbound navigation from the administrative workstation.\n\nAn unauthenticated user can persist a formula in a reservation and have it delivered to administrators through `/admin/venues/{venueId}/export.csv`. When opened by a spreadsheet application, the `HYPERLINK` formula is interpreted rather than treated as text, allowing attacker-controlled navigation and potentially other spreadsheet actions depending on the client and formula payload.\n\nNeutralize spreadsheet formula prefixes in every exported cell derived from user-controlled data. Before CSV serialization, prefix values whose first non- whitespace character is one of `=`, `+`, `-`, or `@` with a single quote (or use an equivalent proven CSV-injection mitigation), while preserving CSV quoting. Apply the same policy to all export fields and add regression tests covering formula prefixes and leading whitespace."
+              },
+              "properties": {
+                "security-severity": "4.3",
+                "tags": [
+                  "security",
+                  "CWE-1236",
+                  "stride:T",
+                  "stride:I"
+                ]
+              },
+              "helpUri": "https://cwe.mitre.org/data/definitions/1236.html"
+            },
+            {
+              "id": "strix-coverage/static-architecture-and-source-aware-sast",
+              "name": "Static architecture and source-aware SAST",
+              "shortDescription": {
+                "text": "Coverage: Static architecture and source-aware SAST"
+              },
+              "fullDescription": {
+                "text": "Coverage of Static architecture and source-aware SAST across the assessed attack surface."
+              },
+              "defaultConfiguration": {
+                "level": "none"
+              },
+              "help": {
+                "text": "Coverage of Static architecture and source-aware SAST across the assessed attack surface.",
+                "markdown": "Coverage of Static architecture and source-aware SAST across the assessed attack surface."
+              },
+              "properties": {
+                "tags": [
+                  "coverage"
+                ]
+              }
+            },
+            {
+              "id": "strix-coverage/api-attack-surface-mapping-unauthenticated-access",
+              "name": "API attack-surface mapping / unauthenticated access",
+              "shortDescription": {
+                "text": "Coverage: API attack-surface mapping / unauthenticated access"
+              },
+              "fullDescription": {
+                "text": "Coverage of API attack-surface mapping / unauthenticated access across the assessed attack surface."
+              },
+              "defaultConfiguration": {
+                "level": "none"
+              },
+              "help": {
+                "text": "Coverage of API attack-surface mapping / unauthenticated access across the assessed attack surface.",
+                "markdown": "Coverage of API attack-surface mapping / unauthenticated access across the assessed attack surface."
+              },
+              "properties": {
+                "tags": [
+                  "coverage"
+                ]
+              }
+            },
+            {
+              "id": "strix-coverage/authentication-session-reconnaissance",
+              "name": "Authentication/session reconnaissance",
+              "shortDescription": {
+                "text": "Coverage: Authentication/session reconnaissance"
+              },
+              "fullDescription": {
+                "text": "Coverage of Authentication/session reconnaissance across the assessed attack surface."
+              },
+              "defaultConfiguration": {
+                "level": "none"
+              },
+              "help": {
+                "text": "Coverage of Authentication/session reconnaissance across the assessed attack surface.",
+                "markdown": "Coverage of Authentication/session reconnaissance across the assessed attack surface."
+              },
+              "properties": {
+                "tags": [
+                  "coverage"
+                ]
+              }
+            },
+            {
+              "id": "strix-coverage/role-and-object-authorization-mapping",
+              "name": "Role and object authorization mapping",
+              "shortDescription": {
+                "text": "Coverage: Role and object authorization mapping"
+              },
+              "fullDescription": {
+                "text": "Coverage of Role and object authorization mapping across the assessed attack surface."
+              },
+              "defaultConfiguration": {
+                "level": "none"
+              },
+              "help": {
+                "text": "Coverage of Role and object authorization mapping across the assessed attack surface.",
+                "markdown": "Coverage of Role and object authorization mapping across the assessed attack surface."
+              },
+              "properties": {
+                "tags": [
+                  "coverage"
+                ]
+              }
+            },
+            {
+              "id": "strix-coverage/route-exposure-and-unauthenticated-staff-admin-access",
+              "name": "route exposure and unauthenticated staff/admin access",
+              "shortDescription": {
+                "text": "Coverage: route exposure and unauthenticated staff/admin access"
+              },
+              "fullDescription": {
+                "text": "Coverage of route exposure and unauthenticated staff/admin access across the assessed attack surface."
+              },
+              "defaultConfiguration": {
+                "level": "none"
+              },
+              "help": {
+                "text": "Coverage of route exposure and unauthenticated staff/admin access across the assessed attack surface.",
+                "markdown": "Coverage of route exposure and unauthenticated staff/admin access across the assessed attack surface."
+              },
+              "properties": {
+                "tags": [
+                  "coverage"
+                ]
+              }
+            },
+            {
+              "id": "strix-coverage/mass-assignment-reservation-business-logic",
+              "name": "Mass assignment / reservation business logic",
+              "shortDescription": {
+                "text": "Coverage: Mass assignment / reservation business logic"
+              },
+              "fullDescription": {
+                "text": "Coverage of Mass assignment / reservation business logic across the assessed attack surface."
+              },
+              "defaultConfiguration": {
+                "level": "none"
+              },
+              "help": {
+                "text": "Coverage of Mass assignment / reservation business logic across the assessed attack surface.",
+                "markdown": "Coverage of Mass assignment / reservation business logic across the assessed attack surface."
+              },
+              "properties": {
+                "tags": [
+                  "coverage"
+                ]
+              }
+            },
+            {
+              "id": "strix-coverage/login-brute-force-username-enumeration-authentication-errors",
+              "name": "Login brute force, username enumeration, authentication errors",
+              "shortDescription": {
+                "text": "Coverage: Login brute force, username enumeration, authentication errors"
+              },
+              "fullDescription": {
+                "text": "Coverage of Login brute force, username enumeration, authentication errors across the assessed attack surface."
+              },
+              "defaultConfiguration": {
+                "level": "none"
+              },
+              "help": {
+                "text": "Coverage of Login brute force, username enumeration, authentication errors across the assessed attack surface.",
+                "markdown": "Coverage of Login brute force, username enumeration, authentication errors across the assessed attack surface."
+              },
+              "properties": {
+                "tags": [
+                  "coverage"
+                ]
+              }
+            },
+            {
+              "id": "strix-coverage/public-reservation-code-guessing-idor",
+              "name": "Public reservation code guessing / IDOR",
+              "shortDescription": {
+                "text": "Coverage: Public reservation code guessing / IDOR"
+              },
+              "fullDescription": {
+                "text": "Coverage of Public reservation code guessing / IDOR across the assessed attack surface."
+              },
+              "defaultConfiguration": {
+                "level": "none"
+              },
+              "help": {
+                "text": "Coverage of Public reservation code guessing / IDOR across the assessed attack surface.",
+                "markdown": "Coverage of Public reservation code guessing / IDOR across the assessed attack surface."
+              },
+              "properties": {
+                "tags": [
+                  "coverage"
+                ]
+              }
+            },
+            {
+              "id": "strix-coverage/session-cookie-flags-and-logout-invalidation",
+              "name": "Session cookie flags and logout invalidation",
+              "shortDescription": {
+                "text": "Coverage: Session cookie flags and logout invalidation"
+              },
+              "fullDescription": {
+                "text": "Coverage of Session cookie flags and logout invalidation across the assessed attack surface."
+              },
+              "defaultConfiguration": {
+                "level": "none"
+              },
+              "help": {
+                "text": "Coverage of Session cookie flags and logout invalidation across the assessed attack surface.",
+                "markdown": "Coverage of Session cookie flags and logout invalidation across the assessed attack surface."
+              },
+              "properties": {
+                "tags": [
+                  "coverage"
+                ]
+              }
+            },
+            {
+              "id": "strix-coverage/unauthorized-cancellation-business-logic",
+              "name": "Unauthorized cancellation / business logic",
+              "shortDescription": {
+                "text": "Coverage: Unauthorized cancellation / business logic"
+              },
+              "fullDescription": {
+                "text": "Coverage of Unauthorized cancellation / business logic across the assessed attack surface."
+              },
+              "defaultConfiguration": {
+                "level": "none"
+              },
+              "help": {
+                "text": "Coverage of Unauthorized cancellation / business logic across the assessed attack surface.",
+                "markdown": "Coverage of Unauthorized cancellation / business logic across the assessed attack surface."
+              },
+              "properties": {
+                "tags": [
+                  "coverage"
+                ]
+              }
+            },
+            {
+              "id": "strix-coverage/sql-injection-nosql-template-or-command-injection",
+              "name": "SQL injection / NoSQL / template or command injection",
+              "shortDescription": {
+                "text": "Coverage: SQL injection / NoSQL / template or command injection"
+              },
+              "fullDescription": {
+                "text": "Coverage of SQL injection / NoSQL / template or command injection across the assessed attack surface."
+              },
+              "defaultConfiguration": {
+                "level": "none"
+              },
+              "help": {
+                "text": "Coverage of SQL injection / NoSQL / template or command injection across the assessed attack surface.",
+                "markdown": "Coverage of SQL injection / NoSQL / template or command injection across the assessed attack surface."
+              },
+              "properties": {
+                "tags": [
+                  "coverage"
+                ]
+              }
+            },
+            {
+              "id": "strix-coverage/sql-nosql-injection-authentication-bypass",
+              "name": "SQL/NoSQL injection authentication bypass",
+              "shortDescription": {
+                "text": "Coverage: SQL/NoSQL injection authentication bypass"
+              },
+              "fullDescription": {
+                "text": "Coverage of SQL/NoSQL injection authentication bypass across the assessed attack surface."
+              },
+              "defaultConfiguration": {
+                "level": "none"
+              },
+              "help": {
+                "text": "Coverage of SQL/NoSQL injection authentication bypass across the assessed attack surface.",
+                "markdown": "Coverage of SQL/NoSQL injection authentication bypass across the assessed attack surface."
+              },
+              "properties": {
+                "tags": [
+                  "coverage"
+                ]
+              }
+            },
+            {
+              "id": "strix-coverage/public-feedback-authorization-state-transition",
+              "name": "Public feedback authorization / state transition",
+              "shortDescription": {
+                "text": "Coverage: Public feedback authorization / state transition"
+              },
+              "fullDescription": {
+                "text": "Coverage of Public feedback authorization / state transition across the assessed attack surface."
+              },
+              "defaultConfiguration": {
+                "level": "none"
+              },
+              "help": {
+                "text": "Coverage of Public feedback authorization / state transition across the assessed attack surface.",
+                "markdown": "Coverage of Public feedback authorization / state transition across the assessed attack surface."
+              },
+              "properties": {
+                "tags": [
+                  "coverage"
+                ]
+              }
+            },
+            {
+              "id": "strix-coverage/verbose-errors-stack-traces",
+              "name": "Verbose errors / stack traces",
+              "shortDescription": {
+                "text": "Coverage: Verbose errors / stack traces"
+              },
+              "fullDescription": {
+                "text": "Coverage of Verbose errors / stack traces across the assessed attack surface."
+              },
+              "defaultConfiguration": {
+                "level": "none"
+              },
+              "help": {
+                "text": "Coverage of Verbose errors / stack traces across the assessed attack surface.",
+                "markdown": "Coverage of Verbose errors / stack traces across the assessed attack surface."
+              },
+              "properties": {
+                "tags": [
+                  "coverage"
+                ]
+              }
+            },
+            {
+              "id": "strix-coverage/sql-nosql-template-command-injection",
+              "name": "SQL/NoSQL/template/command injection",
+              "shortDescription": {
+                "text": "Coverage: SQL/NoSQL/template/command injection"
+              },
+              "fullDescription": {
+                "text": "Coverage of SQL/NoSQL/template/command injection across the assessed attack surface."
+              },
+              "defaultConfiguration": {
+                "level": "none"
+              },
+              "help": {
+                "text": "Coverage of SQL/NoSQL/template/command injection across the assessed attack surface.",
+                "markdown": "Coverage of SQL/NoSQL/template/command injection across the assessed attack surface."
+              },
+              "properties": {
+                "tags": [
+                  "coverage"
+                ]
+              }
+            },
+            {
+              "id": "strix-coverage/ssrf-xxe",
+              "name": "SSRF / XXE",
+              "shortDescription": {
+                "text": "Coverage: SSRF / XXE"
+              },
+              "fullDescription": {
+                "text": "Coverage of SSRF / XXE across the assessed attack surface."
+              },
+              "defaultConfiguration": {
+                "level": "none"
+              },
+              "help": {
+                "text": "Coverage of SSRF / XXE across the assessed attack surface.",
+                "markdown": "Coverage of SSRF / XXE across the assessed attack surface."
+              },
+              "properties": {
+                "tags": [
+                  "coverage"
+                ]
+              }
+            },
+            {
+              "id": "strix-coverage/stored-xss",
+              "name": "Stored XSS",
+              "shortDescription": {
+                "text": "Coverage: Stored XSS"
+              },
+              "fullDescription": {
+                "text": "Coverage of Stored XSS across the assessed attack surface."
+              },
+              "defaultConfiguration": {
+                "level": "none"
+              },
+              "help": {
+                "text": "Coverage of Stored XSS across the assessed attack surface.",
+                "markdown": "Coverage of Stored XSS across the assessed attack surface."
+              },
+              "properties": {
+                "tags": [
+                  "coverage"
+                ]
+              }
+            },
+            {
+              "id": "strix-coverage/svg-upload-xss",
+              "name": "SVG upload XSS",
+              "shortDescription": {
+                "text": "Coverage: SVG upload XSS"
+              },
+              "fullDescription": {
+                "text": "Coverage of SVG upload XSS across the assessed attack surface."
+              },
+              "defaultConfiguration": {
+                "level": "none"
+              },
+              "help": {
+                "text": "Coverage of SVG upload XSS across the assessed attack surface.",
+                "markdown": "Coverage of SVG upload XSS across the assessed attack surface."
+              },
+              "properties": {
+                "tags": [
+                  "coverage"
+                ]
+              }
+            },
+            {
+              "id": "strix-coverage/sql-nosql-injection-via-filters",
+              "name": "SQL/NoSQL injection via filters",
+              "shortDescription": {
+                "text": "Coverage: SQL/NoSQL injection via filters"
+              },
+              "fullDescription": {
+                "text": "Coverage of SQL/NoSQL injection via filters across the assessed attack surface."
+              },
+              "defaultConfiguration": {
+                "level": "none"
+              },
+              "help": {
+                "text": "Coverage of SQL/NoSQL injection via filters across the assessed attack surface.",
+                "markdown": "Coverage of SQL/NoSQL injection via filters across the assessed attack surface."
+              },
+              "properties": {
+                "tags": [
+                  "coverage"
+                ]
+              }
+            },
+            {
+              "id": "strix-coverage/missing-authentication-broken-function-level-authorization",
+              "name": "Missing authentication / broken function-level authorization",
+              "shortDescription": {
+                "text": "Coverage: Missing authentication / broken function-level authorization"
+              },
+              "fullDescription": {
+                "text": "Coverage of Missing authentication / broken function-level authorization across the assessed attack surface."
+              },
+              "defaultConfiguration": {
+                "level": "none"
+              },
+              "help": {
+                "text": "Coverage of Missing authentication / broken function-level authorization across the assessed attack surface.",
+                "markdown": "Coverage of Missing authentication / broken function-level authorization across the assessed attack surface."
+              },
+              "properties": {
+                "tags": [
+                  "coverage"
+                ]
+              }
+            },
+            {
+              "id": "strix-coverage/vertical-privilege-escalation-bfla",
+              "name": "Vertical privilege escalation / BFLA",
+              "shortDescription": {
+                "text": "Coverage: Vertical privilege escalation / BFLA"
+              },
+              "fullDescription": {
+                "text": "Coverage of Vertical privilege escalation / BFLA across the assessed attack surface."
+              },
+              "defaultConfiguration": {
+                "level": "none"
+              },
+              "help": {
+                "text": "Coverage of Vertical privilege escalation / BFLA across the assessed attack surface.",
+                "markdown": "Coverage of Vertical privilege escalation / BFLA across the assessed attack surface."
+              },
+              "properties": {
+                "tags": [
+                  "coverage"
+                ]
+              }
+            },
+            {
+              "id": "strix-coverage/idor-object-level-authorization",
+              "name": "IDOR / object-level authorization",
+              "shortDescription": {
+                "text": "Coverage: IDOR / object-level authorization"
+              },
+              "fullDescription": {
+                "text": "Coverage of IDOR / object-level authorization across the assessed attack surface."
+              },
+              "defaultConfiguration": {
+                "level": "none"
+              },
+              "help": {
+                "text": "Coverage of IDOR / object-level authorization across the assessed attack surface.",
+                "markdown": "Coverage of IDOR / object-level authorization across the assessed attack surface."
+              },
+              "properties": {
+                "tags": [
+                  "coverage"
+                ]
+              }
+            }
+          ],
+          "version": "1.7.0"
+        }
+      },
+      "results": [
+        {
+          "ruleId": "CWE-942",
+          "ruleIndex": 0,
+          "level": "warning",
+          "message": {
+            "text": "Reflected credentialed CORS allows cross-origin reads of authenticated admin data\n\nThe API reflects arbitrary `Origin` values while enabling credentials, allowing a malicious website to read responses from authenticated endpoints when a user is logged in. This permits cross-origin disclosure of administrative venue data."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "SECURITY.md"
+                }
+              }
+            },
+            {
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "/admin/venues",
+                  "kind": "endpoint"
+                }
+              ]
+            }
+          ],
+          "partialFingerprints": {
+            "primaryLocationLineHash": "59407e58aa22804d417d750c8fc3dc1277d6b1ae2ba2bd3fdd4cc7ebe5a0ee62"
+          },
+          "properties": {
+            "security-severity": "4.3",
+            "strix_vuln_class_hash": "5e6d708048816da6eadfd7c81db2cee739f54587ee9de41e14a07f3b7168ac28",
+            "synthetic_location": true,
+            "strix": {
+              "id": "vuln-0001",
+              "severity": "medium",
+              "cvss": 4.3,
+              "timestamp": "2026-11-10 01:12:44 UTC",
+              "target": "http://host.docker.internal:3001",
+              "endpoint": "/admin/venues",
+              "method": "GET",
+              "cwe": "CWE-942",
+              "impact": "An attacker can host a page on an arbitrary origin and induce an authenticated administrator or staff user to visit it. The browser sends the `gioi_session` cookie and exposes API responses to attacker-controlled JavaScript, allowing unauthorized reading of data returned by `/admin/venues` and potentially other credentialed endpoints.",
+              "technical_analysis": "The API accepts an attacker-controlled `Origin` header and responds with the same value in `Access-Control-Allow-Origin` together with `Access-Control-Allow-Credentials: true`. Browsers therefore permit scripts running on an arbitrary origin to issue credentialed requests and read the authenticated response. No strict origin allowlist was observed for this route.",
+              "remediation_steps": "Configure CORS with an explicit allowlist of trusted production origins and reject all other origins. Never reflect the request `Origin` when credentials are enabled. Apply the same policy consistently to preflight and actual responses, and avoid enabling credentialed CORS on administrative endpoints unless it is strictly required.",
+              "counterevidence": "The exploit requires an authenticated victim and browser interaction; an attacker cannot read `/admin/venues` without the victim's session. However, the API explicitly reflects arbitrary origins and enables credentials, and the authenticated response was observed as `200` with venue data, so no effective origin restriction was present on this path.",
+              "confidence": "high",
+              "severity_change_conditions": "Confirmation that the same reflected policy covers additional high-sensitivity administrative endpoints or cross-tenant records would raise the impact; restricting the endpoint to a strict trusted-origin allowlist would eliminate the issue.",
+              "poc": {
+                "description": "1. Authenticate to the application as a seeded administrative user and retain the resulting `gioi_session` cookie.\n2. From a different origin controlled by the attacker, issue a cross-origin request to `http://host.docker.internal:3001/admin/venues` with `credentials: include`.\n3. Observe that the response is readable by the attacker because the API reflects the attacker origin and permits credentials.\n4. Compare with an unauthenticated request, which returns `401`, confirming that the disclosed content is protected by the session cookie.",
+                "script_available": true
+              }
+            }
+          }
+        },
+        {
+          "ruleId": "CWE-200",
+          "ruleIndex": 1,
+          "level": "warning",
+          "message": {
+            "text": "Unauthenticated Nuxt development server exposes application source and Vite internals\n\nThe frontend on `http://host.docker.internal:3002` is running in Nuxt development mode and serves application source modules and Vite development assets to unauthenticated clients. Attackers can retrieve route, authentication, API, and business-logic source code, along with absolute developer filesystem paths."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "SECURITY.md"
+                }
+              }
+            },
+            {
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "/_nuxt/composables/useApi.ts",
+                  "kind": "endpoint"
+                }
+              ]
+            }
+          ],
+          "partialFingerprints": {
+            "primaryLocationLineHash": "0393f07c20c58195e0c2345df2beb00bc5111136794f8f31bd35271203b81fc5"
+          },
+          "properties": {
+            "security-severity": "5.3",
+            "strix_vuln_class_hash": "85cb3aabae61cedf2279475f13923c1537224dc4ac533185d0a830215ad4a818",
+            "synthetic_location": true,
+            "strix": {
+              "id": "vuln-0002",
+              "severity": "medium",
+              "cvss": 5.3,
+              "timestamp": "2026-11-10 01:13:00 UTC",
+              "target": "http://host.docker.internal:3002",
+              "endpoint": "/_nuxt/composables/useApi.ts",
+              "method": "GET",
+              "cwe": "CWE-200",
+              "impact": "An unauthenticated remote attacker can download internal frontend source such as `composables/useApi.ts` and `stores/auth.ts`, enumerate privileged API operations and client-side authorization assumptions, and retrieve the Vite runtime. The disclosure materially lowers the effort required to target the separate API, identify hidden administrative workflows, and chain authorization or object-access weaknesses. Absolute local paths and dependency versions also disclose deployment details.",
+              "technical_analysis": "The root response identifies a Nuxt development runtime (`x-powered-by: Nuxt`) and embeds module URLs under `/_nuxt/@fs/...` that expose the developer filesystem. The server also exposes `/_nuxt/@vite/client` and accepts direct requests for source modules, including `/_nuxt/composables/useApi.ts` and `/_nuxt/stores/auth.ts`, without authentication. The returned source contains the staff/admin API map and client authentication logic, which should not be available from a production deployment.",
+              "remediation_steps": "Run the Nuxt frontend in a production build (`nuxt build` followed by the production server) for any exposed environment. Bind the Vite/Nuxt development server only to a local interface or a protected development network, and require authentication at the reverse proxy if development access is unavoidable. Disable public access to Vite source modules, `@fs` paths, `@vite/client`, source maps, and HMR endpoints. Review deployment automation so `dev` mode cannot be started in production.",
+              "counterevidence": "Some frontend JavaScript is necessarily delivered to every browser, and the exposed modules do not themselves contain a confirmed secret. However, the response is not a normal production bundle: it serves raw TypeScript/Vue modules, Vite HMR runtime code, absolute developer paths, and internal source files directly. No authentication, reverse-proxy restriction, or production-build control was observed on the tested paths.",
+              "confidence": "high",
+              "severity_change_conditions": "Confirmation that the same development server is internet-reachable or contains source-level secrets would raise the impact; restricting port 3002 to a trusted development network and serving only a production build would lower it.",
+              "poc": {
+                "description": "1. Send an unauthenticated `GET` request to `/` on port `3002`.\n2. Observe a `200` Nuxt development HTML response containing absolute `/Users/.../apps/web` paths and a `/_nuxt/@vite/client` module.\n3. Send an unauthenticated `GET` request to `/_nuxt/composables/useApi.ts`.\n4. Observe a `200` response containing readable application source and staff/admin API paths.\n5. Send an unauthenticated `GET` request to `/_nuxt/stores/auth.ts` to retrieve authentication-store source as an additional control.",
+                "script_available": true
+              }
+            }
+          }
+        },
+        {
+          "ruleId": "CWE-1236",
+          "ruleIndex": 2,
+          "level": "warning",
+          "message": {
+            "text": "CSV Formula Injection in Admin Venue Reservation Export\n\nThe public reservation endpoint accepts guest names beginning with spreadsheet formula syntax, and the admin venue CSV export emits that value without neutralization. An administrator opening the downloaded CSV in a spreadsheet can trigger the injected formula, enabling phishing or outbound navigation from the administrative workstation."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "SECURITY.md"
+                }
+              }
+            },
+            {
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "/admin/venues/{venueId}/export.csv",
+                  "kind": "endpoint"
+                }
+              ]
+            }
+          ],
+          "partialFingerprints": {
+            "primaryLocationLineHash": "77ccc11adf481934d94e5f4500e586fe0fbeedb48d80233b143842a6490676aa"
+          },
+          "properties": {
+            "security-severity": "4.3",
+            "strix_vuln_class_hash": "37fc732680c7a0d2a5248b2f7953cfc93631026e3df07529b66c9db890e0869b",
+            "synthetic_location": true,
+            "strix": {
+              "id": "vuln-0003",
+              "severity": "medium",
+              "cvss": 4.3,
+              "timestamp": "2026-11-10 01:17:57 UTC",
+              "target": "http://host.docker.internal:3001",
+              "endpoint": "/admin/venues/{venueId}/export.csv",
+              "method": "GET",
+              "cwe": "CWE-1236",
+              "impact": "An unauthenticated user can persist a formula in a reservation and have it delivered to administrators through `/admin/venues/{venueId}/export.csv`. When opened by a spreadsheet application, the `HYPERLINK` formula is interpreted rather than treated as text, allowing attacker-controlled navigation and potentially other spreadsheet actions depending on the client and formula payload.",
+              "technical_analysis": "`POST /public/venues/bali/reservations` stores `guestName` beginning with `=HYPERLINK(...)`. The authenticated export endpoint serializes the stored value as a quoted CSV field (`\"=HYPERLINK(...)\"`) but does not prepend a single quote or otherwise neutralize formula-leading characters. CSV quoting only escapes delimiters and does not prevent spreadsheet formula evaluation.",
+              "remediation_steps": "Neutralize spreadsheet formula prefixes in every exported cell derived from user-controlled data. Before CSV serialization, prefix values whose first non- whitespace character is one of `=`, `+`, `-`, or `@` with a single quote (or use an equivalent proven CSV-injection mitigation), while preserving CSV quoting. Apply the same policy to all export fields and add regression tests covering formula prefixes and leading whitespace.",
+              "counterevidence": "The export endpoint requires an authenticated administrator, and CSV fields are correctly quoted for delimiter safety. Those controls do not neutralize formula-leading content: the reservation is created anonymously and the exported field still starts with `=`, which spreadsheet clients interpret as a formula. The PoC demonstrates persistence and delivery; execution depends on the normal administrative workflow of opening the export.",
+              "confidence": "high",
+              "severity_change_conditions": "Confirmation that exported files are automatically opened or processed by a spreadsheet client without warning would raise impact; confirmed formula execution that exfiltrates protected data would raise confidentiality and severity.",
+              "poc": {
+                "description": "1. Submit a reservation to the public Bali venue endpoint with `guestName` set to `=HYPERLINK(\"http://x\",\"x\")` and valid reservation details.\n2. Authenticate as the seeded administrator and request `/admin/venues/01a1b416-566e-7288-9725-6c2b92ad2bed/export.csv`.\n3. Locate the created booking code `GIOI-V93TGH7M` in the CSV and open the file in a spreadsheet application.\n4. Observe that the `guest_name` cell begins with an executable `HYPERLINK` formula instead of literal text.",
+                "script_available": true
+              }
+            }
+          }
+        },
+        {
+          "ruleId": "strix-coverage/static-architecture-and-source-aware-sast",
+          "ruleIndex": 3,
+          "kind": "open",
+          "level": "none",
+          "message": {
+            "text": "Static architecture and source-aware SAST — Requires further review: Application source repository / route and model mapping\n\nNo source checkout or package manifests are present under /workspace; semgrep, secrets, trivy, and AST passes could only scan captured frontend HTML, so route handlers, auth guards, and data models remain unverified."
+          },
+          "locations": [
+            {
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "Application source repository / route and model mapping"
+                }
+              ]
+            }
+          ],
+          "properties": {
+            "strix": {
+              "coverage_outcome": "needs_follow_up",
+              "risk_area": "Static architecture and source-aware SAST",
+              "surface": "Application source repository / route and model mapping",
+              "recorded_by": "Source Architecture",
+              "source": "agent_reported"
+            }
+          }
+        },
+        {
+          "ruleId": "strix-coverage/api-attack-surface-mapping-unauthenticated-access",
+          "ruleIndex": 4,
+          "kind": "pass",
+          "level": "none",
+          "message": {
+            "text": "API attack-surface mapping / unauthenticated access — No issue identified: Fastify API route registration and public endpoints\n\nReviewed runtime route registration and source for all public, auth, staff, admin, and floor-plan routes; no exploit attempted in recon phase."
+          },
+          "locations": [
+            {
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "Fastify API route registration and public endpoints"
+                }
+              ]
+            }
+          ],
+          "properties": {
+            "strix": {
+              "coverage_outcome": "no_issue_found",
+              "risk_area": "API attack-surface mapping / unauthenticated access",
+              "surface": "Fastify API route registration and public endpoints",
+              "recorded_by": "Recon API",
+              "source": "agent_reported"
+            }
+          }
+        },
+        {
+          "ruleId": "strix-coverage/authentication-session-reconnaissance",
+          "ruleIndex": 5,
+          "kind": "pass",
+          "level": "none",
+          "message": {
+            "text": "Authentication/session reconnaissance — No issue identified: POST /staff/login and session cookie\n\nConfirmed seeded accounts authenticate with password `password`; cookie observed HttpOnly, Secure, SameSite=Lax, Max-Age 604800. No deep brute-force or bypass testing performed in mapping task."
+          },
+          "locations": [
+            {
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "POST /staff/login and session cookie"
+                }
+              ]
+            }
+          ],
+          "properties": {
+            "strix": {
+              "coverage_outcome": "no_issue_found",
+              "risk_area": "Authentication/session reconnaissance",
+              "surface": "POST /staff/login and session cookie",
+              "recorded_by": "Recon API",
+              "source": "agent_reported"
+            }
+          }
+        },
+        {
+          "ruleId": "strix-coverage/role-and-object-authorization-mapping",
+          "ruleIndex": 6,
+          "kind": "pass",
+          "level": "none",
+          "message": {
+            "text": "Role and object authorization mapping — No issue identified: Staff/admin route authorization middleware\n\nStatic source review mapped requireAuth/requireVenueAccess/requireAdmin usage per route; no exploit validation performed. Parent agents should test IDOR and role boundaries."
+          },
+          "locations": [
+            {
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "Staff/admin route authorization middleware"
+                }
+              ]
+            }
+          ],
+          "properties": {
+            "strix": {
+              "coverage_outcome": "no_issue_found",
+              "risk_area": "Role and object authorization mapping",
+              "surface": "Staff/admin route authorization middleware",
+              "recorded_by": "Recon API",
+              "source": "agent_reported"
+            }
+          }
+        },
+        {
+          "ruleId": "strix-coverage/route-exposure-and-unauthenticated-staff-admin-access",
+          "ruleIndex": 7,
+          "kind": "pass",
+          "level": "none",
+          "message": {
+            "text": "route exposure and unauthenticated staff/admin access — No issue identified: Nuxt public routes `/`, `/bali`, `/bali/book`, `/privacy`, `/login`, `/host`, `/admin`, `/guests/:id`\n\nDirect unauthenticated and role-based API tests completed: staff/admin routes require auth; host and venueadmin privilege boundaries returned 403; no frontend-only bypass reached protected data."
+          },
+          "locations": [
+            {
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "Nuxt public routes `/`, `/bali`, `/bali/book`, `/privacy`, `/login`, `/host`, `/admin`, `/guests/:id`"
+                }
+              ]
+            }
+          ],
+          "properties": {
+            "strix": {
+              "coverage_outcome": "no_issue_found",
+              "risk_area": "route exposure and unauthenticated staff/admin access",
+              "surface": "Nuxt public routes `/`, `/bali`, `/bali/book`, `/privacy`, `/login`, `/host`, `/admin`, `/guests/:id`",
+              "recorded_by": "Root Agent",
+              "source": "agent_reported"
+            }
+          }
+        },
+        {
+          "ruleId": "strix-coverage/mass-assignment-reservation-business-logic",
+          "ruleIndex": 8,
+          "kind": "pass",
+          "level": "none",
+          "message": {
+            "text": "Mass assignment / reservation business logic — No issue identified: POST /public/venues/bali/reservations\n\nCreated reservations with injected status, role, isAdmin, ownerId, userId, venueId, id, and nested-like extras; response persisted only pending state and server-selected venue/seating. Party size bounds, opening hours, lead time, and capacity were enforced."
+          },
+          "locations": [
+            {
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "POST /public/venues/bali/reservations"
+                }
+              ]
+            }
+          ],
+          "properties": {
+            "strix": {
+              "coverage_outcome": "no_issue_found",
+              "risk_area": "Mass assignment / reservation business logic",
+              "surface": "POST /public/venues/bali/reservations",
+              "recorded_by": "Public Reservation Logic",
+              "source": "agent_reported"
+            }
+          }
+        },
+        {
+          "ruleId": "strix-coverage/login-brute-force-username-enumeration-authentication-errors",
+          "ruleIndex": 9,
+          "kind": "pass",
+          "level": "none",
+          "message": {
+            "text": "Login brute force, username enumeration, authentication errors — No issue identified: POST /staff/login\n\nInvalid and valid usernames with wrong passwords returned identical 401 ERR_UNAUTHORIZED responses; five rapid attempts were all processed without lockout, but no account compromise or differentiated error was demonstrated."
+          },
+          "locations": [
+            {
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "POST /staff/login"
+                }
+              ]
+            }
+          ],
+          "properties": {
+            "strix": {
+              "coverage_outcome": "no_issue_found",
+              "risk_area": "Login brute force, username enumeration, authentication errors",
+              "surface": "POST /staff/login",
+              "recorded_by": "Auth Hygiene",
+              "source": "agent_reported"
+            }
+          }
+        },
+        {
+          "ruleId": "strix-coverage/public-reservation-code-guessing-idor",
+          "ruleIndex": 10,
+          "kind": "pass",
+          "level": "none",
+          "message": {
+            "text": "Public reservation code guessing / IDOR — No issue identified: GET /public/reservations/:code\n\nValid code returned only booking summary; random, altered, lowercase, and near-miss codes returned 404. Codes are 8-character high-entropy alphanumeric values; no unauthorized record was obtained."
+          },
+          "locations": [
+            {
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "GET /public/reservations/:code"
+                }
+              ]
+            }
+          ],
+          "properties": {
+            "strix": {
+              "coverage_outcome": "no_issue_found",
+              "risk_area": "Public reservation code guessing / IDOR",
+              "surface": "GET /public/reservations/:code",
+              "recorded_by": "Public Reservation Logic",
+              "source": "agent_reported"
+            }
+          }
+        },
+        {
+          "ruleId": "strix-coverage/session-cookie-flags-and-logout-invalidation",
+          "ruleIndex": 11,
+          "kind": "pass",
+          "level": "none",
+          "message": {
+            "text": "Session cookie flags and logout invalidation — No issue identified: gioi_session cookie on POST /staff/login and logout\n\nLogin sets HttpOnly, Secure, SameSite=Lax, Path=/, Max-Age=604800; replayed session authenticated /staff/me and logout invalidated it. Logout clears cookie and server-side session."
+          },
+          "locations": [
+            {
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "gioi_session cookie on POST /staff/login and logout"
+                }
+              ]
+            }
+          ],
+          "properties": {
+            "strix": {
+              "coverage_outcome": "no_issue_found",
+              "risk_area": "Session cookie flags and logout invalidation",
+              "surface": "gioi_session cookie on POST /staff/login and logout",
+              "recorded_by": "Auth Hygiene",
+              "source": "agent_reported"
+            }
+          }
+        },
+        {
+          "ruleId": "strix-coverage/unauthorized-cancellation-business-logic",
+          "ruleIndex": 12,
+          "kind": "pass",
+          "level": "none",
+          "message": {
+            "text": "Unauthorized cancellation / business logic — No issue identified: POST /public/reservations/:code/cancel\n\nCancellation requires a valid booking code; random and modified codes returned 404. Valid-code cancellation transitions pending to cancelled and repeated invalid variants did not affect other reservations."
+          },
+          "locations": [
+            {
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "POST /public/reservations/:code/cancel"
+                }
+              ]
+            }
+          ],
+          "properties": {
+            "strix": {
+              "coverage_outcome": "no_issue_found",
+              "risk_area": "Unauthorized cancellation / business logic",
+              "surface": "POST /public/reservations/:code/cancel",
+              "recorded_by": "Public Reservation Logic",
+              "source": "agent_reported"
+            }
+          }
+        },
+        {
+          "ruleId": "strix-coverage/sql-injection-nosql-template-or-command-injection",
+          "ruleIndex": 13,
+          "kind": "pass",
+          "level": "none",
+          "message": {
+            "text": "SQL injection / NoSQL / template or command injection — No issue identified: GET /public/venues/:slug/availability and POST /public/venues/:slug/reservations\n\nSprayed quote, boolean, stacked/time-delay, template, and prototype-pollution payloads; sqlmap against availability found no injectable parameter. Strict date/time/party validation blocks malformed values, and reservation strings are stored without execution."
+          },
+          "locations": [
+            {
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "GET /public/venues/:slug/availability and POST /public/venues/:slug/reservations"
+                }
+              ]
+            }
+          ],
+          "properties": {
+            "strix": {
+              "coverage_outcome": "no_issue_found",
+              "risk_area": "SQL injection / NoSQL / template or command injection",
+              "surface": "GET /public/venues/:slug/availability and POST /public/venues/:slug/reservations",
+              "recorded_by": "Injection Specialist",
+              "source": "agent_reported"
+            }
+          }
+        },
+        {
+          "ruleId": "strix-coverage/sql-nosql-injection-authentication-bypass",
+          "ruleIndex": 14,
+          "kind": "pass",
+          "level": "none",
+          "message": {
+            "text": "SQL/NoSQL injection authentication bypass — No issue identified: POST /staff/login\n\nLogin payloads with SQL tautologies and JSON operator objects returned 401 or schema 400; no authentication bypass observed."
+          },
+          "locations": [
+            {
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "POST /staff/login"
+                }
+              ]
+            }
+          ],
+          "properties": {
+            "strix": {
+              "coverage_outcome": "no_issue_found",
+              "risk_area": "SQL/NoSQL injection authentication bypass",
+              "surface": "POST /staff/login",
+              "recorded_by": "Injection Specialist",
+              "source": "agent_reported"
+            }
+          }
+        },
+        {
+          "ruleId": "strix-coverage/public-feedback-authorization-state-transition",
+          "ruleIndex": 15,
+          "kind": "pass",
+          "level": "none",
+          "message": {
+            "text": "Public feedback authorization / state transition — No issue identified: POST /public/reservations/:code/feedback\n\nFeedback endpoint rejected valid-code reservations while pending and after cancellation with ERR_NOT_COMPLETED; arbitrary ratings and fields did not bypass completion requirement. No completed reservation fixture was available for end-to-end feedback persistence."
+          },
+          "locations": [
+            {
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "POST /public/reservations/:code/feedback"
+                }
+              ]
+            }
+          ],
+          "properties": {
+            "strix": {
+              "coverage_outcome": "no_issue_found",
+              "risk_area": "Public feedback authorization / state transition",
+              "surface": "POST /public/reservations/:code/feedback",
+              "recorded_by": "Public Reservation Logic",
+              "source": "agent_reported"
+            }
+          }
+        },
+        {
+          "ruleId": "strix-coverage/verbose-errors-stack-traces",
+          "ruleIndex": 16,
+          "kind": "pass",
+          "level": "none",
+          "message": {
+            "text": "Verbose errors / stack traces — No issue identified: Fastify malformed requests and unknown routes\n\nMalformed JSON/schema failures expose only generic validation messages; unknown routes return structured 404 without stack traces, filesystem paths, or SQL details."
+          },
+          "locations": [
+            {
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "Fastify malformed requests and unknown routes"
+                }
+              ]
+            }
+          ],
+          "properties": {
+            "strix": {
+              "coverage_outcome": "no_issue_found",
+              "risk_area": "Verbose errors / stack traces",
+              "surface": "Fastify malformed requests and unknown routes",
+              "recorded_by": "Auth Hygiene",
+              "source": "agent_reported"
+            }
+          }
+        },
+        {
+          "ruleId": "strix-coverage/sql-nosql-template-command-injection",
+          "ruleIndex": 17,
+          "kind": "pass",
+          "level": "none",
+          "message": {
+            "text": "SQL/NoSQL/template/command injection — No issue identified: Frontend proxy /api/public/venues/bali/availability\n\nProxy forwarded malformed date to API and returned generic 500 without reflection or execution; direct API sqlmap tests were negative."
+          },
+          "locations": [
+            {
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "Frontend proxy /api/public/venues/bali/availability"
+                }
+              ]
+            }
+          ],
+          "properties": {
+            "strix": {
+              "coverage_outcome": "no_issue_found",
+              "risk_area": "SQL/NoSQL/template/command injection",
+              "surface": "Frontend proxy /api/public/venues/bali/availability",
+              "recorded_by": "Injection Specialist",
+              "source": "agent_reported"
+            }
+          }
+        },
+        {
+          "ruleId": "strix-coverage/ssrf-xxe",
+          "ruleIndex": 18,
+          "kind": "notApplicable",
+          "level": "none",
+          "message": {
+            "text": "SSRF / XXE — Not applicable: Public reservation and venue routes (URL/XML processing)\n\nMapped public API accepts reservation fields and venue/date parameters only; extra URL/callback fields are ignored, and no XML parser, fetch/import, webhook, or remote-resource processing endpoint was exposed in the mapped surface."
+          },
+          "locations": [
+            {
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "Public reservation and venue routes (URL/XML processing)"
+                }
+              ]
+            }
+          ],
+          "properties": {
+            "strix": {
+              "coverage_outcome": "not_applicable",
+              "risk_area": "SSRF / XXE",
+              "surface": "Public reservation and venue routes (URL/XML processing)",
+              "recorded_by": "Injection Specialist",
+              "source": "agent_reported"
+            }
+          }
+        },
+        {
+          "ruleId": "strix-coverage/stored-xss",
+          "ruleIndex": 19,
+          "kind": "pass",
+          "level": "none",
+          "message": {
+            "text": "Stored XSS — No issue identified: Stored guest name/notes rendered in /host, /admin, /guests/:id\n\nInjected `<svg onload=alert(1)>` as public guestName and examined compiled Nuxt render paths: guestName and guestNotes are emitted via Vue `_toDisplayString` text interpolation (HTML-escaped) across host/admin/guest pages; no v-html/innerHTML sink found."
+          },
+          "locations": [
+            {
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "Stored guest name/notes rendered in /host, /admin, /guests/:id"
+                }
+              ]
+            }
+          ],
+          "properties": {
+            "strix": {
+              "coverage_outcome": "no_issue_found",
+              "risk_area": "Stored XSS",
+              "surface": "Stored guest name/notes rendered in /host, /admin, /guests/:id",
+              "recorded_by": "XSS Upload Export",
+              "source": "agent_reported"
+            }
+          }
+        },
+        {
+          "ruleId": "strix-coverage/svg-upload-xss",
+          "ruleIndex": 20,
+          "kind": "pass",
+          "level": "none",
+          "message": {
+            "text": "SVG upload XSS — Ruled out: PUT /admin/venues/:id/floor-plan/image SVG upload and floor-plan rendering\n\nAdmin endpoint accepts SVG data URI, but returned content is used as image data in the floor-plan UI; SVG script/event payload is inert in an `<img>` browsing context, and no HTML/innerHTML sink was identified in compiled Nuxt code. Raw SVG acceptance remains a hardening concern but no executable XSS impact was demonstrated."
+          },
+          "locations": [
+            {
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "PUT /admin/venues/:id/floor-plan/image SVG upload and floor-plan rendering"
+                }
+              ]
+            }
+          ],
+          "properties": {
+            "strix": {
+              "coverage_outcome": "ruled_out",
+              "risk_area": "SVG upload XSS",
+              "surface": "PUT /admin/venues/:id/floor-plan/image SVG upload and floor-plan rendering",
+              "recorded_by": "XSS Upload Export",
+              "source": "agent_reported"
+            }
+          }
+        },
+        {
+          "ruleId": "strix-coverage/sql-nosql-injection-via-filters",
+          "ruleIndex": 21,
+          "kind": "pass",
+          "level": "none",
+          "message": {
+            "text": "SQL/NoSQL injection via filters — No issue identified: Authenticated GET /staff/guests, /staff/day, /admin/analytics, /admin/audit-log, /admin/users\n\nAuthenticated admin tested quote/boolean/stacked/time payloads in q/search/venueId. q/search are ignored or safely return data; venueId malformed values produce generic 500/UUID validation behavior, valid UUIDs return scoped results, and no timing or tautology oracle was observed."
+          },
+          "locations": [
+            {
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "Authenticated GET /staff/guests, /staff/day, /admin/analytics, /admin/audit-log, /admin/users"
+                }
+              ]
+            }
+          ],
+          "properties": {
+            "strix": {
+              "coverage_outcome": "no_issue_found",
+              "risk_area": "SQL/NoSQL injection via filters",
+              "surface": "Authenticated GET /staff/guests, /staff/day, /admin/analytics, /admin/audit-log, /admin/users",
+              "recorded_by": "Injection Specialist",
+              "source": "agent_reported"
+            }
+          }
+        },
+        {
+          "ruleId": "strix-coverage/missing-authentication-broken-function-level-authorization",
+          "ruleIndex": 22,
+          "kind": "pass",
+          "level": "none",
+          "message": {
+            "text": "Missing authentication / broken function-level authorization — No issue identified: Unauthenticated /staff/* and /admin/* API routes\n\nGET /staff/me, /staff/day, /staff/guests, /admin/venues and /admin/users return 401 without a session; valid POST /staff/reservations also returns 401 after schema validation."
+          },
+          "locations": [
+            {
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "Unauthenticated /staff/* and /admin/* API routes"
+                }
+              ]
+            }
+          ],
+          "properties": {
+            "strix": {
+              "coverage_outcome": "no_issue_found",
+              "risk_area": "Missing authentication / broken function-level authorization",
+              "surface": "Unauthenticated /staff/* and /admin/* API routes",
+              "recorded_by": "Authz IDOR",
+              "source": "agent_reported"
+            }
+          }
+        },
+        {
+          "ruleId": "strix-coverage/vertical-privilege-escalation-bfla",
+          "ruleIndex": 23,
+          "kind": "pass",
+          "level": "none",
+          "message": {
+            "text": "Vertical privilege escalation / BFLA — No issue identified: Role escalation: host/venueadmin against /admin and floor-plan/image actions\n\nHost and venueadmin receive 403 super admin required for POST /admin/venues and PUT /admin/venues/{bali}/floor-plan/image; /admin/users is not accessible after valid schema."
+          },
+          "locations": [
+            {
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "Role escalation: host/venueadmin against /admin and floor-plan/image actions"
+                }
+              ]
+            }
+          ],
+          "properties": {
+            "strix": {
+              "coverage_outcome": "no_issue_found",
+              "risk_area": "Vertical privilege escalation / BFLA",
+              "surface": "Role escalation: host/venueadmin against /admin and floor-plan/image actions",
+              "recorded_by": "Authz IDOR",
+              "source": "agent_reported"
+            }
+          }
+        },
+        {
+          "ruleId": "strix-coverage/idor-object-level-authorization",
+          "ruleIndex": 24,
+          "kind": "pass",
+          "level": "none",
+          "message": {
+            "text": "IDOR / object-level authorization — No issue identified: Cross-venue IDOR on staff guest/reservation object IDs\n\nHost and venueadmin requests for Ubud guest and reservation IDs return 403 venue not accessible; same-venue records are available as intended. Admin can access cross-venue records by super-admin role."
+          },
+          "locations": [
+            {
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "Cross-venue IDOR on staff guest/reservation object IDs"
+                }
+              ]
+            }
+          ],
+          "properties": {
+            "strix": {
+              "coverage_outcome": "no_issue_found",
+              "risk_area": "IDOR / object-level authorization",
+              "surface": "Cross-venue IDOR on staff guest/reservation object IDs",
+              "recorded_by": "Authz IDOR",
+              "source": "agent_reported"
+            }
+          }
+        }
+      ],
+      "invocations": [
+        {
+          "executionSuccessful": true
+        }
+      ],
+      "properties": {
+        "syntheticLocationCount": 3
+      }
+    }
+  ]
+}

@@ -2,6 +2,8 @@ import { VENUE_SEO } from './utils/venueSeo'
 
 export default defineNuxtConfig({
 	compatibilityDate: '2026-11-07',
+	// Dev server serves source/@fs; keep it local. NUXT_DEV_HOST overrides (e.g. Docker scanner).
+	devServer: { host: process.env.NUXT_DEV_HOST ?? '127.0.0.1' },
 	devtools: { enabled: true },
 	runtimeConfig: {
 		public: {

@@ -12,6 +12,7 @@ import {
 	type DashboardFilters,
 } from '@gioi/domain'
 import { notFound, conflict, forbidden, unprocessable, AppError } from '../../lib/errors'
+import { csvEscape } from '../../lib/csv'
 import { hash } from '@node-rs/argon2'
 import { venueToSettings } from '../../lib/settings'
 import { requireAuth, requireAdmin, requireVenueAccess } from '../../lib/middleware'
@@ -1069,12 +1070,6 @@ export function registerStaffRoutes(app: FastifyInstance, prisma: PrismaClient):
 				include: { guest: true },
 			})
 
-			const esc = (v: unknown) => {
-				const s = String(v ?? '')
-				if (s.includes(',') || s.includes('"') || s.includes('\n')) return `"${s.replace(/"/g, '""')}"`
-				return s
-			}
-
 			let csv = 'id,booking_code,guest_name,phone,email,party_size,date,time,status,allergies,accessibility\n'
 			for (const r of reservations) {
 				csv +=
@@ -1090,7 +1085,7 @@ export function registerStaffRoutes(app: FastifyInstance, prisma: PrismaClient):
 						r.status,
 						(r.guest.allergies ?? []).join(';'),
 						r.guest.accessibility ?? '',
-					].map(esc).join(',') + '\n'
+					].map(csvEscape).join(',') + '\n'
 			}
 
 			reply.header('Content-Type', 'text/csv')
