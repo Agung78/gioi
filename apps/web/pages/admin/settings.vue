@@ -125,23 +125,26 @@ async function run(fn: () => Promise<unknown>) {
 // Restaurant info, booking rules and feedback: one save (the prototype's "Save restaurant" /
 // "Save feedback settings"). `name` and `feedbackTags` are not in the API PATCH whitelist, so
 // those inputs stay read-only — the prototype can persist them, production cannot.
-function saveSettings() {
-	const d = draft.value
-	if (!d) return
+function settingsBody() {
+	const d = draft.value!
 	const keys = ['tagline', 'intro', 'address', 'phone', 'whatsapp', 'email', 'mapsUrl',
 		'bookingIntervalMinutes', 'partyMin', 'partyMax', 'diningMinutes', 'leadTimeMinutes',
 		'cutoffMinutes', 'graceMinutes', 'noShowTargetPercent', 'overCapacityAlertPercent', 'cancellationPolicy',
 		'noticeEnabled', 'noticeDate', 'noticeText',
 		'feedbackTitle', 'feedbackSubtitle', 'feedbackMessageTemplate'] as const
-	const body = Object.fromEntries(keys.map((k) => [k, d[k]]))
-	return run(async () => {
-		await updateVenue(venueId, body)
-	})
+	return Object.fromEntries(keys.map((k) => [k, d[k]]))
+}
+
+function saveSettings() {
+	if (!draft.value) return
+	return run(() => updateVenue(venueId, settingsBody()))
 }
 
 // Opening hours & closed dates: one save (the prototype's "Save hours & rules").
 async function saveHours() {
+	if (!draft.value) return
 	return run(async () => {
+		await updateVenue(venueId, settingsBody())
 		await saveOpeningHours(venueId, opening.value)
 		await saveClosedDates(venueId, closed.value.map((c) => ({ date: c.date, reason: c.reason ?? null })))
 	})

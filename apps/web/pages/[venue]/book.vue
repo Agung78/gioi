@@ -93,7 +93,7 @@ const summary = computed(() => {
 })
 
 const error = ref<string | null>(null)
-const noticeActive = computed(() => !!settings.value?.noticeEnabled && settings.value.noticeDate === date.value)
+const noticeActive = computed(() => !!settings.value?.noticeEnabled && (!settings.value.noticeDate || today <= settings.value.noticeDate))
 watch(noticeActive, (on) => {
   noticeRead.value = noticeAccepted.value = false
   noticeOpen.value = on
