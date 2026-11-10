@@ -15,8 +15,25 @@ import BarChart from '@/components/BarChart.vue'
 import Sparkline from '@/components/Sparkline.vue'
 import Pagination from '@/components/Pagination.vue'
 import { usePagination } from '@/composables/usePagination'
-import type { AdminAnalytics } from '@/composables/useApi'
+import { downloadExportCSV, type AdminAnalytics } from '@/composables/useApi'
 
+const exportMsg = ref('')
+async function exportCsv() {
+	try {
+		const venueId = analytics.value?.venueId
+		if (!venueId) throw new Error('no venue')
+		const csv = await downloadExportCSV(venueId)
+		const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8;' }))
+		const a = document.createElement('a')
+		a.href = url
+		a.download = `gioi-reservations-${new Date().toISOString().slice(0, 10)}.csv`
+		a.click()
+		setTimeout(() => URL.revokeObjectURL(url), 1000)
+		exportMsg.value = ''
+	} catch {
+		exportMsg.value = 'Export failed.'
+	}
+}
 const today = todayISO()
 const preset = ref<DateRangePreset>('last30')
 const filters = ref(defaultDashboardFilters(today))
@@ -407,7 +424,8 @@ definePageMeta({ middleware: ['auth', 'admin'] })
 				<div class="flex flex-wrap items-center gap-2">
 					<input v-model="search" type="search" class="field !w-56 !py-1.5 !px-3 text-sm" placeholder="Search name, code, phone" aria-label="Search reservations">
 					<span class="text-sm text-muted">{{ searchedReservations.length }} matching</span>
-					<button type="button" class="btn-secondary !min-h-9 !px-4" :disabled="!searchedReservations.length">Export CSV</button>
+					<button type="button" class="btn-secondary !min-h-9 !px-4" :disabled="!searchedReservations.length" @click="exportCsv">Export CSV</button>
+					<span v-if="exportMsg" class="text-sm text-red-600" role="alert">{{ exportMsg }}</span>
 				</div>
 			</div>
 			<div v-if="searchedReservations.length" class="mt-4 overflow-x-auto">
