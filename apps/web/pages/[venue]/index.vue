@@ -6,7 +6,7 @@ import { addDays, todayISO } from '@gioi/domain'
 import DatePicker from '@/components/DatePicker.vue'
 import { useVenueSeo } from '@/composables/useVenueSeo'
 
-const { venue, info, hours, seo, name, bookPath, phoneE164, wa, src } = await useVenueSeo()
+const { venue, info, hours, seo, name, bookHref, bookPath, phoneE164, wa, src } = await useVenueSeo()
 const p = seo.page
 if (!p) throw createError({ statusCode: 404, statusMessage: 'Venue not found', fatal: true })
 const days = [1, 2, 3, 4, 5, 6, 0] as const // openingHours keys: 0 = Sunday
