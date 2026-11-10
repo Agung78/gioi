@@ -135,6 +135,18 @@ function sendFeedback(r: StaffReservation) {
 	lastError.value = null
 }
 
+function sendReminder(r: StaffReservation) {
+	const guest = guestOf(r)
+	const phone = guest.phone?.replace(/\D/g, '')
+	if (!phone || !venue.value) {
+		lastError.value = 'This guest does not have a valid phone number.'
+		return
+	}
+	const message = `Hi ${guest.fullName}, this is a reminder of your reservation at ${venue.value.name} today at ${r.time} for ${r.partySize} ${r.partySize === 1 ? 'guest' : 'guests'} (ref ${r.bookingCode}). We look forward to seeing you!`
+	window.open(`https://wa.me/${phone}?text=${encodeURIComponent(message)}`, '_blank', 'noopener,noreferrer')
+	lastError.value = null
+}
+
 function groupByTime(list: StaffReservation[]) {
 	const map = new Map<string, StaffReservation[]>()
 	for (const r of list) {
@@ -260,6 +272,9 @@ definePageMeta({ middleware: 'auth' })
 								<StatusButtons :reservation="r" @change="(to) => changeStatus(r, to as ReservationStatus)" />
 								<button v-if="r.status === 'completed'" class="btn-ghost inline-flex items-center gap-2" type="button" @click="sendFeedback(r)">
 									<PhWhatsappLogo :size="20" aria-hidden="true" /> Send feedback via WhatsApp
+								</button>
+								<button v-if="['pending', 'confirmed'].includes(r.status)" class="btn-ghost inline-flex items-center gap-2" type="button" @click="sendReminder(r)">
+									<PhWhatsappLogo :size="20" aria-hidden="true" /> Send reminder via WhatsApp
 								</button>
 								<button v-if="['pending', 'confirmed', 'arrived', 'seated'].includes(r.status)" class="btn-ghost" type="button" @click="changing = r">Change table</button>
 							</div>
