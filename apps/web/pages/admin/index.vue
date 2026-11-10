@@ -15,13 +15,13 @@ import BarChart from '@/components/BarChart.vue'
 import Sparkline from '@/components/Sparkline.vue'
 import Pagination from '@/components/Pagination.vue'
 import { usePagination } from '@/composables/usePagination'
-import { downloadExportCSV, fetchMe, type AdminAnalytics } from '@/composables/useApi'
+import { downloadExportCSV, type AdminAnalytics } from '@/composables/useApi'
 
-const route = useRoute()
 const exportMsg = ref('')
 async function exportCsv() {
 	try {
-		const venueId = String(route.query.venueId || '') || ((await fetchMe())?.venueIds?.[0] ?? '')
+		const venueId = analytics.value?.venueId
+		if (!venueId) throw new Error('no venue')
 		const csv = await downloadExportCSV(venueId)
 		const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8;' }))
 		const a = document.createElement('a')
