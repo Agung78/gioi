@@ -42,7 +42,7 @@
       </nav>
     </header>
 
-    <main id="main" class="flex-1 pb-20">
+    <main id="main" class="flex-1">
       <NuxtPage />
     </main>
     <button
