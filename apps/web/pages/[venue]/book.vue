@@ -10,7 +10,7 @@ import FloorPlanSvg from '@/components/FloorPlanSvg.vue'
 import type { PublicFloorPlan } from '@gioi/domain'
 import type { CreateReservationBody } from '@/types/venue'
 
-useHead({ title: 'Reserve a table | GIOI Ocean Gourmet' })
+useHead({ title: 'Reserve a table | GIOI Ocean Gourmet', link: [{ rel: 'icon', type: 'image/png', href: '/logo-group.png', key: 'favicon' }] })
 const route = useRoute()
 const router = useRouter()
 const venue = (route.params.venue as string) || 'bali'

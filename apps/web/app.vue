@@ -10,8 +10,8 @@
       class="[view-transition-name:app-header] sticky top-0 z-30 border-b border-line bg-surface/90 backdrop-blur-md"
     >
       <div class="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
-        <NuxtLink to="/" class="flex items-center gap-2">
-          <img src="/logo-96.webp" alt="GIOI Ocean Gourmet" width="96" height="96" class="h-10 w-10 rounded-full object-cover" />
+        <NuxtLink :to="logoHref" class="flex items-center gap-2">
+          <img src="/logo-group-128.webp" alt="GIOI Group" width="128" height="128" class="h-10 w-10 rounded-full object-cover" />
         </NuxtLink>
         <nav v-if="navLinks.length > 1" class="hidden gap-1 sm:flex">
           <NuxtLink
@@ -71,6 +71,11 @@ const { isDark, toggleTheme } = useTheme()
 if (import.meta.client) applyTheme(isDark)
 
 const onBooking = computed(() => route.path.endsWith('/book'))
+const { siteUrl, bookUrl } = useRuntimeConfig().public
+const logoHref = computed(() => {
+  const v = route.params.venue
+  return v ? (bookUrl ? `${siteUrl}/${v}` : `/${v}`) : '/'
+})
 async function signOut() {
   await auth.logout()
   await navigateTo('/login')

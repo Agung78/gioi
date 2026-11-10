@@ -249,18 +249,4 @@ Traffic arrived on Nov 8 and peaked on Nov 9. /bali leads with 46 visitors, then
 
 ![](report-img/vercel.png)
 
-## Next steps
-
-| # | Action | Why | Effort |
-|---|---|---|---|
-| 1 | Set CORS_ORIGIN in the production API project (book. and admin. hosts only) and re-run Strix against a built, non-dev frontend | Confirms vuln-0001 and vuln-0002 are closed | Small |
-| 2 | Add security headers in nuxt.config.ts routeRules (CSP, X-Frame-Options, nosniff, Permissions-Policy, COEP, HSTS) | Clears 9 of 10 ZAP warnings and the Lighthouse trust audits | Small |
-| 3 | Add regression tests for CORS origins and a CSV export route test with formula payloads | Pentest recommends them; only csvEscape is unit tested today | Small |
-| 4 | Fix G-12 (inline errors) and D-11 (wire or remove the Export CSV button), then isolate the U-05 hydration mismatch | The 3 failed QA scenarios | Small |
-| 5 | Move login rate limiting to a shared store | In-memory limit is per serverless instance | Medium |
-| 6 | Migrate web to Nuxt 4 (pinia 3.x, fix /bali prerender, app/ layout) | Closes the last three nuxt advisories including the routeRules bypass | Medium |
-| 7 | Convert large images to modern formats and trim unused JavaScript | About 449 KiB and 88 KiB of Lighthouse savings | Small |
-| 8 | Work the SEO actions (reviews, HTML menu page, more copy, sitemap /privacy) and track Search Console impressions weekly | Organic is a small channel until content and reviews compound | Medium |
-| 9 | Provide an OpenAPI spec for the API and re-run ZAP; wire Semgrep, OSV and ZAP into CI | Current DAST covers only the root path and scans are ad hoc | Small |
-
 > Method and limits: the pentest was black-box with no source access and /ingest/** excluded; ZAP was passive; QA ran on the dev database, not production. Raw outputs: gioi/strix_runs/host-docker-internal-3002_7cee/, /tmp/gioi-{api,web}-semgrep.json, cve-mcp.json, zap/zap-report.json.

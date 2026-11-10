@@ -47,7 +47,7 @@ export default defineNuxtConfig({
 		head: {
 			htmlAttrs: { lang: 'en' },
 			link: [
-				{ rel: 'icon', type: 'image/jpeg', href: '/logo.jpg' },
+				{ rel: 'icon', type: 'image/jpeg', href: '/logo.jpg', key: 'favicon' },
 				{ rel: 'preload', as: 'font', type: 'font/woff2', crossorigin: '', href: '/fonts/cabinet-grotesk-800.woff2' },
 				{ rel: 'preload', as: 'font', type: 'font/woff2', crossorigin: '', href: '/fonts/satoshi-400.woff2' },
 			],
