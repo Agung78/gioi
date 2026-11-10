@@ -376,9 +376,7 @@ onMounted(() => {
             </div>
             <div>
               <label class="label" for="phone">WhatsApp / phone</label>
-              <input id="phone" v-model="phone" required type="tel" autocomplete="tel" class="field"
-                placeholder="+62 812 3456 7890" :aria-invalid="phoneInvalid" :aria-describedby="phoneInvalid ? 'phone-err' : undefined"
-                @blur="touched.phone = true" @invalid="touched.phone = true" />
+              <PhoneInput id="phone" v-model="phone" :invalid="phoneInvalid" :describedby="phoneInvalid ? 'phone-err' : undefined" @blur="touched.phone = true" />
               <p v-if="phoneInvalid" id="phone-err" class="alert-danger mt-1.5">Enter a WhatsApp / phone number we can reach you on.</p>
             </div>
             <div>
