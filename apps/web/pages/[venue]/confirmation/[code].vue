@@ -65,8 +65,8 @@ const icsHref = computed(() => {
       <p class="mt-3 text-muted">We've held your table. Show this code when you arrive.</p>
 
       <div class="card mt-8 space-y-6">
-        <div class="flex items-center justify-between gap-3">
-          <p class="font-display text-4xl font-extrabold tracking-wide">{{ reservation.bookingCode }}</p>
+        <div class="flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <p class="min-w-0 font-display text-2xl font-extrabold tracking-wide sm:text-4xl">{{ reservation.bookingCode }}</p>
           <button type="button" class="btn-secondary" @click="copy"><PhCopy :size="20" aria-hidden="true" /> {{ copied ? 'Copied' : 'Copy' }}</button>
         </div>
         <dl class="grid grid-cols-2 gap-4 text-sm">
