@@ -7,7 +7,8 @@ const GROUP_DESCRIPTION = 'GIOI Group restaurants and bars. Choose a venue to se
 
 const { siteUrl } = useRuntimeConfig().public
 const firstSlug = Object.keys(VENUE_SEO)[0]
-const firstImage = `${siteUrl}${VENUE_SEO[firstSlug].image.url}`
+const firstOg = VENUE_SEO[firstSlug].image.og ?? VENUE_SEO[firstSlug].image
+const firstImage = `${siteUrl}${firstOg.url}`
 
 useSeoMeta({
   title: GROUP_TITLE,
