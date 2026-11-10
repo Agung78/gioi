@@ -2,7 +2,7 @@
 // (prerendered pages like /bali are served before this middleware runs).
 // The site host (gioigroup.com, www.) serves landing pages only: booking routes 301 to book.*.
 // Other hosts (localhost, *.vercel.app previews) serve everything.
-const STAFF = /^\/(login|host|guests|admin)(\/|$)/
+const STAFF = /^\/(login|host|guests|admin)(\/|$)/i
 const GUEST = /^\/[^/]+\/(book|confirmation|feedback)(\/|$)/
 
 export default defineEventHandler((event) => {

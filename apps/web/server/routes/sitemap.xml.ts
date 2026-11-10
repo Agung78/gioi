@@ -22,7 +22,13 @@ export default defineEventHandler((event) => {
   </url>`
 		)
 		.join('\n')
-	const urls = `${rootUrl}\n${venueUrls}`
+	const privacyUrl = `  <url>
+    <loc>${siteUrl}/privacy</loc>
+    <lastmod>${lastmod}</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority>
+  </url>`
+	const urls = `${rootUrl}\n${venueUrls}\n${privacyUrl}`
 	const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 ${urls}

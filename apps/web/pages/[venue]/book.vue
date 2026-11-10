@@ -47,6 +47,9 @@ const seatingAreaId = ref<string | null>(null)
 
 const fullName = ref('')
 const phone = ref('')
+const touched = reactive({ fullName: false, phone: false })
+const nameInvalid = computed(() => touched.fullName && !fullName.value.trim())
+const phoneInvalid = computed(() => touched.phone && !phone.value.trim())
 const email = ref('')
 const country = ref('')
 const occasion = ref('')
@@ -371,12 +374,16 @@ onMounted(() => {
             <div>
               <label class="label" for="fullName">Full name</label>
               <input id="fullName" v-model="fullName" required autocomplete="name" class="field"
-                placeholder="Wayan Sari" />
+                placeholder="Wayan Sari" :aria-invalid="nameInvalid" :aria-describedby="nameInvalid ? 'fullName-err' : undefined"
+                @blur="touched.fullName = true" @invalid="touched.fullName = true" />
+              <p v-if="nameInvalid" id="fullName-err" class="alert-danger mt-1.5">Enter your full name.</p>
             </div>
             <div>
               <label class="label" for="phone">WhatsApp / phone</label>
               <input id="phone" v-model="phone" required type="tel" autocomplete="tel" class="field"
-                placeholder="+62 812 3456 7890" />
+                placeholder="+62 812 3456 7890" :aria-invalid="phoneInvalid" :aria-describedby="phoneInvalid ? 'phone-err' : undefined"
+                @blur="touched.phone = true" @invalid="touched.phone = true" />
+              <p v-if="phoneInvalid" id="phone-err" class="alert-danger mt-1.5">Enter a WhatsApp / phone number we can reach you on.</p>
             </div>
             <div>
               <label class="label" for="email">Email</label>
