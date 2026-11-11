@@ -9,7 +9,7 @@ Index a repo with `xerj autoindex <folder>`. Cite file:line for anything you rel
 
 ## Prototype vs production
 
-`prototype/` is a frontend-only, single-venue demo (Vite + Vue Router + Pinia on localStorage). The production app is a new Nuxt web app plus a Fastify API, specified in `docs/gioi_infrastructure_decision.md` and `docs/gioi_hosting_recommendation.md`. When docs and prototype disagree, the docs win. Do not edit `prototype/` to match production: `scripts/record-demo.mjs` and `docs/RECORDING-SCENARIOS.md` depend on its current routes.
+`prototype/` is a frontend-only, single-venue demo (Vite + Vue Router + Pinia on localStorage). The production app is a new Nuxt web app plus a Fastify API, specified in `docs/ops/gioi_infrastructure_decision.md` and `docs/ops/gioi_hosting_recommendation.md`. When docs and prototype disagree, the docs win. Do not edit `prototype/` to match production: `scripts/record-demo.mjs` and `docs/RECORDING-SCENARIOS.md` depend on its current routes.
 
 Reuse from the prototype as a reference:
 

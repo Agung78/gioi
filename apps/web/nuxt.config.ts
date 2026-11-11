@@ -46,7 +46,10 @@ export default defineNuxtConfig({
 		head: {
 			htmlAttrs: { lang: 'en' },
 			link: [
-				{ rel: 'icon', type: 'image/jpeg', href: '/logo.jpg', key: 'favicon' },
+				{ rel: 'icon', type: 'image/vnd.microsoft.icon', href: '/favicon.ico', sizes: '48x48', key: 'favicon' },
+				{ rel: 'icon', type: 'image/png', href: '/icon-192.png', sizes: '192x192' },
+				{ rel: 'apple-touch-icon', href: '/apple-touch-icon.png', sizes: '180x180' },
+				{ rel: 'manifest', href: '/site.webmanifest' },
 				{ rel: 'preload', as: 'font', type: 'font/woff2', crossorigin: '', href: '/fonts/cabinet-grotesk-800.woff2' },
 				{ rel: 'preload', as: 'font', type: 'font/woff2', crossorigin: '', href: '/fonts/satoshi-400.woff2' },
 			],

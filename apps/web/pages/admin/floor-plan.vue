@@ -6,7 +6,7 @@ import FloorPlanSvg from '@/components/FloorPlanSvg.vue'
 import { fetchFloorPlan, saveFloorLayout } from '@/composables/useApi'
 import { OBJECT_PRESETS, areaColor, clampToPlan } from '@/utils/floorPlan'
 
-// Venue-admin floor plan editor (docs/floor_plan_seating.md), ported from docs/gioi_bali_2d_floor_plan.html.
+// Venue-admin floor plan editor (docs/design/floor_plan_seating.md), ported from docs/design/gioi_bali_2d_floor_plan.html.
 // Seats per area become that area's bookable capacity on save (API side).
 
 const auth = useAuthStore()

@@ -3,8 +3,8 @@
 
 **Purpose:** Demonstrate the implemented prototype against the requirements in:
 
-- [`gioi_client_scope_and_delivery.md`](./gioi_client_scope_and_delivery.md)
-- [`gioi_reservation_platform_design.md`](./gioi_reservation_platform_design.md)
+- [`gioi_client_scope_and_delivery.md`](../client/gioi_client_scope_and_delivery.md)
+- [`gioi_reservation_platform_design.md`](gioi_reservation_platform_design.md)
 
 **Prototype type:** Frontend-only, browser-local demonstration. It proves the main user journeys and business rules; it is not production authentication, a shared database, or a live integration with Chope, WhatsApp, email, or payments.
 

@@ -62,8 +62,8 @@ export async function useVenueSeo(venue = (useRoute().params.venue as string)) {
           '@type': 'Restaurant',
           name,
           url: pageUrl,
-          parentOrganization: { '@type': 'Organization', name: 'GIOI Group', url: siteUrl, logo: `${siteUrl}/logo.jpg`, '@id': `${siteUrl}#organization`, ...(seo ? { sameAs: seo.sameAs } : {}) },
-          ...(image ? { image } : {}),
+          parentOrganization: { '@type': 'Organization', name: 'GIOI Group', url: siteUrl, logo: `${siteUrl}/logo.jpg`, '@id': `${siteUrl}#organization` },
+          ...(image ? { image: [...new Set([image, siteUrl + seo.image.url])] } : {}),
           ...(info?.phone ? { telephone: phoneE164 } : {}),
           address: {
             '@type': 'PostalAddress',
@@ -76,7 +76,6 @@ export async function useVenueSeo(venue = (useRoute().params.venue as string)) {
                 geo: { '@type': 'GeoCoordinates', latitude: seo.geo.lat, longitude: seo.geo.lng },
                 priceRange: seo.priceRange,
                 servesCuisine: seo.cuisine,
-                sameAs: seo.sameAs,
                 ...(seo.menus ? { hasMenu: seo.menus.map((m) => siteUrl + m.path) } : {}),
               }
             : {}),
@@ -104,13 +103,24 @@ export async function useVenueSeo(venue = (useRoute().params.venue as string)) {
                     opens: h.open,
                     closes: h.close,
                   })),
-                openingHours: Object.entries(hours)
-                  .filter(([, h]) => h != null)
-                  .map(([day, h]) => `${['Su','Mo','Tu','We','Th','Fr','Sa'][Number(day)]} ${h.open}-${h.close}`),
               }
             : {}),
         }),
       },
+      ...(seo.page?.faqs?.length
+        ? [{
+            type: 'application/ld+json',
+            innerHTML: JSON.stringify({
+              '@context': 'https://schema.org',
+              '@type': 'FAQPage',
+              mainEntity: seo.page.faqs.map((f) => ({
+                '@type': 'Question',
+                name: f.q,
+                acceptedAnswer: { '@type': 'Answer', text: f.a },
+              })),
+            }),
+          }]
+        : []),
     ],
   })
   })
