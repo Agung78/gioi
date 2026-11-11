@@ -72,7 +72,7 @@ export function registerStaffRoutes(app: FastifyInstance, prisma: PrismaClient):
 
 			const reservations = await prisma.reservation.findMany({
 				where: { venueId, startsAt: { gte: startOfLocalDay(date, venue.timeZone), lt: startOfNextLocalDay(date, venue.timeZone) } },
-				include: { guest: true, seatingArea: true },
+				include: { guest: true, seatingArea: true, tables: true },
 				orderBy: [{ startsAt: 'asc' }],
 			})
 			const guestIds = [...new Set(reservations.map((r) => r.guestId).filter(Boolean))] as string[]
@@ -111,7 +111,7 @@ export function registerStaffRoutes(app: FastifyInstance, prisma: PrismaClient):
 					guestNotes: r.guestNotes ?? null,
 					allergies: r.guest.allergies ?? [],
 					accessibility: r.guest.accessibility ?? null,
-					tableId: r.tableId,
+					tableIds: (r.tables ?? []).map((t) => t.tableId),
 					isRepeat: ((first) => first !== undefined && first < r.startsAt)(earliestCompleted.get(r.guestId)),
 				})),
 				areas,
@@ -136,8 +136,8 @@ export function registerStaffRoutes(app: FastifyInstance, prisma: PrismaClient):
 						time: { type: 'string' },
 						partySize: { type: 'integer', minimum: 1 },
 						seatingAreaId: { type: 'string' },
-						tableId: { type: 'string', format: 'uuid' },
 						occasion: { type: 'string' },
+						tableIds: { type: 'array', minItems: 1, maxItems: 8, items: { type: 'string', format: 'uuid' } },
 						guestNotes: { type: 'string' },
 						internalNotes: { type: 'string' },
 						country: { type: 'string', maxLength: 80 },
@@ -173,8 +173,8 @@ export function registerStaffRoutes(app: FastifyInstance, prisma: PrismaClient):
 
 			const startsAt = toUtc(body.date, body.time, venue.timeZone)
 			return prisma.$transaction(async (tx) => {
-				const tableReq = typeof body.tableId === 'string' ? body.tableId : undefined
 				let areaId = typeof body.seatingAreaId === 'string' ? body.seatingAreaId : undefined
+				const tableReq = Array.isArray(body.tableIds) ? body.tableIds.filter((t) => typeof t === 'string') as string[] : undefined
 				if (tableReq) areaId = await requestedTableArea(tx, venueId, tableReq, body.partySize as number, areaId)
 				if (!areaId) {
 					const areas = await tx.seatingArea.findMany({
@@ -212,7 +212,7 @@ export function registerStaffRoutes(app: FastifyInstance, prisma: PrismaClient):
 					if (!area) throw conflict('no_area')
 				}
 
-				const tableId = await claimTable(tx, venueId, areaId, startsAt, venue.diningMinutes, body.partySize as number, tableReq, {
+				const chosen = await claimTable(tx, venueId, areaId, startsAt, venue.diningMinutes, body.partySize as number, tableReq, {
 					takeOver: body.takeOver === true ? { graceMinutes: venue.graceMinutes, actorUserId: session.user.id } : undefined,
 				})
 
@@ -237,7 +237,6 @@ export function registerStaffRoutes(app: FastifyInstance, prisma: PrismaClient):
 						venueId,
 						bookingCode: randomUUID().replace(/-/g, '').slice(0, 10).toUpperCase(),
 						guestId: guest.id,
-						tableId,
 						seatingAreaId: areaId,
 						startsAt,
 						partySize: body.partySize as number,
@@ -247,6 +246,7 @@ export function registerStaffRoutes(app: FastifyInstance, prisma: PrismaClient):
 						source: body.source as Channel,
 						status: 'pending',
 						createdById: session.user.id,
+						tables: chosen.length ? { create: chosen.map((tableId) => ({ tableId })) } : undefined,
 					},
 				})
 
@@ -283,7 +283,7 @@ export function registerStaffRoutes(app: FastifyInstance, prisma: PrismaClient):
 		{
 			schema: {
 				params: { type: 'object', properties: { id: { type: 'string' } }, required: ['id'] },
-				body: { type: 'object', properties: { tableId: { type: 'string', format: 'uuid' } } },
+				body: { type: 'object', properties: { tableIds: { type: 'array', minItems: 1, maxItems: 8, items: { type: 'string', format: 'uuid' } } } },
 			},
 		},
 		async (request: FastifyRequest<{ Params: { id: string }; Body: Record<string, unknown> }>) => {
@@ -302,42 +302,25 @@ export function registerStaffRoutes(app: FastifyInstance, prisma: PrismaClient):
 			if (typeof body.guestNotes === 'string') updates.guestNotes = body.guestNotes
 			if (typeof body.internalNotes === 'string') updates.internalNotes = body.internalNotes
 			if (typeof body.source === 'string') updates.source = body.source
-			const newTable = typeof body.tableId === 'string' ? body.tableId : undefined
+			const newTables = Array.isArray(body.tableIds) ? body.tableIds.filter((t) => typeof t === 'string') as string[] : undefined
 			const reslot = 'startsAt' in updates || 'partySize' in updates || 'seatingAreaId' in updates
 
 			const updated = await prisma.$transaction(async (tx) => {
-				// A new table, or a moved/resized booking that keeps its table, must still fit: free, big enough, in the area.
-				if (newTable || (reservation.tableId && reslot)) {
+				// New tables, or a moved/resized booking that keeps its tables, must still fit: free, together big enough, one area.
+				const existingIds = (await tx.reservationTable.findMany({ where: { reservationId: reservation.id }, select: { tableId: true } })).map((r) => r.tableId)
+				if (newTables?.length || (existingIds.length > 0 && reslot)) {
 					const { diningMinutes } = await tx.venue.findUniqueOrThrow({ where: { id: reservation.venueId }, select: { diningMinutes: true } })
 					const startsAt = (updates.startsAt as Date | undefined) ?? reservation.startsAt
 					const partySize = (updates.partySize as number | undefined) ?? reservation.partySize
-					let areaId = (updates.seatingAreaId as string | undefined) ?? reservation.seatingAreaId
-					if (newTable) {
-						areaId = await requestedTableArea(tx, reservation.venueId, newTable, partySize, updates.seatingAreaId as string | undefined)
-						if (areaId !== reservation.seatingAreaId) {
-							const [area] = await tx.$queryRaw<{ capacity: number }[]>`
-								SELECT capacity FROM seating_areas
-								WHERE id = ${areaId}::uuid AND venue_id = ${reservation.venueId}::uuid
-								FOR UPDATE`
-							if (!area) throw conflict('no_area')
-							const agg = await tx.reservation.aggregate({
-								where: {
-									seatingAreaId: areaId,
-									startsAt: { gt: new Date(startsAt.getTime() - diningMinutes * 60000), lt: new Date(startsAt.getTime() + diningMinutes * 60000) },
-									status: { in: ['pending', 'confirmed', 'arrived', 'seated'] },
-								},
-								_sum: { partySize: true },
-							})
-							if (Number(agg._sum.partySize ?? 0) + partySize > Number(area.capacity)) throw conflict('full')
-						}
-						updates.tableId = newTable
-						updates.seatingAreaId = areaId
-					} else {
-						const table = await tx.floorTable.findUnique({ where: { id: reservation.tableId! }, select: { seats: true, seatingAreaId: true } })
-						if (!table || table.seats < partySize || table.seatingAreaId !== areaId) throw conflict('table taken')
-					}
+					const ids = newTables?.length ? newTables : existingIds
+					const areaId = await requestedTableArea(tx, reservation.venueId, ids, partySize, (updates.seatingAreaId as string | undefined) ?? (newTables?.length ? undefined : reservation.seatingAreaId))
+					if (areaId !== reservation.seatingAreaId) updates.seatingAreaId = areaId
 					await tx.$queryRaw`SELECT id FROM seating_areas WHERE id = ${areaId}::uuid AND venue_id = ${reservation.venueId}::uuid FOR UPDATE` // same lock bookings take: two moves can't grab one table
-					await claimTable(tx, reservation.venueId, areaId, startsAt, diningMinutes, partySize, newTable ?? reservation.tableId!, { excludeReservationId: reservation.id })
+					await claimTable(tx, reservation.venueId, areaId, startsAt, diningMinutes, partySize, ids, { excludeReservationId: reservation.id })
+					if (newTables?.length) {
+						await tx.reservationTable.deleteMany({ where: { reservationId: reservation.id } })
+						await tx.reservationTable.createMany({ data: newTables.map((tableId) => ({ reservationId: reservation.id, tableId })) })
+					}
 				}
 				if (Object.keys(updates).length > 0) updates.updatedAt = new Date()
 				return tx.reservation.update({
@@ -395,12 +378,10 @@ export function registerStaffRoutes(app: FastifyInstance, prisma: PrismaClient):
 			if (!venue) throw notFound('venue not found')
 
 			const holders = await tableHolders(prisma, request.params.id, toUtc(date, time, venue.timeZone), venue.diningMinutes, excludeReservationId)
-			const small = await prisma.floorTable.findMany({ where: { venueId: request.params.id, seats: { lt: partySize } }, select: { id: true } })
-			const tables: StaffTableState[] = small.map((t) => ({ tableId: t.id, reason: 'small' }))
+			const tables: StaffTableState[] = []
 			const byTable = new Map<string, TableHolder[]>()
 			for (const h of holders) byTable.set(h.tableId, [...(byTable.get(h.tableId) ?? []), h])
 			for (const [tableId, hs] of byTable) {
-				if (small.some((t) => t.id === tableId)) continue
 				const blocker = hs.find((h) => !isLate(h, venue.graceMinutes))
 				const h = blocker ?? hs[0]!
 				tables.push({

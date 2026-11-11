@@ -10,19 +10,25 @@ export interface TableHolder {
 }
 
 // Active reservations holding a table overlapping a booking at startsAt (same window as the area capacity check).
-// excludeReservationId drops one reservation (the one being moved).
+// Returns one TableHolder per held table so `tableId` keeps its per-table meaning. excludeReservationId drops
+// one reservation (the one being moved).
 export async function tableHolders(db: Prisma.TransactionClient, venueId: string, startsAt: Date, diningMinutes: number, excludeReservationId?: string): Promise<TableHolder[]> {
-	const rows = await db.reservation.findMany({
+	const rows = await db.reservationTable.findMany({
 		where: {
-			venueId,
-			id: excludeReservationId ? { not: excludeReservationId } : undefined,
-			tableId: { not: null },
-			startsAt: { gt: new Date(startsAt.getTime() - diningMinutes * 60000), lt: new Date(startsAt.getTime() + diningMinutes * 60000) },
-			status: { in: ['pending', 'confirmed', 'arrived', 'seated'] },
+			table: { venueId },
+			reservation: {
+				venueId,
+				id: excludeReservationId ? { not: excludeReservationId } : undefined,
+				startsAt: { gt: new Date(startsAt.getTime() - diningMinutes * 60000), lt: new Date(startsAt.getTime() + diningMinutes * 60000) },
+				status: { in: ['pending', 'confirmed', 'arrived', 'seated'] },
+			},
 		},
-		select: { id: true, tableId: true, status: true, startsAt: true, guest: { select: { fullName: true } } },
+		include: {
+			reservation: { select: { id: true, status: true, startsAt: true, guest: { select: { fullName: true } } } },
+			table: { select: { id: true } },
+		},
 	})
-	return rows.map((r) => ({ id: r.id, tableId: r.tableId!, status: r.status, startsAt: r.startsAt, guestName: r.guest.fullName }))
+	return rows.map((r) => ({ id: r.reservation.id, tableId: r.table.id, status: r.reservation.status, startsAt: r.reservation.startsAt, guestName: r.reservation.guest.fullName }))
 }
 
 // A holder who has not arrived and is past start + grace: staff may give the table away.
@@ -48,17 +54,25 @@ async function markNoShow(db: Prisma.TransactionClient, venueId: string, h: Tabl
 	})
 }
 
-// A requested table decides the reservation's area. Call before locking the area.
-export async function requestedTableArea(db: Prisma.TransactionClient, venueId: string, tableId: string, partySize: number, areaId?: string): Promise<string> {
-	const table = await db.floorTable.findFirst({ where: { id: tableId, venueId }, select: { seatingAreaId: true, seats: true } })
-	if (!table) throw unprocessable('unknown table')
-	if (areaId && areaId !== table.seatingAreaId) throw unprocessable('table is not in that seating area')
-	if (table.seats < partySize) throw unprocessable('table is too small')
-	return table.seatingAreaId
+// The requested tables decide the reservation's area. Call before locking the area.
+// Validates: unique ids, all in the venue, all in the same seating area, SUM(seats) >= partySize.
+// Returns that area id.
+export async function requestedTableArea(db: Prisma.TransactionClient, venueId: string, tableIds: string[], partySize: number, areaId?: string): Promise<string> {
+	if (tableIds.length === 0) throw unprocessable('no tables')
+	if (new Set(tableIds).size !== tableIds.length) throw unprocessable('duplicate table')
+	const tables = await db.floorTable.findMany({ where: { id: { in: tableIds }, venueId }, select: { id: true, seatingAreaId: true, seats: true } })
+	if (tables.length !== tableIds.length) throw unprocessable('unknown table')
+	const areas = new Set(tables.map((t) => t.seatingAreaId))
+	if (areas.size !== 1) throw unprocessable('tables are not in the same seating area')
+	const area = tables[0]!.seatingAreaId
+	if (areaId && areaId !== area) throw unprocessable('table is not in that seating area')
+	const seats = tables.reduce((sum, t) => sum + t.seats, 0)
+	if (seats < partySize) throw unprocessable('tables are too small')
+	return area
 }
 
-// Call after the area row is locked. Returns the table to store: the requested one if free, else the
-// smallest free table in the area that fits the party (null when none; area capacity still governs).
+// Call after the area row is locked. Returns the chosen table ids: the requested set (validated for holds /
+// takeover), else auto-assign [bestFit] or [] when no single free table fits the party.
 // A requested table held only by late holders is taken over (holders -> no_show) when takeOver is given.
 export async function claimTable(
 	db: Prisma.TransactionClient,
@@ -67,20 +81,29 @@ export async function claimTable(
 	startsAt: Date,
 	diningMinutes: number,
 	partySize: number,
-	tableId?: string,
+	tableIds?: string[],
 	opts: { excludeReservationId?: string; takeOver?: { graceMinutes: number; actorUserId: string } } = {},
-): Promise<string | null> {
+): Promise<string[]> {
 	const holders = await tableHolders(db, venueId, startsAt, diningMinutes, opts.excludeReservationId)
-	if (tableId) {
-		const mine = holders.filter((h) => h.tableId === tableId)
+
+	if (tableIds) {
+		const mine = holders.filter((h) => tableIds.includes(h.tableId))
 		if (mine.length > 0) {
 			const { takeOver } = opts
-			if (!takeOver || !mine.every((h) => isLate(h, takeOver.graceMinutes))) throw conflict('table taken')
-			for (const h of mine) await markNoShow(db, venueId, h, takeOver.actorUserId)
+			const lateHolders = mine.filter((h) => takeOver && isLate(h, takeOver.graceMinutes))
+			if (!takeOver || mine.length !== lateHolders.length) throw conflict('table taken')
+			const seen = new Set<string>()
+			for (const h of mine) {
+				if (seen.has(h.id)) continue
+				seen.add(h.id)
+				await markNoShow(db, venueId, h, takeOver!.actorUserId)
+			}
 		}
-		return tableId
+		return [...tableIds]
 	}
+
 	const held = new Set(holders.map((h) => h.tableId))
 	const tables = await db.floorTable.findMany({ where: { venueId, seatingAreaId: areaId, seats: { gte: partySize } }, orderBy: [{ seats: 'asc' }, { id: 'asc' }], select: { id: true } })
-	return tables.find((t) => !held.has(t.id))?.id ?? null
+	const fit = tables.find((t) => !held.has(t.id))
+	return fit ? [fit.id] : []
 }

@@ -44,26 +44,34 @@ const country = ref('')
 const error = ref<string | null>(null)
 const submitting = ref(false)
 const floorPlan = ref<PublicFloorPlan | null>(null)
-const chosenIdx = ref<number | null>(null) // table last clicked; booking itself is by area
-const chosen = computed(() => (seatingAreaId.value && chosenIdx.value != null && floorPlan.value?.tables[chosenIdx.value]?.seatingAreaId === seatingAreaId.value ? chosenIdx.value : null))
+// Chosen table indexes; all chosen tables share one seating area.
+const chosen = ref<number[]>([])
 const areaName = (id: string) => props.areas.find((a) => a.id === id)?.name
 const onTablePick = (i: number) => {
 	const t = floorPlan.value?.tables[i]
 	if (!t) return
-	const clear = chosen.value === i
-	seatingAreaId.value = clear ? '' : t.seatingAreaId
-	chosenIdx.value = clear ? null : i
+	if (chosen.value.includes(i)) { chosen.value = chosen.value.filter((j) => j !== i); return }
+	// All picks must share one seating area: picking a table in another area replaces the selection.
+	if (chosen.value.length > 0) {
+		const area = floorPlan.value.tables[chosen.value[0]]!.seatingAreaId
+		if (t.seatingAreaId !== area) { chosen.value = [i]; seatingAreaId.value = t.seatingAreaId; return }
+	}
+	chosen.value = [...chosen.value, i]
+	seatingAreaId.value = t.seatingAreaId
 }
-const chosenTableId = computed(() => (chosen.value != null ? floorPlan.value?.tables[chosen.value]?.id : undefined))
-
+const chosenTableIds = computed(() => chosen.value.map((i) => floorPlan.value?.tables[i]?.id).filter((id): id is string => !!id))
+const chosenTables = computed(() => chosen.value.map((i) => floorPlan.value?.tables[i]).filter((t): t is { seats: number; seatingAreaId: string; id: string } => !!t))
+const totalSeats = computed(() => chosenTables.value.reduce((s, t) => s + t.seats, 0))
+const seatsCoverParty = computed(() => chosen.value.length === 0 || totalSeats.value >= partySize.value)
 const tableStates = ref<StaffTableState[]>([])
-// small/held tables are not pickable; late ones are (takeover)
-const unavailableTableIds = computed(() => tableStates.value.filter((s) => s.reason !== 'late').map((s) => s.tableId))
 const stateOf = (i: number) => tableStates.value.find((s) => s.tableId === floorPlan.value?.tables[i]?.id)
-const lateHolder = computed(() => {
-	const s = chosenTableId.value ? tableStates.value.find((x) => x.tableId === chosenTableId.value) : undefined
-	return s?.reason === 'late' ? s.holder : undefined
-})
+// Held tables cannot be taken; late tables remain pickable (takeover).
+const disabledIds = computed(() => tableStates.value.filter((s) => s.reason === 'held').map((s) => s.tableId))
+const lateHolders = computed(() => chosenTables.value.flatMap((t) => {
+	const s = tableStates.value.find((x) => x.tableId === t.id)
+	return s?.reason === 'late' && s.holder ? s.holder : null
+}))
+const takeOver = computed(() => lateHolders.value.length > 0)
 async function fetchTableAvailability() {
 	if (!props.open || !props.venueId || !time.value || !partySize.value) { tableStates.value = []; return }
 	try {
@@ -73,17 +81,20 @@ async function fetchTableAvailability() {
 	}
 }
 watch([() => props.open, () => props.date, time, partySize], fetchTableAvailability)
-watch(unavailableTableIds, (ids) => {
-	if (chosenTableId.value && ids.includes(chosenTableId.value)) chosenIdx.value = null
+watch(disabledIds, () => {
+	chosen.value = chosen.value.filter((i) => !disabledIds.value.includes(floorPlan.value?.tables[i]?.id))
 })
 // Switching to a different area drops the table choice.
 watch(seatingAreaId, (a) => {
-	if (chosenIdx.value != null && floorPlan.value?.tables[chosenIdx.value]?.seatingAreaId !== a) chosenIdx.value = null
+	if (chosen.value.length > 0) {
+		const area = floorPlan.value?.tables[chosen.value[0]]?.seatingAreaId
+		if (area && area !== a) chosen.value = []
+	}
 })
 
 watch(() => props.open, (val) => {
 	if (val) {
-		chosenIdx.value = null
+		chosen.value = []
 		if (props.venueSlug) $fetch<PublicFloorPlan>(`/api/public/venues/${props.venueSlug}/floor-plan`).then((p) => { floorPlan.value = p }).catch(() => { floorPlan.value = null })
 		error.value = null
 		fullName.value = ''
@@ -104,6 +115,10 @@ async function submit() {
 		error.value = 'Name is required.'
 		return
 	}
+	if (chosen.value.length > 0 && !seatsCoverParty.value) {
+		error.value = `Chosen tables seat ${totalSeats.value}, party needs ${partySize.value}.`
+		return
+	}
 	submitting.value = true
 	try {
 		// API enforces capacity; empty area = best-fit auto assignment
@@ -114,8 +129,8 @@ async function submit() {
 			time: time.value,
 			partySize: partySize.value,
 			seatingAreaId: seatingAreaId.value || undefined,
-			tableId: chosenTableId.value,
-			takeOver: lateHolder.value ? true : undefined,
+			tableIds: chosen.value.length ? chosenTableIds.value : undefined,
+			takeOver: takeOver.value ? true : undefined,
 			occasion: occasion.value.trim() || undefined,
 			guestNotes: guestNotes.value.trim() || undefined,
 			country: country.value.trim() || undefined,
@@ -127,7 +142,7 @@ async function submit() {
 		emit('close')
 	} catch (e: any) {
 		error.value = e.data?.message ?? (e.message || 'This slot cannot accommodate the party right now.')
-		if (e.data?.message === 'table taken') { chosenIdx.value = null; fetchTableAvailability() }
+		if (e.data?.message === 'table taken') { chosen.value = []; fetchTableAvailability() }
 	} finally {
 		submitting.value = false
 	}
@@ -182,16 +197,20 @@ async function submit() {
 						<CountryCombobox id="walkin-country" v-model="country" />
 					</div>
 					<div v-if="floorPlan?.tables.length" class="col-span-2">
-						<FloorPlanSvg :plan="floorPlan" pickable :chosen="chosen" :selected="chosen != null ? `t:${chosen}` : null" :disabled-ids="unavailableTableIds"
+						<FloorPlanSvg :plan="floorPlan" pickable :chosen="chosen" :selected="chosen.length ? `t:${chosen[0]}` : null" :disabled-ids="disabledIds"
 							:highlight-area-id="seatingAreaId || null" label="Venue floor plan" @table-pick="onTablePick">
 							<template #tooltip="{ index }">
 								<strong>Table {{ index + 1 }} · {{ areaName(floorPlan.tables[index].seatingAreaId) }}</strong> · seats {{ floorPlan.tables[index].seats }}
 								<template v-if="stateOf(index)?.holder"><br />{{ stateOf(index)!.holder!.guestName }} · {{ stateOf(index)!.holder!.time }}</template>
 							</template>
 						</FloorPlanSvg>
-						<p class="mt-1.5 text-xs text-muted">Tap a table to pick its area.</p>
-						<div v-if="lateHolder" class="alert-warn mt-2 text-sm">
-							{{ lateHolder.guestName }} booked this table at {{ lateHolder.time }} and hasn't arrived. Adding this walk-in marks that reservation as no-show.
+						<p class="mt-1.5 text-xs text-muted">Tap a table to pick it. Pick several to join them for a bigger party.</p>
+						<p v-if="chosen.length" class="mt-1.5 text-xs text-muted">{{ chosen.length }} table{{ chosen.length === 1 ? '' : 's' }}, {{ totalSeats }} seat{{ totalSeats === 1 ? '' : 's' }} for {{ partySize }} pax</p>
+						<div v-if="chosen.length && !seatsCoverParty" class="alert-warn mt-2 text-sm">Chosen tables seat {{ totalSeats }}, party needs {{ partySize }}.</div>
+						<div v-if="lateHolders.length" class="alert-warn mt-2 text-sm">
+							<template v-for="h in lateHolders" :key="h.reservationId">
+								{{ h.guestName }} booked {{ h.time }} and hasn't arrived; taking this table marks {{ h.guestName }} as no-show.
+							</template>
 						</div>
 					</div>
 					<div class="col-span-2">

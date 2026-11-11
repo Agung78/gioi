@@ -258,6 +258,7 @@ export interface StaffReservation {
   guestNotes?: string
   allergies: string[]
   accessibility?: string
+  tableIds: string[]
 }
 
 // --- Floor plan (docs/floor_plan_seating.md) ---
@@ -313,7 +314,7 @@ export interface TableAvailability {
 // held = guest arrived/seated, or reservation not yet past its grace window. late = pending/confirmed holder past start + graceMinutes (staff may take over).
 export interface StaffTableState {
   tableId: string
-  reason: 'small' | 'held' | 'late'
+  reason: 'held' | 'late'
   holder?: { reservationId: string; guestName: string; time: string; status: ReservationStatus } // time = local HH:MM
 }
 export interface StaffTableAvailability {

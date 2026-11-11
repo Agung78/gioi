@@ -63,6 +63,11 @@ export type Guest = Prisma.GuestModel
  */
 export type Reservation = Prisma.ReservationModel
 /**
+ * Model ReservationTable
+ * 
+ */
+export type ReservationTable = Prisma.ReservationTableModel
+/**
  * Model ReservationStatusEvent
  * 
  */
