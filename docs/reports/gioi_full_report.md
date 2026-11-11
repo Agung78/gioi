@@ -188,7 +188,7 @@ https://gioigroup.com/bali is on Google and page indexing is passed: sitemap htt
 
 ## SEO and local presence
 
-Source: docs/seo-organic-estimate.md (scope apps/web, 2026-11-09). Search Console now confirms `/bali` is indexed, which resolves the main open question in that estimate. Ranking and traffic ranges below are planning assumptions, not measurements.
+Source: docs/seo/seo-organic-estimate.md (scope apps/web, 2026-11-09). Search Console now confirms `/bali` is indexed, which resolves the main open question in that estimate. Ranking and traffic ranges below are planning assumptions, not measurements.
 
 ### Current state
 

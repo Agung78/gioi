@@ -2,7 +2,7 @@
 
 **Status:** Delivered & Verified Prototype Specification (v1.0)
 **Method:** `taste-skill` (anti-slop frontend) applied to guest-facing surfaces; high-density operational UI for host and admin surfaces.
-**Inputs:** `prototype/` (implemented codebase), `docs/gioi_reservation_platform_design.md`, `docs/gioi_prototype_usecase_scenarios.md`, `docs/gioi_client_scope_and_delivery.md`, verified GIOI brand assets.
+**Inputs:** `prototype/` (implemented codebase), `docs/design/gioi_reservation_platform_design.md`, `docs/design/gioi_prototype_usecase_scenarios.md`, `docs/client/gioi_client_scope_and_delivery.md`, verified GIOI brand assets.
 
 ---
 

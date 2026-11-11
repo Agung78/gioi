@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Render docs/gioi_security_report.md -> docs/gioi_security_report.pdf (GIOI house style).
+"""Render docs/reports/gioi_security_report.md -> docs/reports/gioi_security_report.pdf (GIOI house style).
 
 Usage: python3 build_report.py [input.md] [output.pdf]
 Needs: reportlab (pip install reportlab).
@@ -185,5 +185,5 @@ def build(text, out, base):
 
 
 if __name__ == "__main__":
-    SRC = Path(sys.argv[1]) if len(sys.argv) > 1 else ROOT / "docs/gioi_security_report.md"
-    build(SRC.read_text(), Path(sys.argv[2]) if len(sys.argv) > 2 else ROOT / "docs/gioi_security_report.pdf", SRC.parent)
+    SRC = Path(sys.argv[1]) if len(sys.argv) > 1 else ROOT / "docs/reports/gioi_security_report.md"
+    build(SRC.read_text(), Path(sys.argv[2]) if len(sys.argv) > 2 else ROOT / "docs/reports/gioi_security_report.pdf", SRC.parent)

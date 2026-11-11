@@ -1,6 +1,6 @@
 # Floor plan & seating
 
-Production port of the prototype `docs/gioi_bali_2d_floor_plan.html`: a per-venue 2D floor plan whose tables drive seating-area capacity, plus the guest booking map.
+Production port of the prototype `docs/design/gioi_bali_2d_floor_plan.html`: a per-venue 2D floor plan whose tables drive seating-area capacity, plus the guest booking map.
 
 Booking stays **area-level** (design doc §4, "start with seating-area capacity"). Tables do not get reservations; they define how many covers each area holds.
 
@@ -82,7 +82,7 @@ Uploaded SVGs are only ever rendered through SVG `<image href>`, which doesn't r
 - **`/admin/settings`** for super admins: "Floor plan drawing" upload, preview and remove for the venue chosen in the venue picker. Super admins have no "Floor plan" nav link, and `/admin/floor-plan` redirects them to Settings: laying out tables is the venue admin's job.
 - **`/admin/settings`** for venue admins has **no** seating-areas card any more: names, party limits, bookable flags and capacity all live in the floor plan editor.
 
-QA scenarios for all of the above: [`qa-e2e-browser-scenarios.md`](./qa-e2e-browser-scenarios.md) §1.2a and §7.2.
+QA scenarios for all of the above: [`qa-e2e-browser-scenarios.md`](../reports/qa-e2e-browser-scenarios.md) §1.2a and §7.2.
 
 ## Guest booking UX (`/[venue]/book`)
 

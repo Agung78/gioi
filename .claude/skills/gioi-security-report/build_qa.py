@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Render docs/qa-e2e-browser-scenarios.md -> docs/qa-e2e-browser-scenarios.pdf (GIOI house style).
+"""Render docs/reports/qa-e2e-browser-scenarios.md -> docs/reports/qa-e2e-browser-scenarios.pdf (GIOI house style).
 
 Usage: python3 build_qa.py [input.md] [output.pdf]
 The md is the only source: status symbols, counts, date and branch are derived from it.
@@ -11,8 +11,8 @@ from pathlib import Path
 
 from build_report import ROOT, build
 
-SRC = Path(sys.argv[1]) if len(sys.argv) > 1 else ROOT / "docs/qa-e2e-browser-scenarios.md"
-OUT = Path(sys.argv[2]) if len(sys.argv) > 2 else ROOT / "docs/qa-e2e-browser-scenarios.pdf"
+SRC = Path(sys.argv[1]) if len(sys.argv) > 1 else ROOT / "docs/reports/qa-e2e-browser-scenarios.md"
+OUT = Path(sys.argv[2]) if len(sys.argv) > 2 else ROOT / "docs/reports/qa-e2e-browser-scenarios.pdf"
 
 DIAGRAMS = [("Customer journey", "customer-journey"), ("Host journey", "host-journey"), ("Admin journey", "admin-journey"),
             ("Seating: admin journey", "seating-admin-journey"), ("Seating: host journey", "seating-host-journey")]
@@ -56,8 +56,8 @@ text = "\n".join(out)
 
 diag = []
 for name, f in DIAGRAMS:
-    diag += [f"## {name}", "", f"> Source: docs/diagrams/{f}.excalidraw. Scenario IDs below map to these stages (see the coverage map).", "",
-             f"![]({'diagrams/' + f + '.png'})", ""]
+    diag += [f"## {name}", "", f"> Source: docs/design/diagrams/{f}.excalidraw. Scenario IDs below map to these stages (see the coverage map).", "",
+             f"![]({'../design/diagrams/' + f + '.png'})", ""]
 text = text.replace("\n## 1. ", "\n" + "\n".join(diag) + "\n## 1. ", 1)
 
 # --- overview page: stats right after the intro title, as in the house design

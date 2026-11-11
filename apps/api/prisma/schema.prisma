@@ -137,7 +137,7 @@ model SeatingArea {
   @@map("seating_areas")
 }
 
-// docs/floor_plan_seating.md. Backdrop drawing per venue, uploaded by a super admin. `image` is a
+// docs/design/floor_plan_seating.md. Backdrop drawing per venue, uploaded by a super admin. `image` is a
 // data URL rendered only through SVG <image href> (never runs scripts). width is always 1200.
 model FloorPlan {
   venueId   String   @id @map("venue_id") @db.Uuid

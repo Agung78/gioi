@@ -1,32 +1,21 @@
 import { defineEventHandler, setHeader } from 'h3'
 import { VENUE_SEO } from '../../utils/venueSeo'
 
-const lastmod = new Date().toISOString().slice(0, 10)
-
 export default defineEventHandler((event) => {
 	const { siteUrl } = useRuntimeConfig(event).public
 	const rootUrl = `  <url>
     <loc>${siteUrl}/</loc>
-    <lastmod>${lastmod}</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>1.0</priority>
   </url>`
 	const venueUrls = Object.keys(VENUE_SEO)
 		.map(
 			(slug) =>
 			`  <url>
     <loc>${siteUrl}/${slug}</loc>
-    <lastmod>${lastmod}</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.9</priority>
   </url>`
 		)
 		.join('\n')
 	const privacyUrl = `  <url>
     <loc>${siteUrl}/privacy</loc>
-    <lastmod>${lastmod}</lastmod>
-    <changefreq>yearly</changefreq>
-    <priority>0.3</priority>
   </url>`
 	const urls = `${rootUrl}\n${venueUrls}\n${privacyUrl}`
 	const xml = `<?xml version="1.0" encoding="UTF-8"?>

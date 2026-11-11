@@ -487,7 +487,7 @@ model AuditEvent {
 
 Entity-relationship diagram (all tables, columns and keys):
 
-![GIOI database ERD](gioi_database_erd.png)
+![GIOI database ERD](../design/gioi_database_erd.png)
 
 Source: `gioi_database_erd.mmd`. Re-render after schema changes with `npx -y @mermaid-js/mermaid-cli -i gioi_database_erd.mmd -o gioi_database_erd.png -b white -s 2`.
 

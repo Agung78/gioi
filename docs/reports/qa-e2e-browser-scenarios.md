@@ -1,7 +1,7 @@
 # GIOI — QA E2E Browser Scenarios
 
 Manual (or Playwright-ready) browser scenarios for `apps/web` + `apps/api`.
-Derived from the journey diagrams in [`docs/diagrams/`](./diagrams/) (`customer-journey`, `host-journey`, `admin-journey`) and the code as of 2026-11-09. Floor plan behaviour is specified in [`floor_plan_seating.md`](./floor_plan_seating.md). Run on a clean seeded database.
+Derived from the journey diagrams in [`docs/design/diagrams/`](../design/diagrams) (`customer-journey`, `host-journey`, `admin-journey`) and the code as of 2026-11-09. Floor plan behaviour is specified in [`floor_plan_seating.md`](../design/floor_plan_seating.md). Run on a clean seeded database.
 
 **Priority:** P0 = release blocker, P1 = must pass before launch, P2 = polish.
 **Status:** `☐` not run, `✔` pass, `✘` fail (link the bug).
