@@ -602,7 +602,7 @@ describe('API integration', () => {
 		expect((await send('PATCH', `/staff/reservations/${arrived.id}`, { tableIds: [b.id] })).status).toBe(409)
 
 		// Resizing the party past the table's seats re-validates the kept table; a fitting size is fine.
-		expect((await send('PATCH', `/staff/reservations/${walk!.id}`, { partySize: 5 })).status).toBe(409)
+		expect((await send('PATCH', `/staff/reservations/${walk!.id}`, { partySize: 5 })).status).toBe(422)
 		expect((await send('PATCH', `/staff/reservations/${walk!.id}`, { partySize: 3 })).status).toBe(200)
 	})
 
