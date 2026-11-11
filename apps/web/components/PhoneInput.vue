@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 
 // Output: "+62 812-345-678" (empty when no digits). Type "62" or "indo" in the code box to pick a country.
 const model = defineModel<string>({ default: '' })
-const props = defineProps<{ id: string; invalid?: boolean; describedby?: string }>()
+const props = defineProps<{ id: string; invalid?: boolean; describedby?: string; optional?: boolean }>()
 const emit = defineEmits<{ blur: [] }>()
 
 // ponytail: common booking markets only; add rows here for more countries.
@@ -23,6 +23,8 @@ const query = ref('')
 const open = ref(false)
 const active = ref(0)
 const national = ref('')
+// Parent clearing the value (e.g. a modal reset) must clear the digits too.
+watch(model, (v) => { if (!v) national.value = '' })
 
 const options = computed(() => {
 	const q = query.value.trim().toLowerCase().replace(/^\+/, '')
@@ -75,7 +77,7 @@ function onKey(e: KeyboardEvent) {
 				/>
 			</div>
 			<input
-				:id="id" :value="national" required type="tel" inputmode="numeric" autocomplete="tel-national" placeholder="812-345-678"
+				:id="id" :value="national" :required="!optional" type="tel" inputmode="numeric" autocomplete="tel-national" placeholder="812-345-678"
 				class="min-w-0 flex-1 bg-transparent px-3.5 py-2.5 text-base tabular-nums text-ink placeholder:text-muted/60 focus:outline-none"
 				:aria-invalid="invalid" :aria-describedby="describedby" @input="onNational" @blur="emit('blur')"
 			/>

@@ -21,6 +21,7 @@ export interface StaffReservation {
 	accessibility?: string | null
 	time: string
 	date: string
+	isRepeat: boolean
 }
 
 const API = '/api'
@@ -87,6 +88,7 @@ export interface CreateWalkInBody {
 	internalNotes?: string
 	source: Channel
 	venueId?: string
+	country?: string
 }
 
 export async function createWalkIn(body: CreateWalkInBody): Promise<{ bookingCode: string; reservationId: string }> {

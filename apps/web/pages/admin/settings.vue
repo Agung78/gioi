@@ -4,6 +4,7 @@ import { useAuthStore } from '@/stores/auth'
 import { useRoute } from '#app'
 import FloorPlanSvg from '@/components/FloorPlanSvg.vue'
 import DatePicker from '@/components/DatePicker.vue'
+import TimePicker from '@/components/TimePicker.vue'
 import type { AdminFloorPlan } from '@gioi/domain'
 import { todayISO, type User, type DayOfWeek } from '@gioi/domain'
 import {
@@ -303,8 +304,8 @@ definePageMeta({ middleware: ['auth', 'admin'] })
 				<div class="mt-4 grid gap-3 sm:grid-cols-2">
 					<div v-for="day in DAYS_OF_WEEK" :key="day" class="grid grid-cols-[64px_minmax(0,1fr)_minmax(0,1fr)] items-center gap-2 text-sm">
 						<span class="font-medium text-ink">{{ dayLabel[day] }}</span>
-						<input type="time" class="field" :value="hhmm(opening.find((o) => o.weekday === DAYS_OF_WEEK.indexOf(day))?.openMinute)" @change="updateDay(day, 'open', ($event.target as HTMLInputElement).value)" />
-						<input type="time" class="field" :value="hhmm(opening.find((o) => o.weekday === DAYS_OF_WEEK.indexOf(day))?.closeMinute)" @change="updateDay(day, 'close', ($event.target as HTMLInputElement).value)" />
+						<TimePicker :model-value="hhmm(opening.find((o) => o.weekday === DAYS_OF_WEEK.indexOf(day))?.openMinute)" :aria-label="`${dayLabel[day]} opens`" @update:model-value="updateDay(day, 'open', $event)" />
+						<TimePicker :model-value="hhmm(opening.find((o) => o.weekday === DAYS_OF_WEEK.indexOf(day))?.closeMinute)" :aria-label="`${dayLabel[day]} closes`" @update:model-value="updateDay(day, 'close', $event)" />
 					</div>
 				</div>
 				<div class="mt-6 grid gap-4 sm:grid-cols-3">

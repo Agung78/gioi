@@ -75,6 +75,16 @@ export function registerStaffRoutes(app: FastifyInstance, prisma: PrismaClient):
 				include: { guest: true, seatingArea: true },
 				orderBy: [{ startsAt: 'asc' }],
 			})
+			const guestIds = [...new Set(reservations.map((r) => r.guestId).filter(Boolean))] as string[]
+			const priorCompleted = await prisma.reservation.findMany({
+				where: { guestId: { in: guestIds }, status: 'completed' },
+				select: { guestId: true, startsAt: true },
+			})
+			const earliestCompleted = new Map<string, Date>()
+			for (const pc of priorCompleted) {
+				const cur = earliestCompleted.get(pc.guestId)
+				if (!cur || pc.startsAt < cur) earliestCompleted.set(pc.guestId, pc.startsAt)
+			}
 			const areas = await prisma.seatingArea.findMany({
 				where: { venueId, bookable: true },
 				orderBy: { name: 'asc' },
@@ -86,6 +96,7 @@ export function registerStaffRoutes(app: FastifyInstance, prisma: PrismaClient):
 				reservations: reservations.map((r) => ({
 					id: r.id,
 					bookingCode: r.bookingCode,
+					guestId: r.guestId,
 					guestName: r.guest.fullName,
 					guestPhone: r.guest.phone ?? null,
 					partySize: r.partySize,
@@ -101,6 +112,7 @@ export function registerStaffRoutes(app: FastifyInstance, prisma: PrismaClient):
 					allergies: r.guest.allergies ?? [],
 					accessibility: r.guest.accessibility ?? null,
 					tableId: r.tableId,
+					isRepeat: ((first) => first !== undefined && first < r.startsAt)(earliestCompleted.get(r.guestId)),
 				})),
 				areas,
 				venue,
@@ -128,6 +140,7 @@ export function registerStaffRoutes(app: FastifyInstance, prisma: PrismaClient):
 						occasion: { type: 'string' },
 						guestNotes: { type: 'string' },
 						internalNotes: { type: 'string' },
+						country: { type: 'string', maxLength: 80 },
 						source: { type: 'string' },
 						takeOver: { type: 'boolean' },
 					},
@@ -204,7 +217,12 @@ export function registerStaffRoutes(app: FastifyInstance, prisma: PrismaClient):
 				})
 
 				const phone = ((body.phone as string | undefined) ?? '').trim() || null
-				const guestFields = { fullName: body.guestName as string, email: (body.email as string | undefined) ?? null }
+				const country = typeof body.country === 'string' ? body.country.trim() : undefined
+				const guestFields: { fullName: string; email: string | null; country?: string } = {
+					fullName: body.guestName as string,
+					email: (body.email as string | undefined) ?? null,
+					...(country ? { country } : {}),
+				}
 				// Phone is optional: without one there is nothing to dedupe on, so always create a new guest.
 				const guest = phone
 					? await tx.guest.upsert({
