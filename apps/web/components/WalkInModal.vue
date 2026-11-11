@@ -5,7 +5,7 @@ import FloorPlanSvg from '@/components/FloorPlanSvg.vue'
 import CountryCombobox from '@/components/CountryCombobox.vue'
 import TimePicker from '@/components/TimePicker.vue'
 import PhoneInput from '@/components/PhoneInput.vue'
-import { todayISO } from '@gioi/domain'
+import { hasRedundantTable, todayISO } from '@gioi/domain'
 import { createWalkIn, changeReservationStatus, fetchStaffTableAvailability } from '@/composables/useApi'
 
 const props = defineProps<{
@@ -56,6 +56,8 @@ const onTablePick = (i: number) => {
 		const area = floorPlan.value?.tables[chosen.value[0]!]?.seatingAreaId
 		if (t.seatingAreaId !== area) { chosen.value = [i]; seatingAreaId.value = t.seatingAreaId; return }
 	}
+	if (hasRedundantTable([...chosenTables.value.map((c) => c.seats), t.seats], partySize.value)) { error.value = `Tables already seat ${totalSeats.value} for ${partySize.value} pax. Deselect one to swap.`; return }
+	error.value = null
 	chosen.value = [...chosen.value, i]
 	seatingAreaId.value = t.seatingAreaId
 }
