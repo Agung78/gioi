@@ -53,14 +53,14 @@ const onTablePick = (i: number) => {
 	if (chosen.value.includes(i)) { chosen.value = chosen.value.filter((j) => j !== i); return }
 	// All picks must share one seating area: picking a table in another area replaces the selection.
 	if (chosen.value.length > 0) {
-		const area = floorPlan.value.tables[chosen.value[0]]!.seatingAreaId
+		const area = floorPlan.value?.tables[chosen.value[0]!]?.seatingAreaId
 		if (t.seatingAreaId !== area) { chosen.value = [i]; seatingAreaId.value = t.seatingAreaId; return }
 	}
 	chosen.value = [...chosen.value, i]
 	seatingAreaId.value = t.seatingAreaId
 }
-const chosenTableIds = computed(() => chosen.value.map((i) => floorPlan.value?.tables[i]?.id).filter((id): id is string => !!id))
-const chosenTables = computed(() => chosen.value.map((i) => floorPlan.value?.tables[i]).filter((t): t is { seats: number; seatingAreaId: string; id: string } => !!t))
+const chosenTables = computed(() => chosen.value.flatMap((i) => floorPlan.value?.tables[i] ?? []))
+const chosenTableIds = computed(() => chosenTables.value.flatMap((t) => t.id ?? []))
 const totalSeats = computed(() => chosenTables.value.reduce((s, t) => s + t.seats, 0))
 const seatsCoverParty = computed(() => chosen.value.length === 0 || totalSeats.value >= partySize.value)
 const tableStates = ref<StaffTableState[]>([])
@@ -69,7 +69,7 @@ const stateOf = (i: number) => tableStates.value.find((s) => s.tableId === floor
 const disabledIds = computed(() => tableStates.value.filter((s) => s.reason === 'held').map((s) => s.tableId))
 const lateHolders = computed(() => chosenTables.value.flatMap((t) => {
 	const s = tableStates.value.find((x) => x.tableId === t.id)
-	return s?.reason === 'late' && s.holder ? s.holder : null
+	return s?.reason === 'late' && s.holder ? [s.holder] : []
 }))
 const takeOver = computed(() => lateHolders.value.length > 0)
 async function fetchTableAvailability() {
@@ -82,12 +82,12 @@ async function fetchTableAvailability() {
 }
 watch([() => props.open, () => props.date, time, partySize], fetchTableAvailability)
 watch(disabledIds, () => {
-	chosen.value = chosen.value.filter((i) => !disabledIds.value.includes(floorPlan.value?.tables[i]?.id))
+	chosen.value = chosen.value.filter((i) => !disabledIds.value.includes(floorPlan.value?.tables[i]?.id ?? ''))
 })
 // Switching to a different area drops the table choice.
 watch(seatingAreaId, (a) => {
 	if (chosen.value.length > 0) {
-		const area = floorPlan.value?.tables[chosen.value[0]]?.seatingAreaId
+		const area = floorPlan.value?.tables[chosen.value[0]!]?.seatingAreaId
 		if (area && area !== a) chosen.value = []
 	}
 })

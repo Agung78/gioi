@@ -37,8 +37,8 @@ const onPick = (i: number) => {
 	}
 	chosen.value = [...chosen.value, i]
 }
-const chosenTableIds = computed(() => chosen.value.map((i) => floorPlan.value?.tables[i]?.id).filter((id): id is string => !!id))
-const chosenTables = computed(() => chosen.value.map((i) => floorPlan.value?.tables[i]).filter((t): t is { seats: number; id: string } => !!t))
+const chosenTables = computed(() => chosen.value.flatMap((i) => floorPlan.value?.tables[i] ?? []))
+const chosenTableIds = computed(() => chosenTables.value.flatMap((t) => t.id ?? []))
 const totalSeats = computed(() => chosenTables.value.reduce((s, t) => s + t.seats, 0))
 const seatsCoverParty = computed(() => chosen.value.length === 0 || totalSeats.value >= (props.reservation?.partySize ?? 0))
 const changed = computed(() => [...chosenTableIds.value].sort().join(',') !== [...(props.reservation?.tableIds ?? [])].sort().join(','))
@@ -48,7 +48,10 @@ const saveEnabled = computed(() => changed.value && seatsCoverParty.value && cho
 
 function selectCurrent() {
 	const ids = props.reservation?.tableIds ?? []
-	chosen.value = ids.map((id) => floorPlan.value?.tables.findIndex((t) => t.id === id)).filter((i): i is number => i >= 0)
+	chosen.value = ids.flatMap((id) => {
+		const i = floorPlan.value?.tables.findIndex((t) => t.id === id) ?? -1
+		return i >= 0 ? [i] : []
+	})
 }
 
 async function loadStates() {
