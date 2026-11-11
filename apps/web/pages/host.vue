@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, ref, watch, onMounted, onBeforeUnmount } from 'vue'
 import { useRouter } from '#app'
-import { addDays, todayISO, type ReservationStatus } from '@gioi/domain'
+import { addDays, todayISO, type PublicFloorPlan, type ReservationStatus } from '@gioi/domain'
 import { PhWarning, PhWheelchair, PhStar, PhWhatsappLogo } from '@phosphor-icons/vue'
 import StatusChip from '@/components/StatusChip.vue'
 import StatusButtons from '@/components/StatusButtons.vue'
@@ -27,6 +27,8 @@ const reservations = ref<StaffReservation[]>([])
 const areas = ref<Array<{ id: string; name: string }>>([])
 const venue = ref<{ slug: string; name: string; feedbackMessageTemplate: string } | null>(null)
 const venueId = ref('')
+const floorPlan = ref<PublicFloorPlan | null>(null)
+const statusFilter = ref<'all' | ReservationStatus>('all')
 const changing = ref<StaffReservation | null>(null)
 const poll = ref<ReturnType<typeof setInterval> | null>(null)
 
@@ -68,8 +70,21 @@ onMounted(() => {
 onBeforeUnmount(() => {
 	if (poll.value) clearInterval(poll.value)
 })
+watch(
+	() => venue.value?.slug,
+	(slug) => {
+		if (!slug) {
+			floorPlan.value = null
+			return
+		}
+		$fetch<PublicFloorPlan>(`/api/public/venues/${slug}/floor-plan`)
+			.then((p) => { floorPlan.value = p })
+			.catch(() => { floorPlan.value = null })
+	},
+)
 
 const todays = computed(() => reservations.value)
+const shown = computed(() => (statusFilter.value === 'all' ? todays.value : todays.value.filter((r) => r.status === statusFilter.value)))
 const activeCount = computed(() =>
 	todays.value.filter((r) => ['confirmed', 'arrived', 'seated', 'pending'].includes(r.status)).length,
 )
@@ -111,11 +126,8 @@ function isAllergyAlert(r: StaffReservation): boolean {
 function isAccessibilityAlert(r: StaffReservation): boolean {
 	return !!guestOf(r).accessibility
 }
-function visitCount(guestId: string): number {
-	return reservations.value.filter((r) => r.guestId === guestId && ['arrived', 'seated', 'completed'].includes(r.status)).length
-}
 function isRepeat(r: StaffReservation): boolean {
-	return visitCount(r.guestId) > 1
+	return r.isRepeat
 }
 
 function sendFeedback(r: StaffReservation) {
@@ -161,6 +173,11 @@ function groupByTime(list: StaffReservation[]) {
 			covers: items.filter((r) => !['cancelled', 'no_show'].includes(r.status))
 				.reduce((s, r) => s + r.partySize, 0),
 		}))
+}
+function tableLabel(r: StaffReservation) {
+	if (!r.tableId || !floorPlan.value) return 'No table'
+	const n = floorPlan.value.tables.findIndex((t) => t.id === r.tableId) + 1
+	return n > 0 ? `Table ${n}` : 'No table'
 }
 definePageMeta({ middleware: 'auth' })
 </script>
@@ -222,7 +239,20 @@ definePageMeta({ middleware: 'auth' })
 				<p class="text-muted">No bookings for this day.</p>
 			</div>
 			<div v-else class="space-y-6">
-				<div v-for="group in groupByTime(todays)" :key="group.time">
+				<label class="flex items-center gap-2">
+					Status <select v-model="statusFilter" class="field !w-auto !py-1.5 !px-3 text-sm">
+						<option value="all">All</option>
+						<option value="pending">Pending</option>
+						<option value="confirmed">Confirmed</option>
+						<option value="arrived">Arrived</option>
+						<option value="seated">Seated</option>
+						<option value="completed">Completed</option>
+						<option value="no_show">No-show</option>
+						<option value="cancelled">Cancelled</option>
+					</select>
+				</label>
+				<p v-if="shown.length === 0" class="text-muted">No bookings with this status.</p>
+				<div v-for="group in groupByTime(shown)" :key="group.time">
 					<div class="mb-2 flex items-baseline gap-3">
 						<h2 class="font-display text-xl font-bold">{{ group.time }}</h2>
 						<p class="text-sm text-muted">{{ group.items.length }} booking{{ group.items.length === 1 ? '' : 's' }} · {{ group.covers }} covers</p>
@@ -246,7 +276,7 @@ definePageMeta({ middleware: 'auth' })
 										<span v-if="isRepeat(r)" class="chip bg-accent/15 text-accent"><PhStar :size="14" weight="fill" aria-hidden="true" /> Repeat</span>
 									</div>
 									<p class="text-sm text-muted">
-										{{ r.partySize }} guests · {{ areaOf(r)?.name }} · {{ r.bookingCode }} · {{ r.source }}
+										{{ r.partySize }} guests · {{ areaOf(r)?.name }} · <strong class="text-ink">{{ tableLabel(r) }}</strong> · {{ r.bookingCode }} · {{ r.source }}
 									</p>
 									<p v-if="r.occasion" class="mt-1 text-xs text-muted">{{ r.occasion }}</p>
 								</div>

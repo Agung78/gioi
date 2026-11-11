@@ -2,6 +2,10 @@
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import type { Channel, PublicFloorPlan, StaffTableState } from '@gioi/domain'
 import FloorPlanSvg from '@/components/FloorPlanSvg.vue'
+import CountryCombobox from '@/components/CountryCombobox.vue'
+import TimePicker from '@/components/TimePicker.vue'
+import PhoneInput from '@/components/PhoneInput.vue'
+import { todayISO } from '@gioi/domain'
 import { createWalkIn, changeReservationStatus, fetchStaffTableAvailability } from '@/composables/useApi'
 
 const props = defineProps<{
@@ -20,6 +24,13 @@ const emit = defineEmits<{
 const closeOnEsc = (e: KeyboardEvent) => { if (e.key === 'Escape' && props.open) emit('close') }
 onMounted(() => document.addEventListener('keydown', closeOnEsc))
 onBeforeUnmount(() => document.removeEventListener('keydown', closeOnEsc))
+// Earliest selectable time: now (rounded up to the picker step) when booking for today.
+const minTime = computed(() => {
+	if (!props.open || props.date !== todayISO()) return undefined
+	const d = new Date()
+	const m = Math.min(Math.ceil((d.getHours() * 60 + d.getMinutes()) / 5) * 5, 23 * 60 + 55)
+	return `${String(Math.floor(m / 60)).padStart(2, '0')}:${String(m % 60).padStart(2, '0')}`
+})
 
 const fullName = ref('')
 const phone = ref('')
@@ -29,6 +40,7 @@ const seatingAreaId = ref('')
 const occasion = ref('')
 const source = ref<Channel>('walk_in')
 const guestNotes = ref('')
+const country = ref('')
 const error = ref<string | null>(null)
 const submitting = ref(false)
 const floorPlan = ref<PublicFloorPlan | null>(null)
@@ -82,6 +94,7 @@ watch(() => props.open, (val) => {
 		occasion.value = ''
 		source.value = 'walk_in'
 		guestNotes.value = ''
+		country.value = ''
 	}
 })
 
@@ -105,6 +118,7 @@ async function submit() {
 			takeOver: lateHolder.value ? true : undefined,
 			occasion: occasion.value.trim() || undefined,
 			guestNotes: guestNotes.value.trim() || undefined,
+			country: country.value.trim() || undefined,
 			source: source.value,
 		})
 		// Auto-confirm walk-ins (Host accepts them on the spot)
@@ -130,21 +144,21 @@ async function submit() {
 			</div>
 			<form class="mt-4 space-y-3" @submit.prevent="submit">
 				<div class="grid grid-cols-2 gap-3">
-					<div>
+					<div class="col-span-2">
 						<label class="label">Name *</label>
 						<input v-model="fullName" required class="field" />
 					</div>
-					<div>
-						<label class="label">Phone (optional)</label>
-						<input v-model="phone" class="field" />
+					<div class="col-span-2">
+						<label class="label" for="walkin-phone">Phone (optional)</label>
+						<PhoneInput id="walkin-phone" v-model="phone" optional />
 					</div>
 					<div>
 						<label class="label">Party size</label>
 						<input v-model.number="partySize" type="number" min="1" max="20" class="field" />
 					</div>
 					<div>
-						<label class="label">Time</label>
-						<input v-model="time" type="time" class="field" />
+						<label class="label" for="walkin-time">Time</label>
+						<TimePicker id="walkin-time" v-model="time" :min="minTime" />
 					</div>
 					<div>
 						<label class="label">Seating area</label>
@@ -162,6 +176,10 @@ async function submit() {
 							<option value="instagram">Instagram</option>
 							<option value="google">Google</option>
 						</select>
+					</div>
+					<div>
+						<label class="label" for="walkin-country">Nationality (optional)</label>
+						<CountryCombobox id="walkin-country" v-model="country" />
 					</div>
 					<div v-if="floorPlan?.tables.length" class="col-span-2">
 						<FloorPlanSvg :plan="floorPlan" pickable :chosen="chosen" :selected="chosen != null ? `t:${chosen}` : null" :disabled-ids="unavailableTableIds"
