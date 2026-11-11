@@ -351,7 +351,7 @@ onMounted(() => {
           </div>
           <div v-if="floorPlan?.tables.length" class="max-w-xl">
             <span class="label">Pick a table area</span>
-            <FloorPlanSvg :plan="floorPlan" pickable :selected="pickedIdx != null ? `t:${pickedIdx}` : null" :chosen="chosen" :disabled-ids="unavailableTableIds"
+            <FloorPlanSvg :plan="floorPlan" pickable :selected="pickedIdx != null ? `t:${pickedIdx}` : null" :chosen="chosen != null ? [chosen] : null" :disabled-ids="unavailableTableIds"
               :highlight-area-id="seatingAreaId" label="Venue floor plan" @table-pick="onTablePick">
               <template #tooltip="{ index }">
                 <template v-for="t in [tableInfo(index)]" :key="index">

@@ -12,7 +12,7 @@ const props = withDefaults(defineProps<{
 	interactive?: boolean // grab cursors + no touch scrolling (editor)
 	label?: string
 	pickable?: boolean // guest mode: tables are click/keyboard targets with a roomy hit area
-	chosen?: number | null // guest mode: the table the guest confirmed; gets a persistent ring
+	chosen?: number[] | null // guest mode: confirmed table indexes; each gets a persistent ring
 	disabledIds?: string[] // guest mode: table ids that cannot be picked (dimmed)
 }>(), { highlightAreaId: null, selected: null, chosen: null, interactive: false, label: 'Floor plan', pickable: false, disabledIds: () => [] })
 
@@ -97,16 +97,16 @@ const tip = computed(() => {
 			@blur="hovered = null"
 		>
 			<rect v-if="pickable" :x="-t.shape.width / 2 - 12" y="-30" :width="t.shape.width + 24" height="60" rx="14" fill="transparent" class="floor-hit" />
-			<rect v-if="pickable && (selected === `t:${i}` || chosen === i)" :x="-t.shape.width / 2 - 8" y="-22" :width="t.shape.width + 16" height="44" rx="12" fill="none" stroke="#e87a3a" stroke-width="2.5" vector-effect="non-scaling-stroke" class="floor-ring" pointer-events="none" />
+			<rect v-if="pickable && (selected === `t:${i}` || chosen?.includes(i))" :x="-t.shape.width / 2 - 8" y="-22" :width="t.shape.width + 16" height="44" rx="12" fill="none" stroke="#e87a3a" stroke-width="2.5" vector-effect="non-scaling-stroke" class="floor-ring" pointer-events="none" />
 			<g class="floor-body">
 				<rect v-for="(c, j) in t.shape.chairs" :key="j" :x="c.x - 4.5" :y="c.y - 4" width="9" height="8" rx="3.5" fill="#1F4A6B" stroke="#F6F1E6" stroke-width=".9" />
-				<rect :x="-t.shape.width / 2" y="-12" :width="t.shape.width" height="24" rx="6" :fill="chosen === i ? '#E87A3A' : t.fill" stroke="#102638" stroke-width="1.2" class="floor-top" />
+				<rect :x="-t.shape.width / 2" y="-12" :width="t.shape.width" height="24" rx="6" :fill="chosen?.includes(i) ? '#E87A3A' : t.fill" stroke="#102638" stroke-width="1.2" class="floor-top" />
 				<!-- number = position in the plan's table order; counter-rotated to stay upright, halo keeps it legible on any fill -->
-				<text :transform="`rotate(${-t.rotation})`" dy=".35em" text-anchor="middle" :font-size="i > 98 ? 10 : 13" font-weight="800" font-family="ui-sans-serif,system-ui,sans-serif" fill="#102638" :stroke="chosen === i ? '#E87A3A' : t.fill" stroke-width="2.5" stroke-linejoin="round" paint-order="stroke" pointer-events="none">{{ i + 1 }}</text>
+				<text :transform="`rotate(${-t.rotation})`" dy=".35em" text-anchor="middle" :font-size="i > 98 ? 10 : 13" font-weight="800" font-family="ui-sans-serif,system-ui,sans-serif" fill="#102638" :stroke="chosen?.includes(i) ? '#E87A3A' : t.fill" stroke-width="2.5" stroke-linejoin="round" paint-order="stroke" pointer-events="none">{{ i + 1 }}</text>
 			</g>
 		</g>
 		<!-- "Your table" badge: upright, not rotated/scaled with the table -->
-		<g v-if="pickable && chosen != null && tables[chosen]" :transform="`translate(${tables[chosen].x} ${tables[chosen].y - 30 * TABLE_SCALE - 12})`" pointer-events="none">
+		<g v-if="pickable && chosen?.length && tables[chosen[0]]" :transform="`translate(${tables[chosen[0]].x} ${tables[chosen[0]].y - 30 * TABLE_SCALE - 12})`" pointer-events="none">
 			<g class="floor-badge">
 				<circle r="10" fill="#E87A3A" stroke="#fff" stroke-width="2" />
 				<path d="M-4.5 0.5 L-1.5 3.5 L4.5 -3" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />

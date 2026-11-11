@@ -16,7 +16,7 @@ export interface StaffReservation {
 	occasion?: string | null
 	guestNotes?: string | null
 	internalNotes?: string | null
-	tableId: string | null
+	tableIds: string[]
 	allergies: string[]
 	accessibility?: string | null
 	time: string
@@ -81,7 +81,7 @@ export interface CreateWalkInBody {
 	time: string
 	partySize: number
 	seatingAreaId?: string
-	tableId?: string
+	tableIds?: string[]
 	takeOver?: boolean
 	occasion?: string
 	guestNotes?: string
@@ -97,7 +97,7 @@ export async function createWalkIn(body: CreateWalkInBody): Promise<{ bookingCod
 
 export interface UpdateReservationBody {
 	partySize?: number
-	tableId?: string
+	tableIds?: string[]
 	seatingAreaId?: string
 	startsAt?: string
 	occasion?: string

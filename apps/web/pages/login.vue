@@ -37,9 +37,7 @@ async function handleLogin() {
 <template>
 	<div class="mx-auto max-w-2xl px-4 py-16">
 		<div class="card text-center">
-			<div class="mx-auto grid h-14 w-14 place-items-center rounded-full bg-accent text-accent-ink">
-				<span class="font-display text-2xl font-bold">G</span>
-			</div>
+			<img src="/logo-group-128.webp" alt="GIOI Group" width="128" height="128" class="mx-auto h-14 w-14 rounded-full object-cover" />
 			<h1 class="mt-4 font-display text-3xl font-semibold text-gioi-moss">Sign in to GIOI</h1>
 			<p class="mt-2 text-gioi-ink/70">Staff sign in. Enter your login and password.</p>
 			<form class="mx-auto mt-8 max-w-sm space-y-4 text-left" @submit.prevent="handleLogin">

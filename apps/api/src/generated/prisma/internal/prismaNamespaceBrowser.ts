@@ -60,6 +60,7 @@ export const ModelName = {
   FloorObject: 'FloorObject',
   Guest: 'Guest',
   Reservation: 'Reservation',
+  ReservationTable: 'ReservationTable',
   ReservationStatusEvent: 'ReservationStatusEvent',
   Feedback: 'Feedback',
   User: 'User',
@@ -220,7 +221,6 @@ export const ReservationScalarFieldEnum = {
   bookingCode: 'bookingCode',
   guestId: 'guestId',
   seatingAreaId: 'seatingAreaId',
-  tableId: 'tableId',
   startsAt: 'startsAt',
   partySize: 'partySize',
   occasion: 'occasion',
@@ -236,6 +236,14 @@ export const ReservationScalarFieldEnum = {
 } as const
 
 export type ReservationScalarFieldEnum = (typeof ReservationScalarFieldEnum)[keyof typeof ReservationScalarFieldEnum]
+
+
+export const ReservationTableScalarFieldEnum = {
+  reservationId: 'reservationId',
+  tableId: 'tableId'
+} as const
+
+export type ReservationTableScalarFieldEnum = (typeof ReservationTableScalarFieldEnum)[keyof typeof ReservationTableScalarFieldEnum]
 
 
 export const ReservationStatusEventScalarFieldEnum = {

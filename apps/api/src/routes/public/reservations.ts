@@ -103,7 +103,7 @@ export function registerPublicReservationRoutes(app: FastifyInstance, prisma: Pr
 			const { reservation, areaId } = await prisma.$transaction(async (tx) => {
 				// Lock the chosen (or candidate) seating area(s) to serialize capacity checks.
 				let areaId = body.seatingAreaId
-				if (body.tableId) areaId = await requestedTableArea(tx, venue.id, body.tableId, body.partySize, areaId)
+				if (body.tableId) areaId = await requestedTableArea(tx, venue.id, [body.tableId], body.partySize, areaId)
 				const venueAreas = await tx.seatingArea.findMany({
 					where: { venueId: venue.id, bookable: true },
 					orderBy: { id: 'asc' },
@@ -123,8 +123,8 @@ export function registerPublicReservationRoutes(app: FastifyInstance, prisma: Pr
 						throw unprocessable('party size not allowed in this area')
 					}
 				}
+				const chosen = await claimTable(tx, venue.id, areaId, startsAt, venue.diningMinutes, body.partySize, body.tableId ? [body.tableId] : undefined)
 
-				const tableId = await claimTable(tx, venue.id, areaId, startsAt, venue.diningMinutes, body.partySize, body.tableId)
 
 				const before = new Date(startsAt.getTime() - venue.diningMinutes * 60000)
 				const after = new Date(startsAt.getTime() + venue.diningMinutes * 60000)
@@ -166,7 +166,7 @@ export function registerPublicReservationRoutes(app: FastifyInstance, prisma: Pr
 						venueId: venue.id,
 						bookingCode: randomBookingCode(),
 						guestId: guest.id,
-						tableId,
+						tables: chosen.length ? { create: chosen.map((tableId) => ({ tableId })) } : undefined,
 						seatingAreaId: areaId,
 						startsAt,
 						partySize: body.partySize,

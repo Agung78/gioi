@@ -1,0 +1,2 @@
+id,title,severity,timestamp,file
+vuln-0001,Unauthenticated Nuxt dev server exposes application source through Vite endpoints,MEDIUM,2026-11-11 06:20:35 UTC,vulnerabilities/vuln-0001.md

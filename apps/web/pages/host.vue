@@ -175,9 +175,14 @@ function groupByTime(list: StaffReservation[]) {
 		}))
 }
 function tableLabel(r: StaffReservation) {
-	if (!r.tableId || !floorPlan.value) return 'No table'
-	const n = floorPlan.value.tables.findIndex((t) => t.id === r.tableId) + 1
-	return n > 0 ? `Table ${n}` : 'No table'
+	const plan = floorPlan.value
+	if (r.tableIds.length === 0 || !plan) return 'No table'
+	const nums = r.tableIds.flatMap((id) => {
+		const n = plan.tables.findIndex((t) => t.id === id) + 1
+		return n > 0 ? [n] : []
+	})
+	if (nums.length === 0) return 'No table'
+	return `${nums.length === 1 ? 'Table' : 'Tables'} ${nums.join(' + ')}`
 }
 definePageMeta({ middleware: 'auth' })
 </script>
