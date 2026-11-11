@@ -1,4 +1,5 @@
 import type { Prisma, ReservationStatus } from '@prisma/client'
+import { hasRedundantTable } from '@gioi/domain'
 import { conflict, unprocessable } from './errors'
 
 export interface TableHolder {
@@ -68,6 +69,7 @@ export async function requestedTableArea(db: Prisma.TransactionClient, venueId: 
 	if (areaId && areaId !== area) throw unprocessable('table is not in that seating area')
 	const seats = tables.reduce((sum, t) => sum + t.seats, 0)
 	if (seats < partySize) throw unprocessable('tables are too small')
+	if (hasRedundantTable(tables.map((t) => t.seats), partySize)) throw unprocessable('too many tables for the party')
 	return area
 }
 

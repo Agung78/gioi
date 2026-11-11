@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
-import type { PublicFloorPlan, StaffTableState } from '@gioi/domain'
+import { hasRedundantTable, type PublicFloorPlan, type StaffTableState } from '@gioi/domain'
 import FloorPlanSvg from '@/components/FloorPlanSvg.vue'
 import { fetchStaffTableAvailability, updateReservation, type StaffReservation } from '@/composables/useApi'
 
@@ -35,6 +35,9 @@ const onPick = (i: number) => {
 		const area = floorPlan.value?.tables[chosen.value[0]]?.seatingAreaId
 		if (floorPlan.value?.tables[i]?.seatingAreaId !== area) { chosen.value = [i]; return }
 	}
+	const seats = floorPlan.value?.tables[i]?.seats ?? 0
+	if (hasRedundantTable([...chosenTables.value.map((c) => c.seats), seats], props.reservation?.partySize ?? 0)) { error.value = `Tables already seat ${totalSeats.value} for ${props.reservation?.partySize} pax. Deselect one to swap.`; return }
+	error.value = null
 	chosen.value = [...chosen.value, i]
 }
 const chosenTables = computed(() => chosen.value.flatMap((i) => floorPlan.value?.tables[i] ?? []))
