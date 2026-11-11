@@ -618,6 +618,7 @@ export function registerStaffRoutes(app: FastifyInstance, prisma: PrismaClient):
 					data[key] = request.body[key]
 				}
 			}
+			if (typeof data.mapsUrl === 'string' && data.mapsUrl !== '' && !/^https?:\/\//i.test(data.mapsUrl)) throw unprocessable('mapsUrl must be an http(s) URL')
 			if ('noticeDate' in request.body) {
 				const to = request.body.noticeDate
 				if (to !== null && (typeof to !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(to) || Number.isNaN(Date.parse(to)))) throw unprocessable('noticeDate must be YYYY-MM-DD or null')

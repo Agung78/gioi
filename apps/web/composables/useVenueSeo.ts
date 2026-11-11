@@ -4,6 +4,8 @@ import { bookingSource } from '@/utils/bookingSource'
 import { VENUE_SEO, type VenueSeo } from '@/utils/venueSeo'
 
 const dayName = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
+// '<' escaped so venue text like '</script>' cannot break out of the JSON-LD script tag.
+const ldJson = (o: unknown) => JSON.stringify(o).replace(/</g, '\\u003c')
 
 export async function useVenueSeo(venue = (useRoute().params.venue as string)) {
   // Nuxt context is lost after the first await in a plain .ts composable: grab everything context-bound first.
@@ -56,7 +58,7 @@ export async function useVenueSeo(venue = (useRoute().params.venue as string)) {
     script: [
       {
         type: 'application/ld+json',
-        innerHTML: JSON.stringify({
+        innerHTML: ldJson({
           '@context': 'https://schema.org',
           '@id': `${pageUrl}#restaurant`,
           '@type': 'Restaurant',
@@ -110,7 +112,7 @@ export async function useVenueSeo(venue = (useRoute().params.venue as string)) {
       ...(seo.page?.faqs?.length
         ? [{
             type: 'application/ld+json',
-            innerHTML: JSON.stringify({
+            innerHTML: ldJson({
               '@context': 'https://schema.org',
               '@type': 'FAQPage',
               mainEntity: seo.page.faqs.map((f) => ({
