@@ -93,7 +93,8 @@ watch(
 )
 
 const todays = computed(() => reservations.value)
-const shown = computed(() => (statusFilter.value === 'all' ? todays.value : todays.value.filter((r) => r.status === statusFilter.value)))
+const sourceFilter = ref('all')
+const shown = computed(() => todays.value.filter((r) => (statusFilter.value === 'all' || r.status === statusFilter.value) && (sourceFilter.value === 'all' || r.source === sourceFilter.value)))
 const activeCount = computed(() =>
 	todays.value.filter((r) => ['confirmed', 'arrived', 'seated', 'pending'].includes(r.status)).length,
 )
@@ -207,10 +208,12 @@ definePageMeta({ middleware: 'auth' })
 				<p class="text-sm text-muted">{{ todays.length }} bookings · {{ activeCount }} active</p>
 			</div>
 			<div class="flex flex-wrap items-center gap-2">
-				<button class="btn-ghost min-h-12" type="button" @click="date = addDays(date, -1)">Previous</button>
-				<button class="btn-ghost min-h-12" type="button" @click="date = todayISO()">Today</button>
-				<DatePicker v-model="date" aria-label="Service date" class="min-h-12 !w-auto py-1.5 text-sm" />
-				<button class="btn-ghost min-h-12" type="button" @click="date = addDays(date, 1)">Next</button>
+				<div class="flex items-center gap-1">
+					<button class="btn-ghost min-h-12" type="button" @click="date = addDays(date, -1)">Previous</button>
+					<DatePicker v-model="date" aria-label="Service date" class="min-h-12 !w-auto py-1.5 text-sm" />
+					<button class="btn-ghost min-h-12" type="button" @click="date = addDays(date, 1)">Next</button>
+					<button class="btn-ghost min-h-12" type="button" :disabled="date === todayISO()" @click="date = todayISO()">Today</button>
+				</div>
 				<button class="btn-ghost min-h-12" type="button" :disabled="!venueId" @click="exportCsv">Export CSV</button>
 				<button class="btn-primary min-h-12" type="button" @click="showWalkIn = true">+ Walk-in</button>
 			</div>
@@ -218,23 +221,39 @@ definePageMeta({ middleware: 'auth' })
 
 		<div v-if="lastError" class="alert-danger mb-4">{{ lastError }}</div>
 
-		<nav class="mb-4 flex gap-1 rounded-full bg-line/40 p-1">
-			<button
-				class="min-h-12 flex-1 rounded-full px-3 text-base font-medium"
-				:class="tab === 'today' ? 'bg-raised shadow-soft' : 'text-muted'"
-				type="button"
-				@click="tab = 'today'"
-			>
-				Today's service
-			</button>
-			<button
-				class="min-h-12 flex-1 rounded-full px-3 text-base font-medium"
-				:class="tab === 'search' ? 'bg-raised shadow-soft' : 'text-muted'"
-				type="button"
-				@click="tab = 'search'"
-			>
-				Guest search
-			</button>
+		<nav class="mb-6 flex flex-wrap items-center justify-between gap-x-6 gap-y-3 border-b border-line">
+			<div class="flex gap-6">
+				<button
+					v-for="t in [{ id: 'today', label: 'Today\'s service' }, { id: 'search', label: 'Guest search' }] as const"
+					:key="t.id"
+					class="-mb-px min-h-12 border-b-2 text-base font-medium"
+					:class="tab === t.id ? 'border-ink text-ink' : 'border-transparent text-muted'"
+					type="button"
+					@click="tab = t.id"
+				>
+					{{ t.label }}
+				</button>
+			</div>
+			<div v-if="tab === 'today' && todays.length" class="flex flex-wrap items-center gap-x-6 gap-y-2 pb-2">
+				<label class="flex items-center gap-2 text-sm text-muted">
+					Status <select v-model="statusFilter" class="field !w-auto !py-1.5 !px-3 text-sm text-ink">
+						<option value="all">All</option>
+						<option value="pending">Pending</option>
+						<option value="confirmed">Confirmed</option>
+						<option value="arrived">Arrived</option>
+						<option value="seated">Seated</option>
+						<option value="completed">Completed</option>
+						<option value="no_show">No-show</option>
+						<option value="cancelled">Cancelled</option>
+					</select>
+				</label>
+				<label class="flex items-center gap-2 text-sm text-muted">
+					Source <select v-model="sourceFilter" class="field !w-auto !py-1.5 !px-3 text-sm text-ink">
+						<option value="all">All sources</option>
+						<option v-for="s in ['website', 'instagram', 'google', 'whatsapp', 'walk_in', 'phone', 'host']" :key="s" :value="s">{{ s }}</option>
+					</select>
+				</label>
+			</div>
 		</nav>
 
 	<Transition name="fade" mode="out-in">
@@ -253,19 +272,7 @@ definePageMeta({ middleware: 'auth' })
 				<p class="text-muted">No bookings for this day.</p>
 			</div>
 			<div v-else class="space-y-6">
-				<label class="flex items-center gap-2">
-					Status <select v-model="statusFilter" class="field !w-auto !py-1.5 !px-3 text-sm">
-						<option value="all">All</option>
-						<option value="pending">Pending</option>
-						<option value="confirmed">Confirmed</option>
-						<option value="arrived">Arrived</option>
-						<option value="seated">Seated</option>
-						<option value="completed">Completed</option>
-						<option value="no_show">No-show</option>
-						<option value="cancelled">Cancelled</option>
-					</select>
-				</label>
-				<p v-if="shown.length === 0" class="text-muted">No bookings with this status.</p>
+				<p v-if="shown.length === 0" class="text-muted">No bookings match these filters.</p>
 				<div v-for="group in groupByTime(shown)" :key="group.time">
 					<div class="mb-2 flex items-baseline gap-3">
 						<h2 class="font-display text-xl font-bold">{{ group.time }}</h2>
