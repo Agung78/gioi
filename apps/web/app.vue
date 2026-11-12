@@ -26,7 +26,7 @@
         </nav>
         <div class="flex min-w-0 items-center gap-2">
           <span v-if="auth.user" class="chip hidden whitespace-nowrap bg-line/60 text-ink md:inline-flex">{{ userLabel }}</span>
-          <select v-if="auth.isSuperAdmin && venues.length" v-model="auth.selectedVenueId" class="field min-h-10 !w-auto min-w-0 max-w-[14rem] truncate !py-1.5 text-sm" :aria-label="'Select venue'">
+          <select v-if="auth.isSuperAdmin && venues.length" :value="auth.selectedVenueId" class="field min-h-10 !w-auto min-w-0 max-w-[14rem] truncate !py-1.5 text-sm" :aria-label="'Select venue'" @change="auth.setSelectedVenueId(($event.target as HTMLSelectElement).value)">
             <option v-for="v in venues" :key="v.id" :value="v.id">{{ venueLabel(v) }}</option>
           </select>
           <button v-if="auth.user" class="btn-secondary min-h-10 shrink-0" type="button" @click="signOut">Sign out</button>
