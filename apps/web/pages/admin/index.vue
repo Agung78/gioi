@@ -87,7 +87,7 @@ const searchedReservations = computed(() => {
 		return [g?.fullName, r.bookingCode, g?.phone].some((v) => v?.toLowerCase().includes(q))
 	})
 })
-const { page: resPage, pageCount: resPageCount, paged: resPaged } = usePagination(searchedReservations, 25)
+const { page: resPage, pageCount: resPageCount, paged: resPaged } = usePagination(searchedReservations, 10)
 const { page: fbPage, pageCount: fbPageCount, paged: fbPaged } = usePagination(feedback, 10)
 const cueLink = (cue: { guestId?: string; kind: string }) =>
 	cue.guestId ? `/guests/${cue.guestId}` : cue.kind === 'slot_over_capacity' ? '/host' : null

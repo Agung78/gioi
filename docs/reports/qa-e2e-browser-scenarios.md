@@ -234,7 +234,7 @@ Expected is shown as **host / venue admin / super admin**.
 | D-07 | P1 | Guest mix, channels, reliability | first-timers vs repeats, occasions, party buckets; channel share %; no-show %, cancel %, avg lead time | No NaN / undefined; totals add up | ✔ |
 | D-08 | P1 | Guest feedback panel | avg rating, distribution, top tags, latest | Matches submitted feedback; 10 per page with Previous/Next; click opens detail modal (Esc closes) | ✔ |
 | D-09 | P1 | Reservations table search | name / code / phone | Filters; "N matching" updates | ✔ |
-| D-10 | P1 | Reservations pagination | >25 matches | 25/page (was "first 50"); shrinking results clamps the page | ✔ |
+| D-10 | P1 | Reservations pagination | >10 matches | 10/page (was "first 50"); shrinking results clamps the page | ✔ |
 | D-11 | P1 | Export CSV button | Click in the table header | Currently rendered without a handler — verify intent (use Settings → Data export) | ✘ |
 | D-12 | P2 | Empty range | Range with no data | Empty states, no NaN | ✔ |
 | D-13 | P1 | New venue, no data | Dashboard on a venue with zero reservations | Zeros/empty states; no NaN, no "Invalid Date", no 500 | ✔ (found + fixed: "peak 0 on Invalid Date") |
