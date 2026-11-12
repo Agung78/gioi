@@ -14,6 +14,11 @@
       "permanent": true
     },
     {
+      "source": "/brands/gioi-ocean-gourmet",
+      "destination": "/bali",
+      "permanent": true
+    },
+    {
       "source": "/:venue((?!ingest|api|_nuxt)[^/]+)/",
       "destination": "/:venue",
       "permanent": true
