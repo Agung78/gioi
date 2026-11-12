@@ -44,8 +44,8 @@ Read: `/bali` converts well but has few impressions. Most impressions sit on old
 | Area | Status |
 |---|---|
 | Indexable pages in code | `/`, `/bali`, `/privacy`. Booking, confirmation and feedback send `X-Robots-Tag: noindex` for every venue slug. Staff pages are `Disallow`ed. Unknown venue slugs return 404 (503 if the API is down) [CODE]. |
-| On-page SEO | Title, description, canonical, `og:*`, `twitter:*`, `lang`, landmarks, descriptive alt text. Since 2026-11-12: bilingual title and description, `og:locale:alternate id_ID`, "About" section, "Signature dishes" section, expanded FAQ (EN + ID), Indonesian CTA line. Still one English URL, no `/id` route or `hreflang`. |
-| Structured data | `Restaurant` JSON-LD with `@id`, `description`, `sameAs`, `containedInPlace` (Discovery Mall Bali), address, phone, hours, `geo`, `priceRange`, cuisine, `hasMenu`, `parentOrganization`, `acceptsReservations`, `ReserveAction` (`inLanguage` en + id). `FAQPage` JSON-LD from the visible FAQ. No `postalCode`. |
+| On-page SEO | Title, description, canonical, `og:*`, `twitter:*`, `lang`, landmarks, descriptive alt text. Since 2026-11-12: "About" section right after the hero, "Signature dishes" section, expanded FAQ. English only; Indonesian searchers need a future `/id/bali` with `hreflang` (action 8). |
+| Structured data | `Restaurant` JSON-LD with `@id`, `description`, `sameAs`, `containedInPlace` (Discovery Mall Bali), address, phone, hours, `geo`, `priceRange`, cuisine, `hasMenu`, `parentOrganization`, `acceptsReservations`, `ReserveAction` (`inLanguage` en). `FAQPage` JSON-LD from the visible FAQ. No `postalCode`. |
 | Images | Self-hosted WebP, hero preloaded, visible on first paint. |
 | Menu | 2 PDFs. HTML shows only four signature dishes with prices. Full menu is not text on the page. |
 | Security headers | Defined in `vercel.json` including a CSP; HSTS, nosniff, frame and referrer policies. |
@@ -70,11 +70,11 @@ No volume data exists. Priority is by Search Console impressions, SERP competiti
 | Priority | Cluster | Keywords | Evidence | Where it lives on the page |
 |---|---|---|---|---|
 | 1 | Brand | gioi ocean gourmet, gioi ocean gourmet bali / kuta, gioi bali | 96 impr., pos 1.5 | title, H1 region, About section, JSON-LD name |
-| 2 | Brand + reservation (ID/EN) | gioi ocean gourmet reservasi, reservasi gioi bali, gioi bali reservation | AI Overview cites Chope/Grab | title, description, CTA, Indonesian FAQ |
+| 2 | Brand + reservation | gioi ocean gourmet reservasi, reservasi gioi bali, gioi bali reservation | AI Overview cites Chope/Grab | title ("Table Reservations"), description, CTA, FAQ |
 | 3 | Brand + menu / price | gioi ocean gourmet menu, menu gioi bali, harga | 17 impr. pos 6.5; `/bali` already #4 for a menu query | Signature dishes, menu PDF links, FAQ |
 | 4 | Signature dish | salmon lodeh gioi, OG seafood platter | 17+ impr. at pos 1.5-7; generic "salmon lodeh" is recipe intent, skip | Signature dishes |
 | 5 | Location | restoran di Discovery Mall Bali, restoran Kartika Plaza Kuta, restoran dekat Pantai Kuta | pos 1.2 on 4 impr. | About, FAQ, Visit, JSON-LD |
-| 6 | Experience (ID) | tempat makan romantis di Kuta, dinner pinggir pantai Kuta, restoran seafood Kuta | `/bali` appears in the SERP for the long form | About (ID), FAQ (ID), CTA |
+| 6 | Experience (ID) | tempat makan romantis di Kuta, dinner pinggir pantai Kuta, restoran seafood Kuta | `/bali` appears in the SERP for the long form; needs `/id/bali` (action 8) | not on the English page |
 | 7 | Experience (EN) | beachfront restaurant Kuta, seafood restaurant Kuta, sunset dinner Kuta | listicles dominate; GBP and links matter more | title, H2s, alt text |
 | 8 | Dietary / FAQ | menu pork, vegetarian, jam buka | menu legend shows pork, seafood, plant-based marks [MENU] | FAQ |
 
@@ -112,7 +112,7 @@ Avoid: "best seafood Bali", "restaurants in Kuta", generic recipe terms, Jakarta
 | 5 | Full HTML menu at `/bali/menu` with `Menu`/`MenuItem` markup, prices as in the PDF | Captures menu and dish queries (priority 3-4) | Medium |
 | 6 | Compress `bali-menu.pdf` (2.7 MB) | Mobile speed | Low |
 | 7 | Split JSON-LD address (`streetAddress`, `postalCode`) once verified | Cleaner GBP match | Low |
-| 8 | Add `/id/bali` with `hreflang` if Indonesian queries show impressions | Full Indonesian coverage; currently ID is added to one English URL | Medium |
+| 8 | Add `/id/bali` with `hreflang` if Indonesian queries show impressions | Indonesian coverage; `/bali` is English only | Medium |
 | 9 | Local links: Discovery Mall Bali site, Instagram bio link to `/bali`, Bali food blogs and Indonesian dinner listicles (Nibble, Bobobox, Traveloka explore) | Authority for experience queries | Medium |
 | 10 | Self-host Fontshare fonts; add About and Contact pages | Speed and trust | Medium |
 | 11 | Replace GSAP reveal animations with CSS on `/bali` | Less JS on the main page | Medium |
@@ -137,7 +137,7 @@ AI Overview change `[INFERENCE]`: expect 2 to 8+ weeks after `/bali` ranks and t
 
 Metadata is keyed by slug in `utils/venueSeo.ts`. Each new venue needs:
 
-- one `VENUE_SEO` entry (title, description, city, geo, price range, image, menus, `languages` if bilingual, and the `page` content block: `about`, `aboutId`, `signatures`, `faqs`);
+- one `VENUE_SEO` entry (title, description, city, geo, price range, image, menus, and the `page` content block: `about`, `signatures`, `faqs`);
 - its photos in `public/images/venues/<slug>/`;
 - a `'/<slug>': { prerender: true }` rule in `nuxt.config.ts` (the noindex rules for booking pages already cover every slug);
 - its own GBP, menu text and local content.

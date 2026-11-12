@@ -48,7 +48,6 @@ export async function useVenueSeo(venue = (useRoute().params.venue as string)) {
     ogSiteName: 'GIOI Group',
     twitterImage: image,
     ogLocale: 'en_US',
-    ogLocaleAlternate: (seo.languages ?? ['en']).includes('id') ? ['id_ID'] : undefined,
     ogImageWidth: og.width,
     ogImageHeight: og.height,
     twitterCard: 'summary_large_image',
@@ -92,7 +91,7 @@ export async function useVenueSeo(venue = (useRoute().params.venue as string)) {
             target: {
               '@type': 'EntryPoint',
               urlTemplate: bookUrl,
-              inLanguage: seo.languages ?? 'en',
+              inLanguage: 'en',
               actionPlatform: [
                 'http://schema.org/DesktopWebPlatform',
                 'http://schema.org/MobileWebPlatform',
