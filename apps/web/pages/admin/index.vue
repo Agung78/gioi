@@ -11,6 +11,7 @@ import {
 } from '@gioi/domain'
 import { statusLabel } from '@gioi/domain'
 import StatusChip from '@/components/StatusChip.vue'
+import DatePicker from '@/components/DatePicker.vue'
 import BarChart from '@/components/BarChart.vue'
 import Sparkline from '@/components/Sparkline.vue'
 import Pagination from '@/components/Pagination.vue'
@@ -116,10 +117,16 @@ const occasionRows = computed(() => dashboard.value?.guestMix.occasionMix.map((o
 const partySizeRows = computed(() => dashboard.value?.guestMix.partySizeMix.map((p) => ({ label: `${p.bucket} pax`, value: p.bookings })) ?? [])
 const reliabilityValues = computed(() => dashboard.value?.reliability.byDay.map((d) => d.noShowRate) ?? [])
 const upcoming30Covers = computed(() => dashboard.value?.upcoming30.daysBreakdown.map((d) => d.covers) ?? [])
+const upcoming30Labels = computed(() => dashboard.value?.upcoming30.daysBreakdown.map((d) => describeDayLabel(d.date, today)) ?? [])
+const upcoming30Details = computed(() => dashboard.value?.upcoming30.daysBreakdown.map((d) => `${d.bookings} ${d.bookings === 1 ? 'booking' : 'bookings'} · ${d.fillPercent}% full`) ?? [])
 const upcoming30Peak = computed(() => dashboard.value?.upcoming30.daysBreakdown.reduce((a, b) => (b.covers > a.covers ? b : a), { date: '', covers: 0 }) ?? { date: '', covers: 0 })
 const isMilestoneDay = (date: string, index: number) => {
 	const day = new Date(date + 'T00:00:00').getDate()
-	return index === 0 || index === 29 || day === 1 || day === 15 || (index + 1) % 5 === 0
+	return index === 0 || day === 1 || (index % 5 === 0 && day > 3 && day < 28)
+}
+const axisLabel = (date: string, index: number) => {
+	const d = new Date(date + 'T00:00:00')
+	return index === 0 || d.getDate() === 1 ? d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) : String(d.getDate())
 }
 const cueLabel: Record<string, string> = {
 	slot_over_capacity: 'Slot over capacity',
@@ -134,7 +141,6 @@ definePageMeta({ middleware: ['auth', 'admin'] })
 	<div class="mx-auto max-w-6xl px-4 py-8">
 		<header class="mb-6 flex flex-wrap items-baseline justify-between gap-3">
 			<div>
-				<p class="text-xs uppercase tracking-wide text-muted">Manager dashboard</p>
 				<h1 class="font-display text-3xl font-semibold text-ink">
 					{{ new Date((analytics?.today ?? today) + 'T00:00:00').toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' }) }}
 				</h1>
@@ -152,10 +158,10 @@ definePageMeta({ middleware: ['auth', 'admin'] })
 				</select>
 			</label>
 			<label v-if="preset === 'custom'" class="label">From
-				<input v-model="filters.rangeStart" type="date" class="field mt-1 !py-1.5 !px-3 text-sm">
+				<DatePicker v-model="filters.rangeStart" class="mt-1 !py-1.5 !px-3 text-sm" />
 			</label>
 			<label v-if="preset === 'custom'" class="label">To
-				<input v-model="filters.rangeEnd" type="date" class="field mt-1 !py-1.5 !px-3 text-sm">
+				<DatePicker v-model="filters.rangeEnd" class="mt-1 !py-1.5 !px-3 text-sm" />
 			</label>
 			<label class="label">Status
 				<select v-model="filters.status" class="field mt-1 !py-1.5 !px-3 text-sm">
@@ -248,17 +254,13 @@ definePageMeta({ middleware: ['auth', 'admin'] })
 				<p v-if="dashboard" class="mt-1 text-xs text-muted">
 					{{ dashboard.upcoming30.totalCovers }} covers · avg {{ Math.round(dashboard.upcoming30.totalCovers / 30) }}/day<template v-if="upcoming30Peak.date"> · peak {{ upcoming30Peak.covers }} on {{ describeDayLabel(upcoming30Peak.date, today) }}</template>
 				</p>
-				<Sparkline v-if="dashboard" class="mt-3" :values="upcoming30Covers" :height="120" />
-				<div class="grid text-center text-[10px] leading-tight text-muted" style="grid-template-columns: repeat(30, minmax(0, 1fr))">
+				<Sparkline v-if="dashboard" class="mt-3" :values="upcoming30Covers" :height="120" :labels="upcoming30Labels" :details="upcoming30Details" unit="covers" />
+				<div class="mt-1 grid text-center text-xs text-muted" style="grid-template-columns: repeat(30, minmax(0, 1fr))">
 					<span
 						v-for="(d, i) in dashboard?.upcoming30.daysBreakdown ?? []"
 						:key="d.date"
-						class="py-1"
-						:class="isMilestoneDay(d.date, i) ? '' : 'invisible lg:visible'"
-						:title="`${describeDayLabel(d.date, today)}: ${d.covers} covers · ${d.bookings} bookings · ${d.fillPercent}% full`"
-					>
-						<span class="block font-medium text-ink">{{ d.covers }}</span>{{ new Date(d.date + 'T00:00:00').getDate() }}
-					</span>
+						class="whitespace-nowrap py-1"
+					>{{ isMilestoneDay(d.date, i) ? axisLabel(d.date, i) : '' }}</span>
 				</div>
 			</section>
 
@@ -310,19 +312,17 @@ definePageMeta({ middleware: ['auth', 'admin'] })
 				<h4 v-if="dashboard" class="mt-4 label">No-show rate trend</h4>
 				<Sparkline v-if="dashboard" :values="reliabilityValues" :height="80" color="rgb(var(--brand-sun))" fill="rgb(var(--brand-sun) / 0.12)" />
 			</section>
-			<section class="card">
+			<section class="card lg:col-span-3">
 				<h3 class="font-display text-lg font-semibold text-ink">Turn time <span class="ml-1 text-xs font-normal text-muted">{{ periodLabel }}</span></h3>
-				<template v-if="turnTime?.byArea.some((a) => a.sampleCount)">
-					<dl v-for="area in turnTime.byArea" :key="area.areaId" class="mt-4 space-y-1 text-sm">
-						<div class="flex justify-between">
-							<dt class="text-muted">{{ area.areaName }}</dt>
-							<dd class="text-ink">{{ area.sampleCount ? area.averageMinutes + ' min' : '—' }}</dd>
-						</div>
-						<p class="text-xs text-muted">samples: {{ area.sampleCount }} · dining target: {{ area.diningMinutes }} min</p>
-					</dl>
-				</template>
-				<p v-else class="mt-4 text-xs text-muted">No seated→completed events in range.</p>
-				<p class="mt-3 text-xs text-muted">Durations depend on when staff click Completed.</p>
+				<dl v-if="turnTime?.byArea.some((a) => a.sampleCount)" class="mt-4 grid gap-x-8 gap-y-4 sm:grid-cols-2 lg:grid-cols-4">
+					<div v-for="area in turnTime.byArea.filter((a) => a.sampleCount)" :key="area.areaId">
+						<dt class="text-sm text-muted">{{ area.areaName }}</dt>
+						<dd class="text-2xl font-semibold text-ink">{{ area.sampleCount ? Math.round(area.averageMinutes) + ' min' : '—' }}</dd>
+						<p class="text-xs text-muted">{{ area.sampleCount }} seatings · target {{ area.diningMinutes }} min</p>
+					</div>
+				</dl>
+				<p v-else class="mt-4 text-sm text-muted">No completed seatings in this range.</p>
+				<p class="mt-3 text-xs text-muted">Measured from the Seated to Completed clicks, so late clicks inflate it.</p>
 			</section>
 		</div>
 		<section class="card mt-4">
@@ -337,11 +337,11 @@ definePageMeta({ middleware: ['auth', 'admin'] })
 					<div class="mt-2 flex flex-wrap gap-1.5"><span v-for="[tag, n] in feedbackTags" :key="tag" class="rounded-full bg-line px-2.5 py-0.5 text-xs text-ink">{{ tag }} · {{ n }}</span></div>
 				</div>
 			</div>
-			<div v-if="feedback.length" class="mt-4 space-y-3">
+			<div v-if="feedback.length" class="mt-4 divide-y divide-line border-t border-line">
 				<article
 					v-for="response in fbPaged"
 					:key="response.id"
-					class="group rounded-input bg-line/30 p-3 text-sm cursor-pointer transition hover:bg-line/60 focus:outline-none focus:ring-2 focus:ring-accent"
+					class="group -mx-2 cursor-pointer rounded-input px-2 py-3 text-sm transition hover:bg-line/40 focus:outline-none focus:ring-2 focus:ring-accent"
 					tabindex="0"
 					role="button"
 					aria-label="View feedback details"

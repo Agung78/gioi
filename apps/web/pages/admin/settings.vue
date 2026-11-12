@@ -234,7 +234,6 @@ definePageMeta({ middleware: ['auth', 'admin'] })
 	<div class="mx-auto max-w-5xl px-4 py-8">
 		<header class="mb-6 flex items-baseline justify-between gap-3">
 			<div>
-				<p class="text-xs uppercase tracking-wide text-muted">{{ auth.isSuperAdmin ? 'Super Admin' : 'Admin' }}</p>
 				<h1 class="font-display text-3xl font-semibold text-ink">Settings</h1>
 			</div>
 			<p v-if="saved" class="text-sm text-ink">{{ saved }}</p>
@@ -356,7 +355,7 @@ definePageMeta({ middleware: ['auth', 'admin'] })
 							{{ d.date }}
 							<button type="button" class="-my-2 -mr-2 grid h-11 w-11 place-items-center text-muted hover:text-ink" :aria-label="`Remove ${d.date}`" @click="removeClosedDate(d.date)">×</button>
 						</span>
-						<input v-model="newClosedDate" type="date" class="field !w-auto !py-1 !px-2.5 text-sm" aria-label="Closed date" @keydown.enter.prevent="addClosedDate" />
+						<DatePicker v-model="newClosedDate" class="!w-auto !py-1 !px-2.5 text-sm" aria-label="Closed date" />
 						<button class="btn-ghost" type="button" @click="addClosedDate">+ Add</button>
 					</div>
 					<p v-if="closedDateError" class="mt-1 text-xs text-danger">{{ closedDateError }}</p>

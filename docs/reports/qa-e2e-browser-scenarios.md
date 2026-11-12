@@ -1,7 +1,7 @@
 # GIOI — QA E2E Browser Scenarios
 
 Manual (or Playwright-ready) browser scenarios for `apps/web` + `apps/api`.
-Derived from the journey diagrams in [`docs/design/diagrams/`](../design/diagrams) (`customer-journey`, `host-journey`, `admin-journey`) and the code as of **2026-11-12 (`d0eda48`)**. Floor plan behaviour is specified in [`floor_plan_seating.md`](../design/floor_plan_seating.md). Run on a clean seeded database.
+Derived from the journey diagrams in [`docs/design/diagrams/`](../design/diagrams) (`customer-journey`, `host-journey`, `admin-journey`) and the code as of **2026-11-12 (`35f29c2` plus the uncommitted `/admin` UI pass)**; audited statically against `apps/` on that date (not re-run in a browser). Floor plan behaviour is specified in [`floor_plan_seating.md`](../design/floor_plan_seating.md). Run on a clean seeded database.
 
 **Priority:** P0 = release blocker, P1 = must pass before launch, P2 = polish.
 **Status:** `☐` not run, `✔` pass, `✘` fail (link the bug). Rows whose behaviour changed after the last run were reset to `☐` and carry **(changed)**.
@@ -96,7 +96,7 @@ Reset between runs: re-seed, or `TRUNCATE venues, users CASCADE` on the **test**
 |---|---|---|---|---|---|
 | G-04 | P0 | Happy path **(changed)** | **1 When** (14-day strip, party stepper, optional table on the map, see 1.2a) → time grid → **2 Who** (name, phone with country code, **email**, optional country) → **3 Details** → accept cancellation policy → Confirm booking | Redirect to `/bali/confirmation/<code>`; booking is `pending`; shows on `/host` with a table label (auto-assigned or chosen) | ☐ |
 | G-05 | P1 | Date strip on mobile | 390px viewport | First pill has a left gutter (not flush to the edge); strip scrolls and snaps; "More dates" picker works | ☐ |
-| G-06 | P1 | Time grid states | Look at Lunch / Afternoon / Sunset / Dinner groups across days | Slots show `N left`, `Full`, `Too soon`, or `Closed` correctly; unavailable ones not selectable | ✔ |
+| G-06 | P1 | Time grid states **(changed)** | Look at Lunch / Afternoon / Sunset / Dinner groups across days | Slots show `N left` **only when 2 or fewer remain**, `Full`, `Too soon` (past, lead time or cut-off), or `Closed`; unavailable ones not selectable | ☐ |
 | G-07 | P1 | Closed day / closed date | Pick a closed weekday or a date in Settings → Closed dates | Pill disabled or all slots `Closed` | ✔ |
 | G-08 | P0 | Capacity (no overbooking) | Fill a slot to capacity from two tabs | Last slot becomes `Full`; API never exceeds capacity | ✔ |
 | G-09 | P0 | **Slot race** | Tab A and B select the same last slot; B confirms first, then A confirms | A sees "That time just filled up. Pick another slot above."; selected time is cleared; grid refreshes; no booking created for A | ✔ |
@@ -105,7 +105,7 @@ Reset between runs: re-seed, or `TRUNCATE venues, users CASCADE` on the **test**
 | G-12 | P1 | Required fields **(changed, was ✘)** | Blur empty name and phone; leave email empty; type an invalid email | "Enter your full name." / "Enter a WhatsApp / phone number…" under the fields; summary prompt "Enter full name, phone & email"; browser blocks submit on empty/invalid email; API without `email` → 400; nothing created | ☐ |
 | G-13 | P1 | Details (optional) | Occasion, dietary pills + free text, accessibility, special requests (300-char counter) | Stored; allergies merged into the guest's list; visible on host card and guest profile | ✔ |
 | G-14 | P1 | Policy gate | Try to confirm without accepting the cancellation policy | Blocked | ✔ |
-| G-15 | P1 | Idempotency | Double-click Confirm; reload and resubmit | Exactly one reservation, same booking code | ✔ |
+| G-15 | P1 | Idempotency **(changed)** | Double-click Confirm | Exactly one reservation (the button is disabled while submitting). **A reload and resubmit creates a second booking**: the idempotency key is generated per click, so the server key replay only protects an identical retry | ☐ |
 | G-15b | P1 | Honeypot (replaces Turnstile) **(changed)** | Fill the hidden `website` input via DevTools, submit; or `POST` with `"website":"x"` | 200 with a random code; **no** reservation, guest or audit row created; opening that code's confirmation shows "We couldn't find that booking code." | ☐ |
 
 ### 1.2a Seating map and table choice on the booking page
@@ -166,7 +166,7 @@ Guests pick a **table** on the venue map. Choosing it sets the seating area **an
 | G-22 | P1 | Only completed | Open feedback for a non-completed booking, submit | Rejected (409) | ✔ |
 | G-23 | P0 | Happy path | Complete a booking as host; open the feedback link; rate, pick tags, comment, submit | Saved; thank-you state; appears in Admin → Guest feedback | ✔ |
 | G-24 | P1 | Stars required | Submit with no rating | "Please choose a rating." | ✔ |
-| G-25 | P1 | Tags offered | Check tag list | Food, Service, Atmosphere, Value (fixed list; the Settings tags field is read-only) | ☐ |
+| G-25 | P1 | Tags offered **(changed)** | Check tag list | Tags come from the venue's `feedbackTags` (seed: 8, e.g. Seafood freshness, Sunset view, Attentive service); falls back to Food, Service, Atmosphere, Value when the list is empty. The Settings tags field is read-only | ☐ |
 | G-26 | P1 | One feedback per booking | Submit twice | Second rejected | ✔ |
 | G-27 | P1 | Unknown code | `/bali/feedback/BADCODE` | "Booking not found", no crash | ✔ |
 
@@ -174,7 +174,7 @@ Guests pick a **table** on the venue map. Choosing it sets the seating area **an
 
 | ID | P | Scenario | Steps | Expected | Status |
 |---|---|---|---|---|---|
-| G-28 | P2 | Theme toggle | Click the theme button | Smooth cross-fade (no per-element flicker); persists on reload; follows OS when unset; reduced-motion = instant | ☐ |
+| G-28 | P2 | Theme toggle **(changed)** | Click the theme button | Smooth cross-fade (no per-element flicker); persists on reload; reduced-motion = instant. Follows the OS when unset **only on `/`, `/<venue>`, `/privacy`**; booking, confirmation and feedback pages default to dark and show a logo-only header | ☐ |
 | G-29 | P2 | Theme button vs summary bar | Mobile `/bali/book` | Button sits above the sticky summary | ☐ |
 | G-30 | P1 | Footer, no staff-login link **(changed)** | Scroll to the `/bali` footer | Order Visit → FAQ → CTA → footer, **one** footer (duplicate removed 2026-11-12): logo, "GIOI Ocean Gourmet · <address>", phone, Instagram handle, Privacy; no "Staff login"; `/login` still opens by URL | ☐ |
 
@@ -184,8 +184,8 @@ Guests pick a **table** on the venue map. Choosing it sets the seating area **an
 
 | ID | P | Scenario | Steps | Expected | Status |
 |---|---|---|---|---|---|
-| A-01 | P0 | Host login | `host` / `password` | → `/host`; nav shows **Host only**; chip "Host User · host" | ✔ |
-| A-02 | P0 | Super admin login **(changed)** | `admin` | → `/admin`; nav Host, Dashboard, Settings, Audit (no Floor plan); chip "· super admin"; venue select in the header | ☐ |
+| A-01 | P0 | Host login | `host` / `password` | → `/host`; **no nav bar** (a single link hides it); chip "Host User · host" | ☐ |
+| A-02 | P0 | Super admin login **(changed)** | `admin` | → `/admin`; nav Host, Dashboard, Settings, Audit (no Floor plan); chip reads "Super Admin" (the `· super admin` suffix shows only when the user's name differs from the role); venue select in the header | ☐ |
 | A-03 | P0 | Venue admin login **(changed)** | `venueadmin` | → `/admin`; nav Host, Dashboard, Settings, Floor plan (no Audit); no venue select | ☐ |
 | A-04 | P0 | Bad credentials | Wrong password / unknown login / inactive user | Same "Invalid login or password." for all; no user enumeration | ✔ |
 | A-05 | P1 | Login rate limit | 11 wrong attempts, same login + IP, 15 min | 11th → 429 "Too many attempts. Try again later."; correct password also blocked until the window ends; other logins unaffected | ✔ |
@@ -236,14 +236,14 @@ Expected is shown as **host / venue admin / super admin**.
 | H-05 | P0 | Status happy path | pending → confirm → arrive → seat → complete | Each step allowed; chip/counts update; audit event written | ✔ |
 | H-06 | P0 | Invalid transitions | Via API: completed→seated, cancelled→confirmed, seated→no_show, same→same | 409; UI never offers them | ✔ |
 | H-07 | P1 | Cancel / no-show allowed only from | Cancel: pending, confirmed. No-show: confirmed, arrived | Others not offered | ✔ |
-| H-08 | P1 | Destructive confirm | Cancel / No-show | Prompt "Mark as X?" with Yes / "Keep booking"; Keep leaves status unchanged | ✔ |
+| H-08 | P1 | Destructive confirm **(changed)** | Cancel / No-show | Prompt "Mark as Cancelled?" / "Mark as No-show?" with buttons "Yes, Cancelled" / "Yes, No-show" and "Keep booking"; Keep leaves status unchanged | ☐ |
 | H-09 | P1 | Final states | completed, cancelled, no_show | No further status buttons; no Change table / reminder | ✔ |
 | H-10 | P0 | Open guest from a card | Click guest name | `/guests/<id>` renders the profile | ✔ |
-| H-11 | P1 | Feedback link **(changed)** | On a `completed` booking, "Send feedback via WhatsApp" | Opens wa.me with the template (`{{guestName}}`, `{{restaurantName}}`, `{{feedbackUrl}}` filled). **No audit event is written** (`apps/` never wrote `feedback_link.sent`; the old ✔ for auditing came from the prototype); guest without phone → "This guest does not have a valid phone number." | ☐ |
+| H-11 | P1 | Feedback link **(changed)** | On a `completed` booking, "Send feedback via WhatsApp" | Opens wa.me with the template (`{{guestName}}`, `{{restaurantName}}`, `{{feedbackUrl}}` filled). **No `feedback_link.sent` audit event is written** (the link is client-only). A guest's later submission is audited as `feedback.submitted` (entity `feedback_link`); guest without phone → "This guest does not have a valid phone number." | ☐ |
 | H-12 | P1 | Empty day | Day with no bookings | "No bookings for this day." | ✔ |
 | H-13 | P2 | Tabs | Today's service ↔ Guest search | Content swaps; no console errors | ✔ |
 | H-14 | P1 | Repeat chip | Guest with an earlier `completed` booking books again | "Repeat" chip on the new booking only, not on the first one; a guest with only cancelled/no-show history gets no chip | ☐ |
-| H-15 | P1 | WhatsApp reminder | On a `pending`/`confirmed` card, "Send reminder via WhatsApp" | wa.me opens with "Hi <name>, this is a reminder of your reservation at <venue> today at <time> for N guests (ref <code>)…"; button hidden for other statuses; no phone → error banner | ☐ |
+| H-15 | P1 | WhatsApp reminder | On a `pending`/`confirmed` card, "Send reminder via WhatsApp" | wa.me opens with "Hi <name>, this is a reminder of your reservation at <venue> today at <time> for N guests (ref <code>)…"; button hidden for other statuses; no phone → error banner. **Known quirk: the text says "today" even when the host is viewing another date** | ☐ |
 | H-16 | P1 | Status filter | Status select: each value | Only matching cards; "No bookings with this status." when none; header counts unchanged | ☐ |
 | H-17 | P1 | Day CSV export | Export CSV for a day | `gioi-reservations-<date>.csv` with booking_code, guest_name, phone, email, party_size, date, time, status, allergies, accessibility for that day only; allowed for host | ☐ |
 | H-18 | P2 | Change table button | Look at cards per status | "Change table" only for pending, confirmed, arrived, seated | ☐ |
@@ -254,10 +254,10 @@ Expected is shown as **host / venue admin / super admin**.
 |---|---|---|---|---|---|
 | W-01 | P0 | Create walk-in **(changed)** | "+ Walk-in": name, optional phone, party, time, area, source, nationality, occasion, notes | Created **confirmed in one call** (`status: 'confirmed'`, one status event `null → confirmed`); appears in the list; a failed create leaves nothing behind | ☐ |
 | W-02 | P1 | Date follows the host's day **(changed)** | Move `/host` to tomorrow, open "+ Walk-in" | Title "Add walk-in · <that date>"; booking is created on the selected day, not today | ☐ |
-| W-03 | P1 | Required fields **(changed)** | Empty name; empty phone | Name → "Name is required." (nothing created). Phone is optional: walk-in without phone creates a **new** guest each time | ☐ |
+| W-03 | P1 | Required fields **(changed)** | Empty name; whitespace-only name; empty phone | Empty name: browser `required` blocks submit. Whitespace-only: "Name is required." (nothing created). Phone is optional: walk-in without phone creates a **new** guest each time | ☐ |
 | W-04 | P0 | Capacity checked | Walk-in into a full slot/area | Rejected with message (409/422); no overbook | ✔ |
 | W-05 | P1 | Hours checked | Time outside opening hours | Rejected "outside opening hours" | ✔ |
-| W-06 | P1 | Past / lead-time rules **(changed)** | Today: open the time picker; via API post a past time | UI: times before now (rounded to 5 min) are disabled and a too-early value is pulled up; API still allows past/lead-time times | ☐ |
+| W-06 | P1 | Past / lead-time rules **(changed)** | Today: open the time picker; via API post a past time | UI: times before now (rounded up to 5 min, **browser clock, not the venue's WITA zone**) are disabled and a too-early value is pulled up; API still allows past/lead-time times | ☐ |
 | W-07 | P0 | Pick one table | Pick a free 4-seat table for party 2, Add walk-in | Area select switches to that table's area; "1 table, 4 seats for 2 pax"; host card shows "Table N" | ☐ |
 | W-08 | P0 | Join tables | Party 6: pick two tables in one area that sum ≥ 6 | "2 tables, N seats for 6 pax"; card shows "Tables N + M" | ☐ |
 | W-09 | P1 | Table rules | Pick tables summing < party, submit; pick a third table that isn't needed; pick a table in another area | "Chosen tables seat X, party needs Y." (blocked); "Tables already seat X for Y pax. Deselect one to swap." (not added); other area replaces the selection | ☐ |
@@ -272,12 +272,12 @@ Expected is shown as **host / venue admin / super admin**.
 |---|---|---|---|---|---|
 | C-01 | P0 | Open | Change table on a card with a table | Modal shows "<guest> · N guests · time"; current table(s) preselected; every table held by anyone else in the window is dimmed (no takeover here) | ☐ |
 | C-02 | P0 | Move | Pick a different free table that fits, "Change table" | Saved; card label updates; audit `reservation.updated` | ☐ |
-| C-03 | P1 | Join / unjoin | Large party: pick two tables; then back to one bigger table | Both persist; redundant third table refused with the swap message | ☐ |
+| C-03 | P1 | Join / unjoin | Large party: pick two tables; then back to one bigger table | Both persist; redundant third table refused with the swap message in the UI (API: 422 `too many tables for the party`) | ☐ |
 | C-04 | P1 | Save guard | Open and click nothing; deselect all; pick tables that don't cover the party | "Change table" disabled in all three | ☐ |
 | C-05 | P1 | Move to another area | Pick a table in a different area | Reservation's area changes too (host card + dashboard); moving into a full area → 409 `full` (capacity is now checked on every area/size/time change) | ☐ |
 | C-06 | P1 | Race | Two hosts move two bookings onto the same free table | Second gets "table taken"; its selection clears and states reload | ☐ |
 | C-07 | P1 | Booking without a table | Change table on a "No table" card | Nothing preselected; picking a table assigns it | ☐ |
-| C-08 | P2 | Reslot keeps tables valid | `PATCH /staff/reservations/:id` with a new `startsAt` / `partySize` on a booking that holds a table | Allowed only if its tables are still free and big enough at the new time/size; otherwise 409 `table taken` / 422 `tables are too small` | ☐ |
+| C-08 | P2 | Reslot keeps tables valid | `PATCH /staff/reservations/:id` with a new `startsAt` / `partySize` / `seatingAreaId` on a booking that holds a table | Allowed only if its tables are still free and big enough; otherwise 409 `table taken` / 422 `tables are too small` / 422 `table is not in that seating area` / 422 `too many tables for the party`. A booking with no tables is only area-capacity checked | ☐ |
 
 ---
 
@@ -307,19 +307,21 @@ Expected is shown as **host / venue admin / super admin**.
 | ID | P | Scenario | Steps | Expected | Status |
 |---|---|---|---|---|---|
 | D-01 | P0 | Loads | Open as admin | All panels render; no console errors | ✔ |
-| D-02 | P1 | Range presets | today / 7 / 30 / custom | Numbers + labels update; custom range validated (from > to or > 366 days → error shown) | ✔ |
-| D-03 | P1 | Filters **(changed)** | Status, Source, Occasion (no Area filter any more) | Panels respect them (one request: `/api/admin/analytics?from&to&…`); Status only narrows the table | ☐ |
+| D-02 | P1 | Range presets **(changed)** | today / 7 / 30 / custom (From/To use the shared `DatePicker`) | Numbers + labels update; `last7` = today−6…today, `last30` = today−30…today (31 days); no client-side check on custom: a bad range (from > to or > 366 days) returns 400 `invalid date range`, shown inline | ☐ |
+| D-03 | P1 | Filters **(changed)** | Status, Source, Occasion (no Area filter) | One request `/api/admin/analytics?from&to&…`. Source/Occasion apply to Guest mix, Channel, Reliability and the table; **Status only narrows the table**. Today live, Next 7/30 days, cues, Guest feedback and Turn time ignore the filters (feedback and turn time follow the range only). The Source list omits `chope_import`; Occasion options narrow to the current selection | ☐ |
 | D-04 | P1 | Action cues | Slot over capacity, no-show rate high, repeat guest with allergies | Cue appears when its condition is met; "Open guest →" / "Open host view →" go to the right place | ✔ |
-| D-05 | P1 | Today live | Bookings, expected covers, arrived, seated, completed, fill % | Match `/host` | ✔ |
-| D-06 | P1 | Next 7 / 30 days | covers/day, fill %, busiest slot, peak day | Plausible vs seeded data | ✔ |
-| D-07 | P1 | Guest mix, channels, reliability | first-timers vs repeats, occasions, party buckets; channel share %; no-show %, cancel %, avg lead time | No NaN / undefined; totals add up | ✔ |
-| D-08 | P1 | Guest feedback panel | avg rating, distribution, top tags, latest | Matches submitted feedback; 10 per page with Previous/Next; click opens detail modal (Esc closes) | ✔ |
+| D-05 | P1 | Today live **(changed)** | Bookings, expected covers, arrived, seated, completed, no-shows/cancellations, fill % | Expected covers matches the host's active covers; **Bookings counts every status** (host header excludes cancelled/no-show); Arrived/Seated are cumulative (arrived includes seated and completed) | ☐ |
+| D-06 | P1 | Next 7 / 30 days **(changed)** | covers/day, fill %, busiest slot, peak day | **Booked covers, not a forecast** (pending, confirmed, arrived, seated, completed). 7 days: bars with `(fill%)` and Busiest slot. 30 days: line chart, "N covers · avg X/day · peak N on <day>", see D-16 | ☐ |
+| D-07 | P1 | Guest mix, channels, reliability **(changed)** | first-timers vs repeats, occasions, party buckets; channel share %; no-show %, cancel %, avg lead time | No NaN / undefined. Total guests is venue-wide, so first-timers + repeats (visits inside the period) need not equal it; channel shares exclude cancelled and may not sum to 100 | ☐ |
+| D-08 | P1 | Guest feedback panel **(changed)** | avg rating, distribution, top tags, latest | Shows feedback **submitted within the selected range** (newest first, max 200 loaded; average/tags computed from those rows; unaffected by Status/Source/Occasion); 10 per page with Previous/Next; click opens detail modal (Esc, Close or backdrop closes; "Open guest profile →") | ☐ |
 | D-09 | P1 | Reservations table search | name / code / phone | Filters; "N matching" updates | ✔ |
 | D-10 | P1 | Reservations pagination | >10 matches | 10/page; shrinking results clamps the page | ✔ |
 | D-11 | P1 | Export CSV button **(changed, was ✘)** | Click Export CSV in the table header; also with 0 matches | Downloads `gioi-reservations-<from>_<to>.csv` with exactly the rows shown (filters + search): booking_code, guest_name, phone, email, party_size, date, time, area, source, status, allergies, accessibility; formula cells prefixed `'`; disabled with 0 matches | ☐ |
 | D-12 | P2 | Empty range | Range with no data | Empty states, no NaN | ✔ |
 | D-13 | P1 | New venue, no data | Dashboard on a venue with zero reservations | Zeros/empty states; no NaN, no "Invalid Date", no 500 | ✔ (found + fixed: "peak 0 on Invalid Date") |
 | D-14 | P1 | API down on dashboard | Stop the API, reload `/admin` | The real error message shows (not "Invalid date range"); no crash | ☐ |
+| D-15 | P1 | Turn time card | Dashboard with completed bookings; then a range with none | Per area: average minutes from Seated → Completed events in range, seatings count, target = venue `diningMinutes` (no Settings input yet); areas with no seatings are hidden; none at all → "No completed seatings in this range." | ☐ |
+| D-16 | P2 | 30-day chart hover | Hover the chart; leave; move to the edges; reduced-motion on | Guide line, dot and tooltip (day, "N covers", "B bookings · P% full") follow the pointer and stay inside the card; axis shows day numbers with "d Mon" at the start and on the 1st; line draws in on load (instant under reduced motion) | ☐ |
 
 ## 7. Admin journey — Settings (`/admin/settings`, every save audited)
 
@@ -328,7 +330,7 @@ Expected is shown as **host / venue admin / super admin**.
 | T-01 | P0 | Load **(changed)** | Open as venue admin and super admin | Venue admin: Restaurant, Opening hours & rules, Guest feedback, Data export. Super admin: New venue, Floor plan drawing, Accounts (for the venue chosen in the header) | ☐ |
 | T-02 | P0 | **Restaurant** | Edit tagline/intro/address/maps URL/phone/WhatsApp/policy → Save restaurant | "Saved at …"; persists; shown on `/bali`; audit `settings.updated` with only changed fields | ✔ |
 | T-03 | P1 | Name read-only | Restaurant name | Disabled (not in the API whitelist) | ✔ |
-| T-04 | P1 | **Opening hours & rules** **(changed)** | Hours per weekday (12-hour TimePicker), interval, party limits, lead time, cut-off, table hold grace, no-show target, over-capacity %, closed dates → Save hours & rules | Public availability follows each; grace drives W-10 | ☐ |
+| T-04 | P1 | **Opening hours & rules** **(changed)** | Hours per weekday (12-hour TimePicker), booking interval, party min/max, lead time, cut-off, table hold grace, no-show target, over-capacity alert %, closed dates (shared `DatePicker`; add with "+ Add", Enter no longer adds) → Save hours & rules | Public availability follows each; grace drives W-10. There is no `diningMinutes` field (it is in the API whitelist; Turn time shows it as the target) | ☐ |
 | T-05 | P1 | **Guest feedback** **(changed)** | Title, subtitle, WhatsApp template (tags field is read-only) → Save | Template used by the host's feedback link; title/subtitle (and venue name) shown on `/bali/feedback/<code>`, falling back to the defaults when empty | ☐ |
 | T-06 | P1 | **Seating areas** | Moved to the floor plan editor (F-13 to F-22) | Settings has no Seating areas card | ✔ |
 | T-07 | P1 | **Accounts** (super admin) | See 7.1 (T-13…T-28) | Replaced by the Venues/Accounts scenarios | ✔ |
@@ -366,7 +368,7 @@ Expected is shown as **host / venue admin / super admin**.
 
 | ID | P | Scenario | Steps | Expected | Status |
 |---|---|---|---|---|---|
-| V-01 | P0 | Select shows all venues | Log in as `admin` | Header select lists every venue "Name (slug)"; first venue selected when nothing stored | ☐ |
+| V-01 | P0 | Select shows all venues **(changed)** | Log in as `admin` | Header select lists every venue by name; "(slug)" is appended only when two venues share a name; first venue selected when nothing stored | ☐ |
 | V-02 | P0 | Host follows the venue | On `/host`, switch venue | Day view reloads for that venue (`/staff/day?date&venueId`); walk-in, change table, day export use that venue | ☐ |
 | V-03 | P0 | Dashboard follows the venue | On `/admin`, switch venue | Analytics refetches with `venueId`; numbers match that venue | ☐ |
 | V-04 | P1 | Persistence | Switch, reload, sign out and in | Same venue (stored as `gioi.venueId`); a stored id for a deleted venue falls back to the first venue | ☐ |
@@ -383,7 +385,7 @@ Seed gives `admin` (super admin and venue admin of Bali) and `venueadmin` (venue
 |---|---|---|---|---|---|
 | F-01 | P0 | Drawing upload (super admin) | Settings → pick a venue in the header → Floor plan drawing → upload `apps/api/prisma/floor-plans/bali.svg` → Remove drawing | Preview shows the drawing; Remove asks for confirmation and clears it; audit `floor_plan.image_uploaded` / `floor_plan.image_removed` | ✔ |
 | F-02 | P0 | Drawing rules | `PUT /admin/venues/:id/floor-plan/image` as venue admin; with a `text/html` data URL; with an image and no width/height; file > 3 MB in the UI | 403 "super admin required"; 422 "drawing must be an SVG, PNG, JPEG or WebP under 3 MB"; 422 "width and height are required with an image"; "Drawing must be under 3 MB."; plan height follows the aspect ratio (bali.svg → 1525) | ✔ |
-| F-03 | P0 | Who can open the editor | Open `/admin/floor-plan` as host, venue admin, super admin | Host → `/host`; super admin → no "Floor plan" nav link (it only uploads drawings); venue admin sees nav "Floor plan", the Add row, selected-item bar, plan, area list with table counts and total seats | ✔ |
+| F-03 | P0 | Who can open the editor | Open `/admin/floor-plan` as host, venue admin, super admin | Host → `/host`; super admin → redirected to `/admin/settings` (no nav link; it only uploads drawings); venue admin sees nav "Floor plan", the Add row, selected-item bar, plan, area list with table counts and total seats. A venue admin of several venues edits only the first | ✔ |
 | F-04 | P1 | Add table, chairs, Revert | Click Terrace in the area list → `+ Table in Terrace` → + chair ×2 | New table in that area, 4 → 6 seats; unsaved indicator shows; Revert restores the saved layout | ✔ |
 | F-05 | P0 | Save layout sets capacity | Save a layout with tables in an area | Area capacity = sum of seats; survives reload; audit `floor_plan.updated` | ✔ |
 | F-06 | P1 | Capacity is never typed | Settings and Floor plan as venue admin | No capacity input anywhere; the side panel's seats per area are the capacity | ✔ |
@@ -410,9 +412,9 @@ Seed gives `admin` (super admin and venue admin of Bali) and `venueadmin` (venue
 
 | ID | P | Scenario | Steps | Expected | Status |
 |---|---|---|---|---|---|
-| L-01 | P1 | Events recorded **(changed)** | Status change, settings save, users save, floor plan save, drawing upload, venue created, user created, user removed, walk-in takeover (no-show) | One event each with actor, entity, changed fields, time. `feedback_link.sent` is not produced by `apps/` (the feedback link is client-only). Check whether the entity filter (L-03) lists `venue` / `user` types | ☐ |
+| L-01 | P1 | Events recorded **(changed)** | Status change, settings save, users save, floor plan save, drawing upload, venue created, user created, user removed, walk-in takeover (no-show), guest feedback | One event each with actor, entity, time. Only some have friendly text; the rest show the raw action (`floor_plan.updated`, `venue.created`, `user.created`, `user.removed`, `settings.updated`, `feedback.submitted`). `user.updated` is one event per save with no per-field changes. `feedback_link.sent` is not produced | ☐ |
 | L-02 | P1 | Newest first | Inspect order | Newest at top | ✔ |
-| L-03 | P1 | Filter | Entity dropdown: reservations / status changes / settings / seating areas / feedback links | List narrows; page clamps | ✔ |
+| L-03 | P1 | Filter **(changed)** | Entity dropdown: reservations / status changes / settings / seating areas / feedback links | List narrows; page clamps. There is no venue or user type: `venue.*` / `user.*` events appear only under "All events". Floor plan saves are under "Seating areas"; drawing upload/remove under "settings"; "Feedback links" = guest `feedback.submitted` | ✔ |
 | L-04 | P1 | Pagination | >25 events | 25/page, Previous/Next (API returns the latest 100) | ✔ |
 | L-05 | P1 | Empty state | Fresh DB | Friendly message | ☐ |
 | L-06 | P0 | Access | Host / venue admin | Redirect + API 403 | ✔ |
@@ -444,7 +446,7 @@ Seed gives `admin` (super admin and venue admin of Bali) and `venueadmin` (venue
 | X-06 | P1 | Tamper UUIDs (reservation/guest/venue/table from another venue) | 403/404/422 only | ✔ (table ids not run) |
 | X-07 | P1 | Garbage or oversized bodies to public booking | 4xx, never 500 | ✔ |
 | X-08 | P1 | Error shape / headers | `{ error, message }`; no stack traces | ✔ |
-| X-09 | P0 | CSV formula injection | Book with name `=HYPERLINK("http://x","y")`, `+1`, `-1`, `@x`; export from Settings, Dashboard and Host | Cells start with `'` (neutralized); commas/quotes/newlines quoted | ☐ |
+| X-09 | P0 | CSV formula injection | Book with name `=HYPERLINK("http://x","y")`, `+1`, `-1`, `@x`; export from Settings, Dashboard and Host | Cells starting with `= + - @`, tab or CR start with `'` (neutralized); the stored phone `+62 …` is therefore also `'`-prefixed in every export; commas/quotes/newlines quoted | ☐ |
 | X-10 | P1 | Public table availability leaks nothing | `GET /api/public/venues/bali/table-availability?date&time&partySize` | Only `unavailableTableIds`; no names/codes. Staff version (`/api/admin/venues/:id/table-availability`) needs a session and venue access | ☐ |
 | X-11 | P1 | Prod security headers | `curl -I https://gioigroup.com/bali` | HSTS, `X-Content-Type-Options: nosniff`, `X-Frame-Options: SAMEORIGIN`, Referrer-Policy, Permissions-Policy, COOP, CSP (`default-src 'self'`, `object-src 'none'`, `frame-ancestors 'self'`); site still works under CSP (PostHog via `/ingest`) | ☐ |
 | X-12 | P2 | Dev server binding | Start web dev without `NUXT_DEV_HOST` | Listens on `127.0.0.1` only | ☐ |
@@ -454,18 +456,18 @@ Seed gives `admin` (super admin and venue admin of Bali) and `venueadmin` (venue
 | ID | P | Scenario | Steps | Expected | Status |
 |---|---|---|---|---|---|
 | B-01 | P0 | Venue-only bootstrap | `DATABASE_URL=… ADMIN_LOGIN=admin npx tsx prisma/create-super-admin.ts` (no `ADMIN_PASSWORD`) on a DB with an admin and no venue | Prints `super admin ready: admin, venue: bali`; admin password unchanged; `GET /api/public/venues/bali` 200; safe to run twice | ✔ (local DB) |
-| B-02 | P1 | Bootstrap guards | Unknown `ADMIN_LOGIN` without password; `ADMIN_PASSWORD` shorter than 12 | Stops with a clear error; nothing written | ☐ |
+| B-02 | P1 | Bootstrap guards | Unknown `ADMIN_LOGIN` without password; `ADMIN_PASSWORD` shorter than 12 | Both stop with a clear error. Password-length check writes nothing; the unknown-login case runs the venue upsert first, so a missing venue can still be created | ☐ |
 | B-03 | P0 | No venue yet (prod symptom) | Log in as super admin on a DB with no venue | Host waits for a venue (empty day); Dashboard shows empty data or a real error; Settings shows New venue, not a blank page | ☐ |
 | B-04 | P1 | Re-login after bootstrap | Run the script while logged in, reload | Venue appears in the header select (list loads once per page load) | ☐ |
 | B-05 | P1 | Empty-venue public page | Open `/<slug>` for a venue with blank address/phone/hours | Page renders without crash if the slug has a `VENUE_SEO` entry; otherwise 404 | ☐ (rule changed) |
-| B-06 | P1 | CI | Push to a PR | Setup pnpm, install, prisma generate/validate without `.env`, `nuxt prepare`, typecheck, tests all green | ☐ (steps ✔ locally; GitHub run pending) |
+| B-06 | P1 | CI | Push to a PR | Postgres 17 service; setup pnpm, install, prisma generate, `nuxt prepare`, typecheck, `pnpm test` (excludes `__tests__/db`, so DB tests do not run in CI), prisma validate | ☐ (steps ✔ locally; GitHub run pending) |
 | B-07 | P0 | Prod migrations | Deploy | `0004_reservation_table`, `0005_venue_grace_minutes`, `0007_venue_notice`, `0008_reservation_tables` applied by the owner role; existing bookings keep working with "No table" | ☐ |
 
 ---
 
 ## Known gaps worth a ticket (not scenarios)
 
-> **Fixed in the working tree on 2026-11-12 (uncommitted; re-run the rows):** marketing consent saved (G-58), staff capacity checks on edit + walk-in (C-05, W-04), walk-in confirmed in one call (W-01), notice only on its date + date required (G-55, T-31), feedback page uses Settings (T-05), duplicate CTA/footer removed (G-30), dashboard export = shown rows (D-11), super admin guest search + audit follow the header venue (S-14, V-07).
+> **Fixed and committed in `eb5bb08` (re-run the rows):** marketing consent saved (G-58), staff capacity checks on edit + walk-in (C-05, W-04), walk-in confirmed in one call (W-01), notice only on its date + date required (G-55, T-31), feedback page uses Settings (T-05), duplicate CTA/footer removed (G-30), dashboard export = shown rows (D-11), super admin guest search + audit follow the header venue (S-14, V-07). `35f29c2` reworked `/admin/analytics` (no `guests` array, guest fields on rows, range-scoped feedback, Turn time). Migration `0008_reservation_tables` must be applied by `gioi_owner`, not `gioi_app`.
 >
 > **DB tests (`gioi_test`) on 2026-11-12:** 18/18 pass, incl. the new capacity/walk-in/notice test. Two stale tests were fixed: public bookings now send `tableId` (not `tableIds`), and the takeover test opens the venue 00:00–24:00 for its run so it no longer fails before 10:00 / after 22:00.
 
@@ -482,6 +484,13 @@ Seed gives `admin` (super admin and venue admin of Bali) and `venueadmin` (venue
 - No hard delete of users: "Remove" unlinks from the venue and deactivates when no venue is left (audit rows reference users).
 - No venue rename/delete, and no email field in Settings (email is only set at bootstrap/seed).
 - Public staff-login link was removed from the landing footer; `/login` is reachable by URL only.
+- Host reminder text always says "today", even for another date; walk-in "not before now" uses the browser clock, not the venue zone.
+- Settings has no `diningMinutes` input although Turn time uses it as the target.
+- Dashboard Source filter omits `chope_import`; `cancellation_rate_high` cue is declared but never produced.
+- `/privacy` is `noindex` but listed in `sitemap.xml`; `book.*/privacy` is not redirected (`vercel.json` exclusion list).
+- Auto-picked area for a public booking ignores table availability, so it can land on "No table".
+- A booking page reload plus resubmit creates a second booking (idempotency key is per click).
+- Public booking and confirmation pages show "Venue not found." / "couldn't find that booking code." for any API failure (U-06).
 
 ## Run notes (2026-11-07, managed Chromium + curl, dev DB)
 

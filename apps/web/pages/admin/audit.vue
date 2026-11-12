@@ -49,7 +49,6 @@ definePageMeta({ middleware: ['auth', 'admin'] })
 	<div class="mx-auto max-w-5xl px-4 py-8">
 		<header class="mb-6 flex flex-wrap items-baseline justify-between gap-3">
 			<div>
-				<p class="text-xs uppercase tracking-wide text-muted">Super Admin</p>
 				<h1 class="font-display text-3xl font-semibold text-ink">Audit log</h1>
 			</div>
 			<select v-model="filter" class="field w-auto">

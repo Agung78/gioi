@@ -21,14 +21,14 @@ const maxVal = computed(() => props.max ?? Math.max(1, ...props.rows.map((r) => 
 <template>
   <div class="space-y-2">
     <div v-for="row in rows" :key="row.label" class="flex items-center gap-3 text-sm">
-      <span class="w-32 truncate text-muted" :title="row.label">{{ row.label }}</span>
-      <div class="relative h-5 flex-1 rounded bg-line/40">
+      <span class="w-24 shrink-0 truncate text-muted" :title="row.label">{{ row.label }}</span>
+      <div class="relative h-5 min-w-8 flex-1 rounded bg-line/40">
         <div
           class="absolute inset-y-0 left-0 rounded"
           :style="{ width: `${Math.max(2, (row.value / maxVal) * 100)}%`, background: color }"
         />
       </div>
-      <span class="w-20 text-right tabular-nums text-ink">{{ row.value }}{{ row.meta ? ' ' + row.meta : '' }}</span>
+      <span class="shrink-0 whitespace-nowrap text-right tabular-nums text-ink">{{ row.value }}<span v-if="row.meta" class="ml-2 text-xs text-muted">{{ row.meta }}</span></span>
     </div>
   </div>
 </template>
