@@ -3,7 +3,7 @@
 // (Asia/Makassar); the API converts UTC startsAt to local dates before calling in.
 // No localStorage, no Vue, no Pinia.
 
-import type { Guest, Reservation, Settings } from './types'
+import type { Guest, Reservation, SeatingArea, Settings } from './types'
 import { reservedCovers } from './availability'
 import { addDays, daysBetween, fromISODate, todayISO, toISODate } from './dates'
 
@@ -453,6 +453,58 @@ export function describeDayLabel(dateISO: string, today: string = todayISO()): s
 export function pastNDaysRange(n: number, endDate: string = todayISO()) {
 	const start = addDays(endDate, -(n - 1))
 	return { start, end: endDate }
+}
+
+export interface TurnTimeArea {
+	areaId: string
+	areaName: string
+	averageMinutes: number
+	sampleCount: number
+	diningMinutes: number
+}
+
+export interface TurnTimePanel {
+	byArea: TurnTimeArea[]
+}
+
+/**
+ * Average minutes between `seated` and `completed` status events per seating area.
+ * The caller already narrowed `events` to the reservations it wants (venue + date range).
+ */
+export function turnTimePanel(
+	events: Array<{ reservationId: string; toStatus: string; at: Date; reservation: { seatingAreaId: string } }>,
+	areas: SeatingArea[],
+	diningMinutes: number,
+): TurnTimePanel {
+	const byRes = new Map<string, { seatedAt?: Date; completedAt?: Date; seatingAreaId: string }>()
+	for (const e of events) {
+		const v = byRes.get(e.reservationId) ?? { seatingAreaId: e.reservation.seatingAreaId }
+		if (e.toStatus === 'seated') v.seatedAt = e.at
+		if (e.toStatus === 'completed') v.completedAt = e.at
+		byRes.set(e.reservationId, v)
+	}
+
+	const perArea = new Map<string, { total: number; n: number }>()
+	for (const v of byRes.values()) {
+		if (!v.seatedAt || !v.completedAt) continue
+		const agg = perArea.get(v.seatingAreaId) ?? { total: 0, n: 0 }
+		agg.total += (v.completedAt.getTime() - v.seatedAt.getTime()) / 60000
+		agg.n += 1
+		perArea.set(v.seatingAreaId, agg)
+	}
+
+	return {
+		byArea: areas.map((area) => {
+			const agg = perArea.get(area.id)
+			return {
+				areaId: area.id,
+				areaName: area.name,
+				averageMinutes: agg ? Math.round((agg.total / agg.n) * 10) / 10 : 0,
+				sampleCount: agg?.n ?? 0,
+				diningMinutes,
+			}
+		}),
+	}
 }
 
 // Helper to keep types happy when callers want an explicit range

@@ -30,10 +30,7 @@ const csvEscape = (v: unknown) => {
 function exportCsv() {
 	try {
 		const header = ['booking_code', 'guest_name', 'phone', 'email', 'party_size', 'date', 'time', 'area', 'source', 'status', 'allergies', 'accessibility']
-		const rows = searchedReservations.value.map((r) => {
-			const g = guests.value.find((x) => x.id === r.guestId)
-			return [r.bookingCode, g?.fullName, g?.phone, g?.email, r.partySize, r.date, r.time, areaName(r.seatingAreaId), r.source, r.status, g?.allergies?.join('; '), g?.accessibility]
-		})
+		const rows = searchedReservations.value.map((r) => [r.bookingCode, r.guestName ?? '', r.guestPhone ?? '', r.guestEmail ?? '', r.partySize, r.date, r.time, areaName(r.seatingAreaId), r.source, r.status, (r.guestAllergies ?? []).join('; '), r.guestAccessibility ?? ''])
 		const csv = [header, ...rows].map((row) => row.map(csvEscape).join(',')).join('\n')
 		const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8;' }))
 		const a = document.createElement('a')
@@ -72,8 +69,8 @@ watch(() => auth.selectedVenueId, () => {
 const dashboard = computed(() => analytics.value?.dashboard ?? null)
 const analyticsErrorMessage = computed(() => (analyticsError.value?.data as { message?: string } | null)?.message ?? analyticsError.value?.message)
 const settings = computed(() => analytics.value?.settings)
-const guests = computed(() => analytics.value?.guests ?? [])
 const feedback = computed(() => analytics.value?.feedback ?? [])
+const turnTime = computed(() => analytics.value?.turnTime ?? null)
 
 function setPreset(next: DateRangePreset) {
 	preset.value = next
@@ -84,7 +81,6 @@ function setPreset(next: DateRangePreset) {
 const statusOptions: ReservationStatus[] = ['pending', 'confirmed', 'arrived', 'seated', 'completed', 'cancelled', 'no_show']
 const occasions = computed(() => [...new Set((dashboard.value?.filtered ?? []).map((r) => r.occasion?.trim() || 'No occasion'))].sort())
 const areas = computed(() => (settings.value as any)?.seatingAreas ?? [])
-const guestName = (id: string) => guests.value.find((g) => g.id === id)?.fullName ?? 'Unknown guest'
 const areaName = (id: string) => areas.value.find((a: { id: string; name: string }) => a.id === id)?.name ?? id
 const rangeLabel = computed(() => `${filters.value.rangeStart} → ${filters.value.rangeEnd}`)
 const periodLabel = computed(() => ({ today: 'today', last7: 'last 7 days', last30: 'last 30 days', custom: rangeLabel.value })[preset.value])
@@ -93,10 +89,7 @@ const searchedReservations = computed(() => {
 	const q = search.value.trim().toLowerCase()
 	const base = dashboard.value?.filtered ?? []
 	if (!q) return base
-	return base.filter((r) => {
-		const g = guests.value.find((g) => g.id === r.guestId)
-		return [g?.fullName, r.bookingCode, g?.phone].some((v) => v?.toLowerCase().includes(q))
-	})
+	return base.filter((r) => [r.guestName, r.bookingCode, r.guestPhone].some((v) => v?.toLowerCase().includes(q)))
 })
 const { page: resPage, pageCount: resPageCount, paged: resPaged } = usePagination(searchedReservations, 10)
 const { page: fbPage, pageCount: fbPageCount, paged: fbPaged } = usePagination(feedback, 10)
@@ -317,8 +310,21 @@ definePageMeta({ middleware: ['auth', 'admin'] })
 				<h4 v-if="dashboard" class="mt-4 label">No-show rate trend</h4>
 				<Sparkline v-if="dashboard" :values="reliabilityValues" :height="80" color="rgb(var(--brand-sun))" fill="rgb(var(--brand-sun) / 0.12)" />
 			</section>
+			<section class="card">
+				<h3 class="font-display text-lg font-semibold text-ink">Turn time <span class="ml-1 text-xs font-normal text-muted">{{ periodLabel }}</span></h3>
+				<template v-if="turnTime?.byArea.some((a) => a.sampleCount)">
+					<dl v-for="area in turnTime.byArea" :key="area.areaId" class="mt-4 space-y-1 text-sm">
+						<div class="flex justify-between">
+							<dt class="text-muted">{{ area.areaName }}</dt>
+							<dd class="text-ink">{{ area.sampleCount ? area.averageMinutes + ' min' : '—' }}</dd>
+						</div>
+						<p class="text-xs text-muted">samples: {{ area.sampleCount }} · dining target: {{ area.diningMinutes }} min</p>
+					</dl>
+				</template>
+				<p v-else class="mt-4 text-xs text-muted">No seated→completed events in range.</p>
+				<p class="mt-3 text-xs text-muted">Durations depend on when staff click Completed.</p>
+			</section>
 		</div>
-
 		<section class="card mt-4">
 			<div class="flex flex-wrap items-baseline justify-between gap-2">
 				<h3 class="font-display text-lg font-semibold text-ink">Guest feedback</h3>
@@ -449,7 +455,7 @@ definePageMeta({ middleware: ['auth', 'admin'] })
 			<div v-if="searchedReservations.length" class="mt-4 overflow-x-auto">
 				<table class="w-full text-left text-sm">
 					<thead><tr class="border-b border-line text-muted"><th class="p-2">Date</th><th class="p-2">Guest</th><th class="p-2">Party</th><th class="p-2">Area</th><th class="p-2">Source</th><th class="p-2">Status</th></tr></thead>
-					<tbody><tr v-for="reservation in resPaged" :key="reservation.id" class="border-b border-line"><td class="p-2">{{ reservation.date }} {{ reservation.time }}</td><td class="p-2"><NuxtLink :to="`/guests/${reservation.guestId}`" class="font-medium text-accent underline underline-offset-2">{{ guestName(reservation.guestId) }}</NuxtLink><div class="text-xs text-muted">{{ reservation.bookingCode }}</div></td><td class="p-2">{{ reservation.partySize }}</td><td class="p-2">{{ areaName(reservation.seatingAreaId) }}</td><td class="p-2">{{ reservation.source }}</td><td class="p-2"><StatusChip :status="reservation.status" /></td></tr></tbody>
+					<tbody><tr v-for="reservation in resPaged" :key="reservation.id" class="border-b border-line"><td class="p-2">{{ reservation.date }} {{ reservation.time }}</td><td class="p-2"><NuxtLink :to="`/guests/${reservation.guestId}`" class="font-medium text-accent underline underline-offset-2">{{ reservation.guestName ?? 'Unknown guest' }}</NuxtLink><div class="text-xs text-muted">{{ reservation.bookingCode }}</div></td><td class="p-2">{{ reservation.partySize }}</td><td class="p-2">{{ areaName(reservation.seatingAreaId) }}</td><td class="p-2">{{ reservation.source }}</td><td class="p-2"><StatusChip :status="reservation.status" /></td></tr></tbody>
 				</table>
 				<Pagination v-model:page="resPage" :page-count="resPageCount" />
 			</div>

@@ -194,14 +194,6 @@ export interface AdminAnalytics {
 	today: string
 	timeZone: string
 	settings: unknown
-	guests: Array<{
-		id: string
-		fullName: string
-		phone: string
-		email?: string
-		allergies: string[]
-		accessibility?: string
-	}>
 	feedback: Array<{
 		id: string
 		reservationId: string
@@ -285,6 +277,11 @@ export interface AdminAnalytics {
 			id: string
 			bookingCode: string
 			guestId: string
+			guestName?: string | null
+			guestPhone?: string | null
+			guestEmail?: string | null
+			guestAllergies?: string[]
+			guestAccessibility?: string | null
 			date: string
 			time: string
 			partySize: number
@@ -292,6 +289,15 @@ export interface AdminAnalytics {
 			source: string
 		status: ReservationStatus
 			occasion?: string
+		}>
+	}
+	turnTime: {
+		byArea: Array<{
+			areaId: string
+			areaName: string
+			averageMinutes: number
+			sampleCount: number
+			diningMinutes: number
 		}>
 	}
 }

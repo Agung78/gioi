@@ -12,6 +12,7 @@ import {
 	upcomingDaysPanel,
 	filterReservations,
 	resolveDateRange,
+	turnTimePanel,
 } from '../analytics'
 import type { Guest, Reservation, Settings } from '../types'
 
@@ -211,5 +212,30 @@ describe('dashboard fixes', () => {
 	it('formats lead time as days from 24h up', () => {
 		expect(formatLeadTime(383.2)).toBe('16.0 days')
 		expect(formatLeadTime(5.5)).toBe('5.5h')
+	})
+})
+
+describe('turnTimePanel', () => {
+	const ev = (reservationId: string, toStatus: string, at: string) => ({
+		reservationId,
+		toStatus,
+		at: new Date(at),
+		reservation: { seatingAreaId: 'main' },
+	})
+	const events = [
+		ev('r1', 'seated', '2026-06-15T19:00:00Z'),
+		ev('r1', 'completed', '2026-06-15T19:30:00Z'), // 30 min
+		ev('r2', 'seated', '2026-06-15T20:00:00Z'),
+		ev('r2', 'completed', '2026-06-15T20:20:00Z'), // 20 min
+		ev('r4', 'seated', '2026-06-15T19:00:00Z'), // no completed event -> excluded
+	]
+	const areas = [
+		{ id: 'main', name: 'Main Hall', capacity: 20, bookable: true },
+		{ id: 'terrace', name: 'Terrace', capacity: 10, bookable: true },
+	]
+	it('averages seated→completed minutes per area, ignoring unfinished stays', () => {
+		const panel = turnTimePanel(events, areas, 120)
+		expect(panel.byArea.find((a) => a.areaId === 'main')).toMatchObject({ averageMinutes: 25, sampleCount: 2, diningMinutes: 120 })
+		expect(panel.byArea.find((a) => a.areaId === 'terrace')).toMatchObject({ averageMinutes: 0, sampleCount: 0, diningMinutes: 120 })
 	})
 })
