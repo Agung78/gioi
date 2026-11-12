@@ -32,6 +32,8 @@ const ig = seo.sameAs.find((u) => u.includes('instagram.com'))
 const igHandle = ig ? new URL(ig).pathname.replace(/\//g, '') : ''
 
 const root = ref<HTMLElement>()
+const zoom = ref<(typeof p.signatures)[number] | null>(null)
+onMounted(() => window.addEventListener('keydown', (e) => { if (e.key === 'Escape') zoom.value = null }))
 let ctx: ReturnType<typeof import('gsap').gsap.context> | undefined
 
 onMounted(async () => {
@@ -106,12 +108,17 @@ onBeforeUnmount(() => ctx?.revert())
       <h2 class="text-[clamp(2rem,4.5vw,3.5rem)] font-extrabold leading-[1.05]">{{ p.signaturesTitle }}</h2>
       <div class="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
         <article v-for="s in p.signatures" :key="s.name" class="leading-relaxed text-muted">
-          <div class="aspect-[4/3] overflow-hidden rounded-surface bg-line/50"><img :src="s.img" :alt="s.alt" loading="lazy" decoding="async" width="320" height="240" class="h-full w-full object-cover" /></div>
+          <button type="button" class="block aspect-[4/3] w-full cursor-zoom-in overflow-hidden rounded-surface bg-line/50" :aria-label="`View ${s.name} full size`" @click="zoom = s"><img :src="s.img" :alt="s.alt" loading="lazy" decoding="async" width="320" height="240" class="h-full w-full object-cover" :style="{ objectPosition: `50% ${s.pos}%` }" /></button>
           <h3 class="mt-4 text-xl font-extrabold">{{ s.name }}</h3>
           <p class="mt-1">{{ s.price }}</p>
           <p class="mt-2">{{ s.copy }}</p>
         </article>
       </div>
+      <Transition enter-active-class="transition duration-200 ease-out" enter-from-class="opacity-0" leave-active-class="transition duration-150 ease-in" leave-to-class="opacity-0">
+        <div v-if="zoom" class="fixed inset-0 z-50 flex cursor-zoom-out items-center justify-center bg-black/80 p-4" role="dialog" aria-modal="true" :aria-label="zoom.name" @click="zoom = null">
+          <img :src="zoom.img" :alt="zoom.alt" class="zoom-img max-h-full max-w-full rounded-surface object-contain" />
+        </div>
+      </Transition>
       <p v-if="p.signaturesNote" class="mt-8 max-w-3xl text-sm leading-relaxed text-muted">{{ p.signaturesNote }}</p>
       <div v-if="seo?.menus?.length" class="mt-8 flex flex-wrap gap-x-6 gap-y-2 text-sm">
         <a v-for="m in seo.menus" :key="m.path" :href="m.path" class="text-accent underline hover:no-underline">{{ m.label }} (PDF)</a>
@@ -144,4 +151,8 @@ onBeforeUnmount(() => ctx?.revert())
   #faq details::details-content { block-size: 0; overflow: clip; opacity: 0; transition: block-size 280ms cubic-bezier(0.23, 1, 0.32, 1), opacity 200ms ease, content-visibility 280ms allow-discrete; }
   #faq details[open]::details-content { block-size: auto; opacity: 1; }
 }
+@media (prefers-reduced-motion: no-preference) {
+  .zoom-img { animation: zoom-in 220ms cubic-bezier(0.23, 1, 0.32, 1); }
+}
+@keyframes zoom-in { from { transform: scale(0.92); } }
 </style>

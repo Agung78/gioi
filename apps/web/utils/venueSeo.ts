@@ -65,10 +65,10 @@ export const VENUE_SEO: Record<string, VenueSeo> = {
       signaturesTitle: 'Signature dishes',
       signaturesNote: 'Prices come from the current menu, before service charge and tax, and may change.',
       signatures: [
-        { name: 'OG Seafood Platter', price: 'IDR 455,000', copy: 'Grilled seasonal fresh fish and seafood with grilled corn and three kinds of sambal, made for sharing.', img: '/images/venues/bali/dish-og-seafood-platter.webp', alt: 'OG Seafood Platter with grilled prawns, corn and sambal at GIOI Ocean Gourmet Bali' },
-        { name: 'Salmon Lodeh', price: 'IDR 200,000', copy: "Crispy-skin salmon served with GIOI's creamy twist on the traditional lodeh.", img: '/images/venues/bali/dish-salmon-lodeh.webp', alt: 'Crispy-skin salmon in lodeh curry at GIOI Ocean Gourmet Bali' },
-        { name: 'Jimbaran King Prawn', price: 'IDR 185,000', copy: 'Balinese-style grilled king prawn brushed with Jimbaran sauce, with plecing kangkung.', img: '/images/venues/bali/dish-jimbaran-king-prawn.webp', alt: 'Grilled Jimbaran king prawn with rice and plecing kangkung at GIOI Ocean Gourmet Bali' },
-        { name: 'Crispy Duck', price: 'IDR 190,000 (half)', copy: "Marinated crispy duck served with GIOI's rice and jukut kalasan.", img: '/images/venues/bali/dish-crispy-duck.webp', alt: 'Crispy duck on banana leaf with sambal at GIOI Ocean Gourmet Bali' },
+        { name: 'OG Seafood Platter', price: 'IDR 455,000', copy: 'Grilled seasonal fresh fish and seafood with grilled corn and three kinds of sambal, made for sharing.', img: '/images/venues/bali/dish-og-seafood-platter.webp', pos: 84, alt: 'OG Seafood Platter with grilled prawns, corn and sambal at GIOI Ocean Gourmet Bali' },
+        { name: 'Salmon Lodeh', price: 'IDR 200,000', copy: "Crispy-skin salmon served with GIOI's creamy twist on the traditional lodeh.", img: '/images/venues/bali/dish-salmon-lodeh.webp', pos: 51, alt: 'Crispy-skin salmon in lodeh curry at GIOI Ocean Gourmet Bali' },
+        { name: 'Jimbaran King Prawn', price: 'IDR 185,000', copy: 'Balinese-style grilled king prawn brushed with Jimbaran sauce, with plecing kangkung.', img: '/images/venues/bali/dish-jimbaran-king-prawn.webp', pos: 54, alt: 'Grilled Jimbaran king prawn with rice and plecing kangkung at GIOI Ocean Gourmet Bali' },
+        { name: 'Crispy Duck', price: 'IDR 190,000 (half)', copy: "Marinated crispy duck served with GIOI's rice and jukut kalasan.", img: '/images/venues/bali/dish-crispy-duck.webp', pos: 82, alt: 'Crispy duck on banana leaf with sambal at GIOI Ocean Gourmet Bali' },
       ],
       faqs: [
         { q: 'What are your opening hours?', a: 'We serve breakfast from 10 AM and are open through dinner. See the hours block on this page for daily open and close times.' },
