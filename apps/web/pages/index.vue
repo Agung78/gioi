@@ -54,34 +54,20 @@ useHead({
 </script>
 
 <template>
-  <div class="overflow-x-clip bg-navy text-white">
-    <header class="relative z-20">
-      <div class="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 md:px-8">
-        <NuxtLink to="/" class="leading-none" aria-label="GIOI Group home"><img src="/logo-96.webp" alt="GIOI Group logo" width="96" height="96" class="h-12 w-12 rounded-full object-cover" /></NuxtLink>
-        <nav class="flex items-center gap-1 sm:gap-2">
-          <NuxtLink to="/privacy" class="hidden rounded-full px-4 py-2 text-sm font-medium text-white/80 transition hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-sand sm:inline-flex">Privacy</NuxtLink>
-        </nav>
-      </div>
-    </header>
-    <main class="relative isolate z-10 flex min-h-[100svh] flex-col">
-      <section class="mx-auto max-w-7xl px-4 py-24 md:px-8 md:py-36">
-        <h1 class="font-display text-[clamp(2.5rem,5.5vw,5rem)] font-extrabold leading-[0.98] tracking-[-0.035em] text-white">GIOI Group</h1>
-        <ul class="mt-16 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          <li v-for="(seo, slug) in VENUE_SEO" :key="slug" class="group relative overflow-hidden rounded-surface">
-            <NuxtLink :to="`/${slug}`"><img :src="seo.image.url" :width="seo.image.width" :height="seo.image.height" :alt="seo.title" :loading="slug === firstSlug ? 'eager' : 'lazy'" class="h-full w-full object-cover transition duration-700 group-hover:scale-[1.03]" /></NuxtLink>
-            <div class="mt-4">
-              <NuxtLink :to="`/${slug}`"><h2 class="text-2xl font-extrabold">{{ seo.title }}</h2></NuxtLink>
-              <p class="mt-2 max-w-[36ch] leading-relaxed text-white/75">{{ seo.description }}</p>
-              <p class="mt-1 text-xs font-medium uppercase tracking-[0.2em] text-white/70">{{ seo.city }}, {{ seo.region }}</p>
-            </div>
-          </li>
-        </ul>
-      </section>
+  <div class="flex min-h-[100svh] flex-col bg-surface text-ink">
+    <main class="flex flex-1 flex-col items-center justify-center px-6 text-center">
+      <img src="/logo-group-128.webp" alt="GIOI Group logo" width="128" height="128" class="h-24 w-24 rounded-full object-cover" />
+      <p class="mt-10 text-xs font-medium uppercase tracking-[0.25em] text-muted">Announcement</p>
+      <h1 class="mt-4 font-display text-[clamp(2.25rem,6vw,4.5rem)] font-extrabold leading-[1] tracking-[-0.035em]">GIOI Group</h1>
+      <p class="mt-6 max-w-[40ch] text-lg leading-relaxed text-muted">Our new website is under development. Coming soon.</p>
+      <ul class="mt-10 flex flex-wrap justify-center gap-3">
+        <li v-for="(seo, slug) in VENUE_SEO" :key="slug">
+          <NuxtLink :to="`/${slug}`" class="inline-flex min-h-11 items-center rounded-full border border-line px-6 text-sm font-medium transition hover:bg-ink hover:text-surface focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent">Visit {{ seo.title.split(' | ')[0] }}</NuxtLink>
+        </li>
+      </ul>
     </main>
-    <footer class="bg-navy text-white">
-      <div class="mx-auto max-w-7xl px-4 pb-10 pt-24 md:px-8 md:pt-32">
-        <NuxtLink to="/privacy" class="inline-flex min-h-11 items-center hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-sand">Privacy</NuxtLink>
-      </div>
+    <footer class="py-6 text-center text-sm text-muted">
+      <NuxtLink to="/privacy" class="hover:text-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent">Privacy</NuxtLink>
     </footer>
   </div>
 </template>
