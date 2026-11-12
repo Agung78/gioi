@@ -55,13 +55,13 @@ export function registerStaffRoutes(app: FastifyInstance, prisma: PrismaClient):
 			schema: {
 				querystring: {
 					type: 'object',
-					properties: { date: { type: 'string' } },
+					properties: { date: { type: 'string' }, venueId: { type: 'string' } },
 				},
 			},
 		},
-		async (request: FastifyRequest<{ Querystring: { date?: string } }>) => {
+		async (request: FastifyRequest<{ Querystring: { date?: string; venueId?: string } }>) => {
 			const session = await requireAuth(prisma, request.cookies as Record<string, string>)
-			const venueId = staffVenue(session)
+			const venueId = staffVenue(session, request.query.venueId)
 			requireVenueAccess(session, venueId)
 			const venue = await prisma.venue.findUnique({
 				where: { id: venueId },

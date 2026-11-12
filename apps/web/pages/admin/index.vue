@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import {
 	todayISO,
 	resolveDateRange,
@@ -15,6 +15,7 @@ import BarChart from '@/components/BarChart.vue'
 import Sparkline from '@/components/Sparkline.vue'
 import Pagination from '@/components/Pagination.vue'
 import { usePagination } from '@/composables/usePagination'
+import { useAuthStore } from '@/stores/auth'
 import { downloadExportCSV, type AdminAnalytics } from '@/composables/useApi'
 
 const exportMsg = ref('')
@@ -37,18 +38,24 @@ async function exportCsv() {
 const today = todayISO()
 const preset = ref<DateRangePreset>('last30')
 const filters = ref(defaultDashboardFilters(today))
+const auth = useAuthStore()
 
-const { data: analytics, error: analyticsError } = await useFetch<AdminAnalytics>(() => {
+const { data: analytics, error: analyticsError, refresh } = await useFetch<AdminAnalytics>(() => {
 	const params = new URLSearchParams()
 	params.set('from', filters.value.rangeStart)
 	params.set('to', filters.value.rangeEnd)
 	if (filters.value.status !== 'all') params.set('status', filters.value.status)
 	if (filters.value.source !== 'all') params.set('source', filters.value.source)
 	if (filters.value.occasion !== 'all') params.set('occasion', filters.value.occasion)
+	if (auth.isSuperAdmin && auth.selectedVenueId) params.set('venueId', auth.selectedVenueId)
 	return `/api/admin/analytics?${params}`
 }, {
 	server: true,
 	credentials: 'include',
+})
+
+watch(() => auth.selectedVenueId, () => {
+	if (auth.isSuperAdmin && auth.selectedVenueId) refresh()
 })
 
 const dashboard = computed(() => analytics.value?.dashboard ?? null)

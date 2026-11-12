@@ -26,6 +26,9 @@
         </nav>
         <div class="flex items-center gap-2">
           <span v-if="auth.user" class="chip hidden bg-line/60 text-ink md:inline-flex">{{ auth.user.name }} · {{ auth.isSuperAdmin ? 'super admin' : auth.isAdmin ? 'admin' : 'host' }}</span>
+          <select v-if="auth.isSuperAdmin && venues.length" v-model="auth.selectedVenueId" class="field min-h-[34px] px-2 text-xs md:text-sm" :aria-label="'Select venue'">
+            <option v-for="v in venues" :key="v.id" :value="v.id">{{ v.name }} ({{ v.slug }})</option>
+          </select>
           <button v-if="auth.user" class="btn-secondary min-h-12" type="button" @click="signOut">Sign out</button>
         </div>
       </div>
@@ -59,16 +62,30 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useRoute } from '#app'
 import { PhMoon, PhSun } from '@phosphor-icons/vue'
 import { useAuthStore } from '@/stores/auth'
 import { applyTheme, useTheme } from '@/composables/useTheme'
+import { fetchVenues } from '@/composables/useApi'
 
 const route = useRoute()
 const auth = useAuthStore()
 const { isDark, toggleTheme } = useTheme()
 if (import.meta.client) applyTheme(isDark)
+
+const venues = ref<{ id: string; slug: string; name: string }[]>([])
+let venuesLoaded = false
+async function loadVenues() {
+	if (venuesLoaded) return
+	venuesLoaded = true
+	const list = await fetchVenues()
+	venues.value = list
+	if (!auth.selectedVenueId || !list.some((v) => v.id === auth.selectedVenueId)) {
+		auth.setSelectedVenueId(list[0]?.id ?? null)
+	}
+}
+watch(() => auth.isSuperAdmin, (isSuper) => { if (isSuper && !venuesLoaded) loadVenues() }, { immediate: true })
 
 const onBooking = computed(() => route.path.endsWith('/book'))
 const { siteUrl, bookUrl } = useRuntimeConfig().public

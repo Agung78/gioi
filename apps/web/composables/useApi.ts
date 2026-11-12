@@ -69,8 +69,8 @@ export interface DayView {
 	venue: { slug: string; name: string; feedbackMessageTemplate: string }
 }
 
-export async function fetchDay(date?: string): Promise<DayView> {
-	return apiFetch<DayView>('/staff/day', { query: date ? { date } : undefined })
+export async function fetchDay(date?: string, venueId?: string): Promise<DayView> {
+	return apiFetch<DayView>('/staff/day', { query: date ? { date, ...(venueId ? { venueId } : {}) } : undefined })
 }
 
 export interface CreateWalkInBody {
