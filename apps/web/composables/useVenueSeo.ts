@@ -64,6 +64,9 @@ export async function useVenueSeo(venue = (useRoute().params.venue as string)) {
           '@type': 'Restaurant',
           name,
           url: pageUrl,
+          description,
+          sameAs: seo.sameAs,
+          ...(venue === 'bali' ? { containedInPlace: { '@type': 'ShoppingCenter', name: 'Discovery Mall Bali' } } : {}), // ponytail: move to VenueSeo when a second venue needs it
           parentOrganization: { '@type': 'Organization', name: 'GIOI Group', url: siteUrl, logo: `${siteUrl}/logo.jpg`, '@id': `${siteUrl}#organization` },
           ...(image ? { image: [...new Set([image, siteUrl + seo.image.url])] } : {}),
           ...(info?.phone ? { telephone: phoneE164 } : {}),
@@ -88,7 +91,7 @@ export async function useVenueSeo(venue = (useRoute().params.venue as string)) {
             target: {
               '@type': 'EntryPoint',
               urlTemplate: bookUrl,
-              inLanguage: seo.languages ?? 'en',
+              inLanguage: 'en',
               actionPlatform: [
                 'http://schema.org/DesktopWebPlatform',
                 'http://schema.org/MobileWebPlatform',
