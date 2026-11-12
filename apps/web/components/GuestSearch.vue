@@ -2,9 +2,11 @@
 import { ref, watch } from 'vue'
 import { PhStar, PhWarning, PhWheelchair } from '@phosphor-icons/vue'
 import { fetchGuests, type StaffGuest } from '@/composables/useApi'
+import { useAuthStore } from '@/stores/auth'
 
 const emit = defineEmits<{ (e: 'open', id: string): void }>()
 
+const auth = useAuthStore()
 const query = ref('')
 const results = ref<StaffGuest[]>([])
 const searching = ref(false)
@@ -12,7 +14,7 @@ let timer: ReturnType<typeof setTimeout> | undefined
 let seq = 0
 
 // Server-side search (name, phone, email), debounced; `seq` drops out-of-order responses.
-watch(query, (v) => {
+watch([query, () => (auth.isSuperAdmin ? auth.selectedVenueId : null)], ([v, venueId]) => {
 	clearTimeout(timer)
 	const q = v.trim()
 	if (q.length < 2) {
@@ -25,7 +27,7 @@ watch(query, (v) => {
 	timer = setTimeout(async () => {
 		const mine = ++seq
 		try {
-			const found = await fetchGuests(q)
+			const found = await fetchGuests(q, venueId ?? undefined)
 			if (mine === seq) results.value = found
 		} catch {
 			if (mine === seq) results.value = []

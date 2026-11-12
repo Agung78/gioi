@@ -4,15 +4,18 @@ import { useRoute } from '#app'
 import { fetchAuditLog, type AuditEvent } from '@/composables/useApi'
 import { usePagination } from '@/composables/usePagination'
 import Pagination from '@/components/Pagination.vue'
+import { useAuthStore } from '@/stores/auth'
 
 const route = useRoute()
-const venueId = route.query.venueId ? String(route.query.venueId) : undefined
+const auth = useAuthStore()
+const venueId = computed(() => route.query.venueId ? String(route.query.venueId) : auth.isSuperAdmin ? auth.selectedVenueId ?? undefined : undefined)
 
 const filter = ref<'all' | string>('all')
 const { data: events, pending, error } = await useFetch<AuditEvent[]>('/api/admin/audit-log', {
 	server: true,
 	credentials: 'include',
-	...(venueId ? { query: { venueId } } : {}),
+	query: computed(() => (venueId.value ? { venueId: venueId.value } : {})),
+	watch: [venueId],
 })
 
 const filtered = computed(() => {
@@ -29,7 +32,6 @@ function describe(e: AuditEvent): string {
 			const c = e.changes?.status
 			return c ? `Status ${c.from} → ${c.to}` : `Status changed on ${e.entityId}`
 		}
-		case 'feedback_link.sent': return `Feedback WhatsApp link opened for ${e.entityId}`
 		case 'seating_area.updated': return 'Seating areas updated'
 		case 'user.updated': return 'Users updated'
 		default: return e.action

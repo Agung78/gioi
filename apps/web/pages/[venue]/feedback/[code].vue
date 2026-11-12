@@ -3,12 +3,15 @@ import { computed, ref } from 'vue'
 import { useRoute, useHead } from '#app'
 import { PhCheckCircle, PhStar } from '@phosphor-icons/vue'
 import { submitFeedback } from '@/composables/useGuestApi'
+import { useVenue } from '@/composables/useVenue'
 import type { FeedbackBody } from '@/types/venue'
 
-useHead({ title: 'Feedback | GIOI Ocean Gourmet' })
 const route = useRoute()
 const venueSlug = String(route.params.venue)
 const venueHome = useVenueHome(venueSlug)
+const { venue } = await useVenue()
+const venueName = computed(() => venue.value?.name || 'GIOI Ocean Gourmet')
+useHead({ title: computed(() => `Feedback | ${venueName.value}`) })
 const code = String(route.params.code)
 const exists = await $fetch(`/api/public/reservations/${encodeURIComponent(code)}`).then(() => true, () => false)
 
@@ -17,9 +20,9 @@ const comments = ref('')
 const tags = ref<string[]>([])
 const submitted = ref(false)
 const error = ref('')
-const headline = computed(() => 'How was your visit?')
-const subtitle = computed(() => 'A few words from you help our team make the next visit better.')
-const tagOptions = computed(() => ['Food', 'Service', 'Atmosphere', 'Value'])
+const headline = computed(() => venue.value?.feedbackTitle || 'How was your visit?')
+const subtitle = computed(() => venue.value?.feedbackSubtitle || 'A few words from you help our team make the next visit better.')
+const tagOptions = computed(() => venue.value?.feedbackTags?.length ? venue.value.feedbackTags : ['Food', 'Service', 'Atmosphere', 'Value'])
 
 function toggleTag(tag: string) {
   tags.value = tags.value.includes(tag) ? tags.value.filter((t) => t !== tag) : [...tags.value, tag]
@@ -44,7 +47,7 @@ async function submit() {
       <NuxtLink :to="venueHome" class="mt-8 inline-block text-sm font-medium text-accent underline underline-offset-4">Back to GIOI</NuxtLink>
     </div>
     <form v-else-if="!submitted" class="card" @submit.prevent="submit">
-      <p class="text-sm font-medium text-accent">GIOI Ocean Gourmet</p>
+      <p class="text-sm font-medium text-accent">{{ venueName }}</p>
       <h1 class="mt-2 text-3xl font-extrabold">{{ headline }}</h1>
       <p class="mt-2 text-muted">{{ subtitle }}</p>
       <fieldset class="mt-8">

@@ -467,13 +467,13 @@ describe('API integration', () => {
 		expect(await unavailable('13:00', 3)).toEqual([two.id])
 
 		// Explicit table: stored with its area; the same table at the same time is taken.
-		const first = await book('13:00', 2, { tableIds: [four.id] })
+		const first = await book('13:00', 2, { tableId: four.id })
 		expect(first.status).toBe(201)
 		const { reservationId, bookingCode } = await first.json()
 		expect(await tableOf(reservationId)).toEqual([four.id])
 		const res = await prisma.reservation.findUnique({ where: { id: reservationId } })
 		expect(res!.seatingAreaId).toBe(areaIds[0])
-		expect((await book('14:00', 2, { tableIds: [four.id] })).status).toBe(409)
+		expect((await book('14:00', 2, { tableId: four.id })).status).toBe(409)
 		expect(await unavailable('14:00', 2)).toEqual([four.id])
 
 		// A staff walk-in hits the same rule.
@@ -501,8 +501,8 @@ describe('API integration', () => {
 		expect((await walkIn(four.id)).status).toBe(200)
 
 		// Validation: table too small, table outside the requested area.
-		expect((await book('19:00', 3, { tableIds: [two.id] })).status).toBe(422)
-		expect((await book('19:00', 2, { tableIds: [four.id], seatingAreaId: terrace.id })).status).toBe(422)
+		expect((await book('19:00', 3, { tableId: two.id })).status).toBe(422)
+		expect((await book('19:00', 2, { tableId: four.id, seatingAreaId: terrace.id })).status).toBe(422)
 
 		// Auto-assign (in the tables' area): smallest free fitting table; none left means no table but still booked.
 		const inHall = { seatingAreaId: areaIds[0] }
@@ -539,7 +539,7 @@ describe('API integration', () => {
 
 	it('walk-ins take over late table holders only; staff can move a reservation to another table', async () => {
 		const venue = (await prisma.venue.findUnique({ where: { slug: 'bali' } }))!
-		await prisma.openingHours.updateMany({ where: { venueId: venue.id }, data: { closeMinute: 1440 } })
+		await prisma.openingHours.updateMany({ where: { venueId: venue.id }, data: { openMinute: 0, closeMinute: 1440 } })
 		const [a, b, c] = await Promise.all([1, 2, 3].map(() => prisma.floorTable.create({ data: { venueId: venue.id, seatingAreaId: areaIds[0], seats: 4, x: 100, y: 100 } })))
 		const guest = await prisma.guest.create({ data: { venueId: venue.id, fullName: 'Late Guest', phone: '+62 811 000 111' } })
 		let n = 0
@@ -578,9 +578,10 @@ describe('API integration', () => {
 		const taken = await walkIn(a.id, true)
 		expect(taken.status).toBe(200)
 		expect(await statusOf(late.id)).toBe('no_show')
-		const walk = await prisma.reservation.findUnique({ where: { id: (await taken.json()).reservationId } })
+		const takenBody = await taken.json()
+		const walk = await prisma.reservation.findUnique({ where: { id: takenBody.reservationId } })
 		expect(await tableOf(walk!.id)).toEqual([a.id])
-		expect((await taken.json()).status).toBe('pending')
+		expect(walk!.status).toBe('pending')
 		expect(await prisma.reservationStatusEvent.findFirst({ where: { reservationId: late.id, toStatus: 'no_show' } })).toMatchObject({ fromStatus: 'confirmed', reason: 'table taken over by walk-in' })
 
 		// Within grace, or already arrived: never overridable (the walk-in on `a` is itself within grace).
@@ -604,6 +605,7 @@ describe('API integration', () => {
 		// Resizing the party past the table's seats re-validates the kept table; a fitting size is fine.
 		expect((await send('PATCH', `/staff/reservations/${walk!.id}`, { partySize: 5 })).status).toBe(422)
 		expect((await send('PATCH', `/staff/reservations/${walk!.id}`, { partySize: 3 })).status).toBe(200)
+		await prisma.openingHours.updateMany({ where: { venueId: venue.id }, data: { openMinute: 600, closeMinute: 1320 } })
 	})
 
 	it('staff can seat one party on several tables: SUM(seats) covers party, mixed areas rejected', async () => {
@@ -644,5 +646,47 @@ describe('API integration', () => {
 
 		// Tables from two different areas -> 422.
 		expect((await send('POST', '/staff/reservations', { guestName: 'Split', date: DATE, time: '15:00', partySize: 2, source: 'walk_in', tableIds: [t1.id, u1.id] })).status).toBe(422)
+	})
+	it('staff paths enforce area capacity; walk-in can be created confirmed; notice needs a date', async () => {
+		const venue = (await prisma.venue.findUnique({ where: { slug: 'bali' } }))!
+		const terrace = (await prisma.seatingArea.findFirst({ where: { venueId: venue.id, name: 'Terrace' } }))!
+		await prisma.user.create({
+			data: { name: 'Admin', login: 'capadmin', passwordHash: await hash('pw-12345'), active: true, venues: { create: { venueId: venue.id, role: 'admin' } } },
+		})
+		const login = await fetch(`${baseUrl}/staff/login`, {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify({ login: 'capadmin', password: 'pw-12345' }),
+		})
+		const cookie = login.headers.get('set-cookie')!.split(';')[0]
+		const send = (method: string, path: string, body: unknown) =>
+			fetch(`${baseUrl}${path}`, { method, headers: { 'Content-Type': 'application/json', cookie }, body: JSON.stringify(body) })
+		const guest = await prisma.guest.create({ data: { venueId: venue.id, fullName: 'Cap Guest', phone: '+62 811 000 222' } })
+		const startsAt = new Date(`${DATE}T12:00:00Z`)
+		const book = (areaId: string, partySize: number, code: string) =>
+			prisma.reservation.create({ data: { venueId: venue.id, bookingCode: code, guestId: guest.id, seatingAreaId: areaId, startsAt, partySize, source: 'website', status: 'confirmed' } })
+
+		// Terrace (capacity 14) is full; a Main Hall booking cannot be moved into it.
+		await book(terrace.id, 14, 'CAPFULL1')
+		const moving = await book(areaIds[0], 2, 'CAPMOVE1')
+		expect((await send('PATCH', `/staff/reservations/${moving.id}`, { seatingAreaId: terrace.id })).status).toBe(409)
+		expect((await prisma.reservation.findUnique({ where: { id: moving.id } }))!.seatingAreaId).toBe(areaIds[0])
+
+		// Walk-in into the explicit full area -> 409.
+		const walk = { guestName: 'Walk', date: localDate(startsAt, venue.timeZone), time: localTime(startsAt, venue.timeZone), partySize: 2, source: 'walk_in' }
+		expect((await send('POST', '/staff/reservations', { ...walk, seatingAreaId: terrace.id })).status).toBe(409)
+
+		// Walk-in created as confirmed: one status event, toStatus confirmed.
+		const ok = await send('POST', '/staff/reservations', { ...walk, seatingAreaId: areaIds[0], status: 'confirmed' })
+		expect(ok.status).toBe(200)
+		const { reservationId } = await ok.json()
+		expect((await prisma.reservation.findUnique({ where: { id: reservationId } }))!.status).toBe('confirmed')
+		const events = await prisma.reservationStatusEvent.findMany({ where: { reservationId } })
+		expect(events).toHaveLength(1)
+		expect(events[0]).toMatchObject({ fromStatus: null, toStatus: 'confirmed' })
+
+		// Notice enabled without a date -> 422.
+		expect((await send('PATCH', `/admin/venues/${venue.id}`, { noticeEnabled: true, noticeDate: null })).status).toBe(422)
+		expect((await send('PATCH', `/admin/venues/${venue.id}`, { noticeEnabled: true, noticeDate: DATE })).status).toBe(200)
 	})
 })

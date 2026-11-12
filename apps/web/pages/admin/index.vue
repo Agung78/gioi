@@ -16,18 +16,29 @@ import Sparkline from '@/components/Sparkline.vue'
 import Pagination from '@/components/Pagination.vue'
 import { usePagination } from '@/composables/usePagination'
 import { useAuthStore } from '@/stores/auth'
-import { downloadExportCSV, type AdminAnalytics } from '@/composables/useApi'
+import type { AdminAnalytics } from '@/composables/useApi'
 
 const exportMsg = ref('')
-async function exportCsv() {
+// Same escaping as apps/api/src/lib/csv.ts (formula-injection prefix, then quote).
+const csvEscape = (v: unknown) => {
+	let s = String(v ?? '')
+	if (/^\s*[=+\-@]/.test(s) || /^[\t\r]/.test(s)) s = `'${s}`
+	if (s.includes(',') || s.includes('"') || s.includes('\n') || s.includes('\r')) return `"${s.replace(/"/g, '""')}"`
+	return s
+}
+// Exports exactly the rows the table shows (range/status/source/occasion filters + search).
+function exportCsv() {
 	try {
-		const venueId = analytics.value?.venueId
-		if (!venueId) throw new Error('no venue')
-		const csv = await downloadExportCSV(venueId)
+		const header = ['booking_code', 'guest_name', 'phone', 'email', 'party_size', 'date', 'time', 'area', 'source', 'status', 'allergies', 'accessibility']
+		const rows = searchedReservations.value.map((r) => {
+			const g = guests.value.find((x) => x.id === r.guestId)
+			return [r.bookingCode, g?.fullName, g?.phone, g?.email, r.partySize, r.date, r.time, areaName(r.seatingAreaId), r.source, r.status, g?.allergies?.join('; '), g?.accessibility]
+		})
+		const csv = [header, ...rows].map((row) => row.map(csvEscape).join(',')).join('\n')
 		const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8;' }))
 		const a = document.createElement('a')
 		a.href = url
-		a.download = `gioi-reservations-${new Date().toISOString().slice(0, 10)}.csv`
+		a.download = `gioi-reservations-${filters.value.rangeStart}_${filters.value.rangeEnd}.csv`
 		a.click()
 		setTimeout(() => URL.revokeObjectURL(url), 1000)
 		exportMsg.value = ''

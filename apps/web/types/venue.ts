@@ -62,6 +62,7 @@ export interface CreateReservationBody {
   idempotencyKey?: string
   website?: string
   noticeAccepted?: boolean
+  marketingConsent?: boolean
 }
 
 export interface CreateReservationResponse {

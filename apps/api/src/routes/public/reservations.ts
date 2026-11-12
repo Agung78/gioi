@@ -24,6 +24,7 @@ interface CreateReservationBody {
 	idempotencyKey?: string
 	source?: 'website' | 'instagram' | 'google' | 'whatsapp'
 	noticeAccepted?: boolean
+	marketingConsent?: boolean
 }
 
 interface FeedbackBody {
@@ -60,6 +61,7 @@ export function registerPublicReservationRoutes(app: FastifyInstance, prisma: Pr
 						// Guests may only claim marketing channels, never staff ones (host, walk_in, ...).
 						source: { type: 'string', enum: ['website', 'instagram', 'google', 'whatsapp'] },
 						noticeAccepted: { type: 'boolean' },
+						marketingConsent: { type: 'boolean' },
 						website: { type: 'string', maxLength: 200 },
 						country: { type: 'string', maxLength: 80 },
 					},
@@ -149,6 +151,8 @@ export function registerPublicReservationRoutes(app: FastifyInstance, prisma: Pr
 						...(body.allergies?.length ? { allergies: { set: [...new Set([...(existing?.allergies ?? []), ...body.allergies])] } } : {}),
 						...(body.accessibility ? { accessibility: body.accessibility } : {}),
 						...(body.country ? { country: body.country } : {}),
+						// Opt-in only: an unticked box on a later booking is not a withdrawal.
+						...(body.marketingConsent ? { marketingConsent: true, marketingConsentAt: new Date() } : {}),
 					},
 					create: {
 						venueId: venue.id,
@@ -158,6 +162,7 @@ export function registerPublicReservationRoutes(app: FastifyInstance, prisma: Pr
 						allergies: body.allergies ?? [],
 						country: body.country || null,
 						accessibility: body.accessibility ?? null,
+						...(body.marketingConsent ? { marketingConsent: true, marketingConsentAt: new Date() } : {}),
 					},
 				})
 

@@ -38,7 +38,7 @@ async function load(day?: string) {
 	lastError.value = null
 	if (auth.isSuperAdmin && !auth.selectedVenueId) return // wait for the super admin to pick a venue
 	try {
-		const d = await fetchDay(day, auth.isSuperAdmin ? auth.selectedVenueId : undefined)
+		const d = await fetchDay(day, auth.isSuperAdmin ? auth.selectedVenueId ?? undefined : undefined)
 		reservations.value = d.reservations
 		areas.value = d.areas
 		venue.value = d.venue

@@ -83,6 +83,7 @@ export interface CreateWalkInBody {
 	seatingAreaId?: string
 	tableIds?: string[]
 	takeOver?: boolean
+	status?: 'pending' | 'confirmed'
 	occasion?: string
 	guestNotes?: string
 	internalNotes?: string
@@ -166,8 +167,8 @@ export interface StaffGuest {
 	}>
 }
 
-export async function fetchGuests(q?: string): Promise<StaffGuest[]> {
-	return apiFetch<StaffGuest[]>('/staff/guests', { query: q ? { q } : undefined })
+export async function fetchGuests(q?: string, venueId?: string): Promise<StaffGuest[]> {
+	return apiFetch<StaffGuest[]>('/staff/guests', { query: q || venueId ? { ...(q ? { q } : {}), ...(venueId ? { venueId } : {}) } : undefined })
 }
 
 export async function fetchGuest(id: string): Promise<StaffGuest> {
@@ -197,7 +198,9 @@ export interface AdminAnalytics {
 		id: string
 		fullName: string
 		phone: string
+		email?: string
 		allergies: string[]
+		accessibility?: string
 	}>
 	feedback: Array<{
 		id: string

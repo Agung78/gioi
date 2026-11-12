@@ -18,7 +18,7 @@ import { csvEscape } from '../../lib/csv'
 import { hash } from '@node-rs/argon2'
 import { venueToSettings, noticeDateOf } from '../../lib/settings'
 import { requireAuth, requireAdmin, requireVenueAccess } from '../../lib/middleware'
-import { claimTable, isLate, requestedTableArea, tableHolders, type TableHolder } from '../../lib/tables'
+import { assertAreaCapacity, claimTable, isLate, requestedTableArea, tableHolders, type TableHolder } from '../../lib/tables'
 import {
 	localDate,
 	localTime,
@@ -143,6 +143,7 @@ export function registerStaffRoutes(app: FastifyInstance, prisma: PrismaClient):
 						country: { type: 'string', maxLength: 80 },
 						source: { type: 'string' },
 						takeOver: { type: 'boolean' },
+						status: { type: 'string', enum: ['pending', 'confirmed'] },
 					},
 				},
 			},
@@ -215,6 +216,9 @@ export function registerStaffRoutes(app: FastifyInstance, prisma: PrismaClient):
 				const chosen = await claimTable(tx, venueId, areaId, startsAt, venue.diningMinutes, body.partySize as number, tableReq, {
 					takeOver: body.takeOver === true ? { graceMinutes: venue.graceMinutes, actorUserId: session.user.id } : undefined,
 				})
+				// After claimTable: takeover has marked late holders no_show, so they no longer count.
+				await assertAreaCapacity(tx, areaId, startsAt, venue.diningMinutes, body.partySize as number)
+				const status = body.status === 'confirmed' ? 'confirmed' : 'pending'
 
 				const phone = ((body.phone as string | undefined) ?? '').trim() || null
 				const country = typeof body.country === 'string' ? body.country.trim() : undefined
@@ -244,7 +248,7 @@ export function registerStaffRoutes(app: FastifyInstance, prisma: PrismaClient):
 						guestNotes: (body.guestNotes as string | undefined) ?? null,
 						internalNotes: (body.internalNotes as string | undefined) ?? null,
 						source: body.source as Channel,
-						status: 'pending',
+						status,
 						createdById: session.user.id,
 						tables: chosen.length ? { create: chosen.map((tableId) => ({ tableId })) } : undefined,
 					},
@@ -254,7 +258,7 @@ export function registerStaffRoutes(app: FastifyInstance, prisma: PrismaClient):
 					data: {
 						reservationId: reservation.id,
 						fromStatus: null,
-						toStatus: 'pending',
+						toStatus: status,
 						actorType: 'user',
 						actorUserId: session.user.id,
 						reason: 'staff create',
@@ -320,6 +324,18 @@ export function registerStaffRoutes(app: FastifyInstance, prisma: PrismaClient):
 					if (newTables?.length) {
 						await tx.reservationTable.deleteMany({ where: { reservationId: reservation.id } })
 						await tx.reservationTable.createMany({ data: newTables.map((tableId) => ({ reservationId: reservation.id, tableId })) })
+					}
+				}
+				const finalArea = (updates.seatingAreaId as string | undefined) ?? reservation.seatingAreaId
+				const finalStart = (updates.startsAt as Date | undefined) ?? reservation.startsAt
+				const finalParty = (updates.partySize as number | undefined) ?? reservation.partySize
+				const moved = finalArea !== reservation.seatingAreaId || finalParty !== reservation.partySize || finalStart.getTime() !== reservation.startsAt.getTime()
+				if (moved) {
+					const [area] = await tx.$queryRaw<{ id: string }[]>`SELECT id FROM seating_areas WHERE id = ${finalArea}::uuid AND venue_id = ${reservation.venueId}::uuid FOR UPDATE`
+					if (!area) throw unprocessable('unknown seating area')
+					if (['pending', 'confirmed', 'arrived', 'seated'].includes(reservation.status)) {
+						const { diningMinutes } = await tx.venue.findUniqueOrThrow({ where: { id: reservation.venueId }, select: { diningMinutes: true } })
+						await assertAreaCapacity(tx, finalArea, finalStart, diningMinutes, finalParty, reservation.id)
 					}
 				}
 				if (Object.keys(updates).length > 0) updates.updatedAt = new Date()
@@ -609,6 +625,7 @@ export function registerStaffRoutes(app: FastifyInstance, prisma: PrismaClient):
 				}
 			}
 			if (typeof (data.noticeEnabled ?? venue.noticeEnabled) !== 'boolean') throw unprocessable('noticeEnabled must be a boolean')
+			if ((data.noticeEnabled ?? venue.noticeEnabled) && (data.noticeDate === undefined ? venue.noticeDate : data.noticeDate) === null) throw unprocessable('noticeDate is required when the notice is enabled')
 			for (const key of ['bookingIntervalMinutes', 'partyMin', 'partyMax', 'diningMinutes', 'leadTimeMinutes', 'cutoffMinutes', 'noShowTargetPercent', 'overCapacityAlertPercent']) {
 				const v = data[key]
 				if (v !== undefined && (!Number.isInteger(v) || (v as number) < 0)) throw unprocessable(`${key} must be a non-negative integer`)
