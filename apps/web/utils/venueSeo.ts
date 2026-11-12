@@ -21,7 +21,6 @@ export interface VenueSeo {
     imageAlt: string
     experienceTitle: string
     scenes: { time: string; title: string; copy: string; img: string; alt: string; feature?: boolean }[]
-    menuHighlights: string[]
     gettingHere: string
     faqs: { q: string; a: string }[]
     visitTitle: string
@@ -58,7 +57,6 @@ export const VENUE_SEO: Record<string, VenueSeo> = {
         { time: 'Sunset', title: 'Golden Hour', copy: 'Golden skies, chilled beers, and signature cocktails by the sea. Catch the sunset, sip, and let the good times roll.', img: '/images/venues/bali/outlet-07.webp', alt: 'Beachfront tables facing the sunset at GIOI Ocean Gourmet, Kuta', feature: true },
         { time: 'Dinner', title: 'Evening Experience', copy: 'Warm ambience, indulgent seafood platters, and perfectly juicy steaks. Make tonight a little more special at GIOI.', img: '/images/venues/bali/outlet-05.webp', alt: 'Evening dinner setting at GIOI Ocean Gourmet, Kuta Beach' },
       ],
-      menuHighlights: ['Seafood platters', 'Steaks', 'Signature cocktails', 'Breakfast coffee'],
       gettingHere: 'GIOI Ocean Gourmet is on the ground floor of Discovery Mall Bali, on the beach side along Jl. Kartika Plaza in Kuta.',
       faqs: [
         { q: 'What are your opening hours?', a: 'We serve breakfast from 10 AM and are open through dinner. See the hours block on this page for daily open and close times.' },
