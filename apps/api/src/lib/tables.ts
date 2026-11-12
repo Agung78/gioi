@@ -109,3 +109,21 @@ export async function claimTable(
 	const fit = tables.find((t) => !held.has(t.id))
 	return fit ? [fit.id] : []
 }
+
+// Mirrors the public booking check. Call after the area row is locked FOR UPDATE: active party sizes within
+// ± diningMinutes of startsAt (excluding excludeReservationId) plus partySize must fit the area capacity.
+export async function assertAreaCapacity(db: Prisma.TransactionClient, areaId: string, startsAt: Date, diningMinutes: number, partySize: number, excludeReservationId?: string): Promise<void> {
+	const [{ capacity }, agg] = await Promise.all([
+		db.seatingArea.findUniqueOrThrow({ where: { id: areaId }, select: { capacity: true } }),
+		db.reservation.aggregate({
+			where: {
+				seatingAreaId: areaId,
+				id: excludeReservationId ? { not: excludeReservationId } : undefined,
+				startsAt: { gt: new Date(startsAt.getTime() - diningMinutes * 60000), lt: new Date(startsAt.getTime() + diningMinutes * 60000) },
+				status: { in: ['pending', 'confirmed', 'arrived', 'seated'] },
+			},
+			_sum: { partySize: true },
+		}),
+	])
+	if (Number(agg._sum.partySize ?? 0) + partySize > capacity) throw conflict('full')
+}

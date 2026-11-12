@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import {
 	todayISO,
 	resolveDateRange,
@@ -11,22 +11,32 @@ import {
 } from '@gioi/domain'
 import { statusLabel } from '@gioi/domain'
 import StatusChip from '@/components/StatusChip.vue'
+import DatePicker from '@/components/DatePicker.vue'
 import BarChart from '@/components/BarChart.vue'
 import Sparkline from '@/components/Sparkline.vue'
 import Pagination from '@/components/Pagination.vue'
 import { usePagination } from '@/composables/usePagination'
-import { downloadExportCSV, type AdminAnalytics } from '@/composables/useApi'
+import { useAuthStore } from '@/stores/auth'
+import type { AdminAnalytics } from '@/composables/useApi'
 
 const exportMsg = ref('')
-async function exportCsv() {
+// Same escaping as apps/api/src/lib/csv.ts (formula-injection prefix, then quote).
+const csvEscape = (v: unknown) => {
+	let s = String(v ?? '')
+	if (/^\s*[=+\-@]/.test(s) || /^[\t\r]/.test(s)) s = `'${s}`
+	if (s.includes(',') || s.includes('"') || s.includes('\n') || s.includes('\r')) return `"${s.replace(/"/g, '""')}"`
+	return s
+}
+// Exports exactly the rows the table shows (range/status/source/occasion filters + search).
+function exportCsv() {
 	try {
-		const venueId = analytics.value?.venueId
-		if (!venueId) throw new Error('no venue')
-		const csv = await downloadExportCSV(venueId)
+		const header = ['booking_code', 'guest_name', 'phone', 'email', 'party_size', 'date', 'time', 'area', 'source', 'status', 'allergies', 'accessibility']
+		const rows = searchedReservations.value.map((r) => [r.bookingCode, r.guestName ?? '', r.guestPhone ?? '', r.guestEmail ?? '', r.partySize, r.date, r.time, areaName(r.seatingAreaId), r.source, r.status, (r.guestAllergies ?? []).join('; '), r.guestAccessibility ?? ''])
+		const csv = [header, ...rows].map((row) => row.map(csvEscape).join(',')).join('\n')
 		const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8;' }))
 		const a = document.createElement('a')
 		a.href = url
-		a.download = `gioi-reservations-${new Date().toISOString().slice(0, 10)}.csv`
+		a.download = `gioi-reservations-${filters.value.rangeStart}_${filters.value.rangeEnd}.csv`
 		a.click()
 		setTimeout(() => URL.revokeObjectURL(url), 1000)
 		exportMsg.value = ''
@@ -37,25 +47,31 @@ async function exportCsv() {
 const today = todayISO()
 const preset = ref<DateRangePreset>('last30')
 const filters = ref(defaultDashboardFilters(today))
+const auth = useAuthStore()
 
-const { data: analytics, error: analyticsError } = await useFetch<AdminAnalytics>(() => {
+const { data: analytics, error: analyticsError, refresh } = await useFetch<AdminAnalytics>(() => {
 	const params = new URLSearchParams()
 	params.set('from', filters.value.rangeStart)
 	params.set('to', filters.value.rangeEnd)
 	if (filters.value.status !== 'all') params.set('status', filters.value.status)
 	if (filters.value.source !== 'all') params.set('source', filters.value.source)
 	if (filters.value.occasion !== 'all') params.set('occasion', filters.value.occasion)
+	if (auth.isSuperAdmin && auth.selectedVenueId) params.set('venueId', auth.selectedVenueId)
 	return `/api/admin/analytics?${params}`
 }, {
 	server: true,
 	credentials: 'include',
 })
 
+watch(() => auth.selectedVenueId, () => {
+	if (auth.isSuperAdmin && auth.selectedVenueId) refresh()
+})
+
 const dashboard = computed(() => analytics.value?.dashboard ?? null)
 const analyticsErrorMessage = computed(() => (analyticsError.value?.data as { message?: string } | null)?.message ?? analyticsError.value?.message)
 const settings = computed(() => analytics.value?.settings)
-const guests = computed(() => analytics.value?.guests ?? [])
 const feedback = computed(() => analytics.value?.feedback ?? [])
+const turnTime = computed(() => analytics.value?.turnTime ?? null)
 
 function setPreset(next: DateRangePreset) {
 	preset.value = next
@@ -66,7 +82,6 @@ function setPreset(next: DateRangePreset) {
 const statusOptions: ReservationStatus[] = ['pending', 'confirmed', 'arrived', 'seated', 'completed', 'cancelled', 'no_show']
 const occasions = computed(() => [...new Set((dashboard.value?.filtered ?? []).map((r) => r.occasion?.trim() || 'No occasion'))].sort())
 const areas = computed(() => (settings.value as any)?.seatingAreas ?? [])
-const guestName = (id: string) => guests.value.find((g) => g.id === id)?.fullName ?? 'Unknown guest'
 const areaName = (id: string) => areas.value.find((a: { id: string; name: string }) => a.id === id)?.name ?? id
 const rangeLabel = computed(() => `${filters.value.rangeStart} → ${filters.value.rangeEnd}`)
 const periodLabel = computed(() => ({ today: 'today', last7: 'last 7 days', last30: 'last 30 days', custom: rangeLabel.value })[preset.value])
@@ -75,12 +90,9 @@ const searchedReservations = computed(() => {
 	const q = search.value.trim().toLowerCase()
 	const base = dashboard.value?.filtered ?? []
 	if (!q) return base
-	return base.filter((r) => {
-		const g = guests.value.find((g) => g.id === r.guestId)
-		return [g?.fullName, r.bookingCode, g?.phone].some((v) => v?.toLowerCase().includes(q))
-	})
+	return base.filter((r) => [r.guestName, r.bookingCode, r.guestPhone].some((v) => v?.toLowerCase().includes(q)))
 })
-const { page: resPage, pageCount: resPageCount, paged: resPaged } = usePagination(searchedReservations, 25)
+const { page: resPage, pageCount: resPageCount, paged: resPaged } = usePagination(searchedReservations, 10)
 const { page: fbPage, pageCount: fbPageCount, paged: fbPaged } = usePagination(feedback, 10)
 const cueLink = (cue: { guestId?: string; kind: string }) =>
 	cue.guestId ? `/guests/${cue.guestId}` : cue.kind === 'slot_over_capacity' ? '/host' : null
@@ -105,10 +117,16 @@ const occasionRows = computed(() => dashboard.value?.guestMix.occasionMix.map((o
 const partySizeRows = computed(() => dashboard.value?.guestMix.partySizeMix.map((p) => ({ label: `${p.bucket} pax`, value: p.bookings })) ?? [])
 const reliabilityValues = computed(() => dashboard.value?.reliability.byDay.map((d) => d.noShowRate) ?? [])
 const upcoming30Covers = computed(() => dashboard.value?.upcoming30.daysBreakdown.map((d) => d.covers) ?? [])
+const upcoming30Labels = computed(() => dashboard.value?.upcoming30.daysBreakdown.map((d) => describeDayLabel(d.date, today)) ?? [])
+const upcoming30Details = computed(() => dashboard.value?.upcoming30.daysBreakdown.map((d) => `${d.bookings} ${d.bookings === 1 ? 'booking' : 'bookings'} · ${d.fillPercent}% full`) ?? [])
 const upcoming30Peak = computed(() => dashboard.value?.upcoming30.daysBreakdown.reduce((a, b) => (b.covers > a.covers ? b : a), { date: '', covers: 0 }) ?? { date: '', covers: 0 })
 const isMilestoneDay = (date: string, index: number) => {
 	const day = new Date(date + 'T00:00:00').getDate()
-	return index === 0 || index === 29 || day === 1 || day === 15 || (index + 1) % 5 === 0
+	return index === 0 || day === 1 || (index % 5 === 0 && day > 3 && day < 28)
+}
+const axisLabel = (date: string, index: number) => {
+	const d = new Date(date + 'T00:00:00')
+	return index === 0 || d.getDate() === 1 ? d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) : String(d.getDate())
 }
 const cueLabel: Record<string, string> = {
 	slot_over_capacity: 'Slot over capacity',
@@ -123,7 +141,6 @@ definePageMeta({ middleware: ['auth', 'admin'] })
 	<div class="mx-auto max-w-6xl px-4 py-8">
 		<header class="mb-6 flex flex-wrap items-baseline justify-between gap-3">
 			<div>
-				<p class="text-xs uppercase tracking-wide text-muted">Manager dashboard</p>
 				<h1 class="font-display text-3xl font-semibold text-ink">
 					{{ new Date((analytics?.today ?? today) + 'T00:00:00').toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' }) }}
 				</h1>
@@ -141,10 +158,10 @@ definePageMeta({ middleware: ['auth', 'admin'] })
 				</select>
 			</label>
 			<label v-if="preset === 'custom'" class="label">From
-				<input v-model="filters.rangeStart" type="date" class="field mt-1 !py-1.5 !px-3 text-sm">
+				<DatePicker v-model="filters.rangeStart" class="mt-1 !py-1.5 !px-3 text-sm" />
 			</label>
 			<label v-if="preset === 'custom'" class="label">To
-				<input v-model="filters.rangeEnd" type="date" class="field mt-1 !py-1.5 !px-3 text-sm">
+				<DatePicker v-model="filters.rangeEnd" class="mt-1 !py-1.5 !px-3 text-sm" />
 			</label>
 			<label class="label">Status
 				<select v-model="filters.status" class="field mt-1 !py-1.5 !px-3 text-sm">
@@ -237,17 +254,13 @@ definePageMeta({ middleware: ['auth', 'admin'] })
 				<p v-if="dashboard" class="mt-1 text-xs text-muted">
 					{{ dashboard.upcoming30.totalCovers }} covers · avg {{ Math.round(dashboard.upcoming30.totalCovers / 30) }}/day<template v-if="upcoming30Peak.date"> · peak {{ upcoming30Peak.covers }} on {{ describeDayLabel(upcoming30Peak.date, today) }}</template>
 				</p>
-				<Sparkline v-if="dashboard" class="mt-3" :values="upcoming30Covers" :height="120" />
-				<div class="grid text-center text-[10px] leading-tight text-muted" style="grid-template-columns: repeat(30, minmax(0, 1fr))">
+				<Sparkline v-if="dashboard" class="mt-3" :values="upcoming30Covers" :height="120" :labels="upcoming30Labels" :details="upcoming30Details" unit="covers" />
+				<div class="mt-1 grid text-center text-xs text-muted" style="grid-template-columns: repeat(30, minmax(0, 1fr))">
 					<span
 						v-for="(d, i) in dashboard?.upcoming30.daysBreakdown ?? []"
 						:key="d.date"
-						class="py-1"
-						:class="isMilestoneDay(d.date, i) ? '' : 'invisible lg:visible'"
-						:title="`${describeDayLabel(d.date, today)}: ${d.covers} covers · ${d.bookings} bookings · ${d.fillPercent}% full`"
-					>
-						<span class="block font-medium text-ink">{{ d.covers }}</span>{{ new Date(d.date + 'T00:00:00').getDate() }}
-					</span>
+						class="whitespace-nowrap py-1"
+					>{{ isMilestoneDay(d.date, i) ? axisLabel(d.date, i) : '' }}</span>
 				</div>
 			</section>
 
@@ -299,8 +312,19 @@ definePageMeta({ middleware: ['auth', 'admin'] })
 				<h4 v-if="dashboard" class="mt-4 label">No-show rate trend</h4>
 				<Sparkline v-if="dashboard" :values="reliabilityValues" :height="80" color="rgb(var(--brand-sun))" fill="rgb(var(--brand-sun) / 0.12)" />
 			</section>
+			<section class="card lg:col-span-3">
+				<h3 class="font-display text-lg font-semibold text-ink">Turn time <span class="ml-1 text-xs font-normal text-muted">{{ periodLabel }}</span></h3>
+				<dl v-if="turnTime?.byArea.some((a) => a.sampleCount)" class="mt-4 grid gap-x-8 gap-y-4 sm:grid-cols-2 lg:grid-cols-4">
+					<div v-for="area in turnTime.byArea.filter((a) => a.sampleCount)" :key="area.areaId">
+						<dt class="text-sm text-muted">{{ area.areaName }}</dt>
+						<dd class="text-2xl font-semibold text-ink">{{ area.sampleCount ? Math.round(area.averageMinutes) + ' min' : '—' }}</dd>
+						<p class="text-xs text-muted">{{ area.sampleCount }} seatings · target {{ area.diningMinutes }} min</p>
+					</div>
+				</dl>
+				<p v-else class="mt-4 text-sm text-muted">No completed seatings in this range.</p>
+				<p class="mt-3 text-xs text-muted">Measured from the Seated to Completed clicks, so late clicks inflate it.</p>
+			</section>
 		</div>
-
 		<section class="card mt-4">
 			<div class="flex flex-wrap items-baseline justify-between gap-2">
 				<h3 class="font-display text-lg font-semibold text-ink">Guest feedback</h3>
@@ -313,11 +337,11 @@ definePageMeta({ middleware: ['auth', 'admin'] })
 					<div class="mt-2 flex flex-wrap gap-1.5"><span v-for="[tag, n] in feedbackTags" :key="tag" class="rounded-full bg-line px-2.5 py-0.5 text-xs text-ink">{{ tag }} · {{ n }}</span></div>
 				</div>
 			</div>
-			<div v-if="feedback.length" class="mt-4 space-y-3">
+			<div v-if="feedback.length" class="mt-4 divide-y divide-line border-t border-line">
 				<article
 					v-for="response in fbPaged"
 					:key="response.id"
-					class="group rounded-input bg-line/30 p-3 text-sm cursor-pointer transition hover:bg-line/60 focus:outline-none focus:ring-2 focus:ring-accent"
+					class="group -mx-2 cursor-pointer rounded-input px-2 py-3 text-sm transition hover:bg-line/40 focus:outline-none focus:ring-2 focus:ring-accent"
 					tabindex="0"
 					role="button"
 					aria-label="View feedback details"
@@ -431,7 +455,7 @@ definePageMeta({ middleware: ['auth', 'admin'] })
 			<div v-if="searchedReservations.length" class="mt-4 overflow-x-auto">
 				<table class="w-full text-left text-sm">
 					<thead><tr class="border-b border-line text-muted"><th class="p-2">Date</th><th class="p-2">Guest</th><th class="p-2">Party</th><th class="p-2">Area</th><th class="p-2">Source</th><th class="p-2">Status</th></tr></thead>
-					<tbody><tr v-for="reservation in resPaged" :key="reservation.id" class="border-b border-line"><td class="p-2">{{ reservation.date }} {{ reservation.time }}</td><td class="p-2"><NuxtLink :to="`/guests/${reservation.guestId}`" class="font-medium text-accent underline underline-offset-2">{{ guestName(reservation.guestId) }}</NuxtLink><div class="text-xs text-muted">{{ reservation.bookingCode }}</div></td><td class="p-2">{{ reservation.partySize }}</td><td class="p-2">{{ areaName(reservation.seatingAreaId) }}</td><td class="p-2">{{ reservation.source }}</td><td class="p-2"><StatusChip :status="reservation.status" /></td></tr></tbody>
+					<tbody><tr v-for="reservation in resPaged" :key="reservation.id" class="border-b border-line"><td class="p-2">{{ reservation.date }} {{ reservation.time }}</td><td class="p-2"><NuxtLink :to="`/guests/${reservation.guestId}`" class="font-medium text-accent underline underline-offset-2">{{ reservation.guestName ?? 'Unknown guest' }}</NuxtLink><div class="text-xs text-muted">{{ reservation.bookingCode }}</div></td><td class="p-2">{{ reservation.partySize }}</td><td class="p-2">{{ areaName(reservation.seatingAreaId) }}</td><td class="p-2">{{ reservation.source }}</td><td class="p-2"><StatusChip :status="reservation.status" /></td></tr></tbody>
 				</table>
 				<Pagination v-model:page="resPage" :page-count="resPageCount" />
 			</div>

@@ -11,9 +11,9 @@ import {
 	fetchVenue, updateVenue,
 	fetchOpeningHours, saveOpeningHours,
 	fetchClosedDates, saveClosedDates,
-	fetchUsers, saveUsers, createUser, removeUser, fetchVenues, createVenue, fetchMe,
+	fetchUsers, saveUsers, createUser, removeUser, createVenue, fetchMe,
 	downloadExportCSV, fetchFloorPlan, saveFloorImage,
-	type VenueSettings, type OpeningHoursRow, type ClosedDateRow, type StaffUserRow, type VenueSummary,
+	type VenueSettings, type OpeningHoursRow, type ClosedDateRow, type StaffUserRow,
 } from '@/composables/useApi'
 
 const DAYS_OF_WEEK: DayOfWeek[] = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun']
@@ -26,8 +26,8 @@ function hhmm(minutes: number | undefined): string {
 }
 
 const route = useRoute()
-let venueId = String(route.query.venueId || '')
 const auth = useAuthStore()
+let venueId = String(route.query.venueId || (auth.isSuperAdmin ? auth.selectedVenueId : '') || '')
 
 const venue = ref<VenueSettings | null>(null)
 const loading = ref(true)
@@ -50,8 +50,8 @@ async function load() {
 	loading.value = true
 	try {
 		if (auth.isSuperAdmin) {
-			venues.value = await fetchVenues()
-			if (!venues.value.some((v) => v.id === venueId)) venueId = venues.value[0]?.id ?? ''
+			if (!auth.selectedVenueId) auth.setSelectedVenueId(null)
+			venueId = auth.selectedVenueId ?? ''
 			users.value = venueId ? await fetchUsers(venueId) : []
 			floorPlan.value = venueId ? await fetchFloorPlan(venueId) : null
 			return
@@ -71,6 +71,10 @@ async function load() {
 		loading.value = false
 	}
 }
+
+watch(() => auth.selectedVenueId, (id) => {
+	if (auth.isSuperAdmin && id) { venueId = id; load() }
+})
 
 // Super admin backdrop upload. The API derives the plan height from the drawing's aspect ratio.
 async function saveImageFile(input: HTMLInputElement) {
@@ -162,15 +166,18 @@ const addUser = () => run(async () => {
 	await createUser({ venueId, ...newUser.value })
 	newUser.value = { name: '', login: '', password: '', role: 'host' }
 })
-
-const venues = ref<VenueSummary[]>([])
-const newVenue = ref({ name: '', slug: '' })
 const resetPasswords = ref<Record<string, string>>({})
-const addVenue = () => run(async () => {
-	venueId = (await createVenue(newVenue.value)).id
-	newVenue.value = { name: '', slug: '' }
-})
-const selectVenue = (id: string) => { venueId = id; return run(async () => {}) }
+const newVenue = ref({ name: '', slug: '' })
+const addVenue = async () => {
+	try {
+		auth.setSelectedVenueId((await createVenue(newVenue.value)).id)
+		location.reload() // header venue list loads once; reload picks up the new venue
+	} catch (e) {
+		const msg = (e as { data?: { message?: string } })?.data?.message
+		saved.value = `Save failed${msg ? `: ${msg}` : '.'}`
+	}
+}
+
 const removeAccount = (u: StaffUserRow) => {
 	if (confirm(`Remove ${u.login} from this venue?`)) return run(() => removeUser(u.id, venueId))
 }
@@ -227,7 +234,6 @@ definePageMeta({ middleware: ['auth', 'admin'] })
 	<div class="mx-auto max-w-5xl px-4 py-8">
 		<header class="mb-6 flex items-baseline justify-between gap-3">
 			<div>
-				<p class="text-xs uppercase tracking-wide text-muted">{{ auth.isSuperAdmin ? 'Super Admin' : 'Admin' }}</p>
 				<h1 class="font-display text-3xl font-semibold text-ink">Settings</h1>
 			</div>
 			<p v-if="saved" class="text-sm text-ink">{{ saved }}</p>
@@ -349,7 +355,7 @@ definePageMeta({ middleware: ['auth', 'admin'] })
 							{{ d.date }}
 							<button type="button" class="-my-2 -mr-2 grid h-11 w-11 place-items-center text-muted hover:text-ink" :aria-label="`Remove ${d.date}`" @click="removeClosedDate(d.date)">×</button>
 						</span>
-						<input v-model="newClosedDate" type="date" class="field !w-auto !py-1 !px-2.5 text-sm" aria-label="Closed date" @keydown.enter.prevent="addClosedDate" />
+						<DatePicker v-model="newClosedDate" class="!w-auto !py-1 !px-2.5 text-sm" aria-label="Closed date" />
 						<button class="btn-ghost" type="button" @click="addClosedDate">+ Add</button>
 					</div>
 					<p v-if="closedDateError" class="mt-1 text-xs text-danger">{{ closedDateError }}</p>
@@ -385,17 +391,9 @@ definePageMeta({ middleware: ['auth', 'admin'] })
 			</section>
 
 			<section v-if="auth.isSuperAdmin" class="card mb-6">
-				<h2 class="font-display text-xl font-semibold text-ink">Venues</h2>
-				<div class="mt-4 grid items-end gap-3 sm:grid-cols-[2fr_auto]">
-					<div>
-						<label class="label">Venue</label>
-						<select class="field" :value="venueId" :disabled="!venues.length" @change="selectVenue(($event.target as HTMLSelectElement).value)">
-							<option v-for="v in venues" :key="v.id" :value="v.id">{{ v.name }} ({{ v.slug }})</option>
-						</select>
-					</div>
-				</div>
-				<form class="mt-4 grid items-end gap-3 border-t border-line pt-4 sm:grid-cols-[2fr_1fr_auto]" @submit.prevent="addVenue">
-					<div><label class="label">New venue name</label><input v-model="newVenue.name" class="field" required /></div>
+				<h2 class="font-display text-xl font-semibold text-ink">New venue</h2>
+				<form class="mt-4 grid items-end gap-3 sm:grid-cols-[2fr_1fr_auto]" @submit.prevent="addVenue">
+					<div><label class="label">Venue name</label><input v-model="newVenue.name" class="field" required /></div>
 					<div><label class="label">Slug (URL)</label><input v-model="newVenue.slug" class="field" required pattern="[a-z0-9]+(-[a-z0-9]+)*" placeholder="bali" /></div>
 					<button class="btn-primary" type="submit">Create venue</button>
 				</form>

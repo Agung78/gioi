@@ -214,7 +214,6 @@ definePageMeta({ middleware: ['auth', 'admin', () => (useAuthStore().isSuperAdmi
 	<div class="mx-auto max-w-6xl px-4 py-8">
 		<header class="mb-6 flex flex-wrap items-baseline justify-between gap-3">
 			<div>
-				<p class="text-xs uppercase tracking-wide text-muted">Admin</p>
 				<h1 class="font-display text-3xl font-semibold text-ink">Floor plan</h1>
 			</div>
 			<div v-if="canEdit" class="flex items-center gap-2">

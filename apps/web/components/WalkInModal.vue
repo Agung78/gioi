@@ -6,7 +6,7 @@ import CountryCombobox from '@/components/CountryCombobox.vue'
 import TimePicker from '@/components/TimePicker.vue'
 import PhoneInput from '@/components/PhoneInput.vue'
 import { hasRedundantTable, todayISO } from '@gioi/domain'
-import { createWalkIn, changeReservationStatus, fetchStaffTableAvailability } from '@/composables/useApi'
+import { createWalkIn, fetchStaffTableAvailability } from '@/composables/useApi'
 
 const props = defineProps<{
 	open: boolean
@@ -137,9 +137,8 @@ async function submit() {
 			guestNotes: guestNotes.value.trim() || undefined,
 			country: country.value.trim() || undefined,
 			source: source.value,
+			status: 'confirmed', // Host accepts walk-ins on the spot
 		})
-		// Auto-confirm walk-ins (Host accepts them on the spot)
-		await changeReservationStatus(r.reservationId, { to: 'confirmed' })
 		emit('created', r.reservationId)
 		emit('close')
 	} catch (e: any) {

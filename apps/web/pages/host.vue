@@ -9,6 +9,7 @@ import GuestSearch from '@/components/GuestSearch.vue'
 import DatePicker from '@/components/DatePicker.vue'
 import WalkInModal from '@/components/WalkInModal.vue'
 import ChangeTableModal from '@/components/ChangeTableModal.vue'
+import { useAuthStore } from '@/stores/auth'
 import {
 	fetchDay,
 	changeReservationStatus,
@@ -18,6 +19,7 @@ import {
 } from '@/composables/useApi'
 
 const router = useRouter()
+const auth = useAuthStore()
 
 const date = ref(todayISO())
 const showWalkIn = ref(false)
@@ -34,8 +36,9 @@ const poll = ref<ReturnType<typeof setInterval> | null>(null)
 
 async function load(day?: string) {
 	lastError.value = null
+	if (auth.isSuperAdmin && !auth.selectedVenueId) return // wait for the super admin to pick a venue
 	try {
-		const d = await fetchDay(day)
+		const d = await fetchDay(day, auth.isSuperAdmin ? auth.selectedVenueId ?? undefined : undefined)
 		reservations.value = d.reservations
 		areas.value = d.areas
 		venue.value = d.venue
@@ -44,6 +47,7 @@ async function load(day?: string) {
 		lastError.value = e.message ?? 'Failed to load day.'
 	}
 }
+
 
 async function exportCsv() {
 	try {
@@ -61,6 +65,11 @@ async function exportCsv() {
 watch(date, (v) => {
 	load(v)
 })
+
+watch(() => auth.selectedVenueId, (id) => {
+	if (auth.isSuperAdmin && id) load(date.value)
+})
+
 
 onMounted(() => {
 	load(date.value)

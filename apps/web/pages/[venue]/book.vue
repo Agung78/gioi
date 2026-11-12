@@ -93,7 +93,7 @@ const summary = computed(() => {
 })
 
 const error = ref<string | null>(null)
-const noticeActive = computed(() => !!settings.value?.noticeEnabled && (!settings.value.noticeDate || today <= settings.value.noticeDate))
+const noticeActive = computed(() => !!settings.value?.noticeEnabled && !!settings.value.noticeDate && date.value === settings.value.noticeDate)
 watch(noticeActive, (on) => {
   noticeRead.value = noticeAccepted.value = false
   noticeOpen.value = on
@@ -259,6 +259,7 @@ async function submit() {
       source: bookingSource(route.query.src),
       website: website.value,
       noticeAccepted: noticeActive.value ? true : undefined,
+      marketingConsent: marketingConsent.value,
       country: country.value.trim() || undefined,
     }
     const res = await createReservation(venue, body, posthog?.get_distinct_id())

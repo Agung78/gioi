@@ -19,6 +19,17 @@ export const useAuthStore = defineStore('auth', () => {
 	const isAdmin = computed(() => isSuperAdmin.value || Object.values(user.value?.venueRoles ?? {}).includes('admin'))
 	/** First venue id where this user has the `admin` role (venue admin, not super admin). */
 	const adminVenueId = computed(() => Object.entries(user.value?.venueRoles ?? {}).find(([, role]) => role === 'admin')?.[0] ?? null)
+	// selectedVenueId: persisted per-client localStorage; super admin picks which venue Host/Dashboard/Settings target. Venues list itself is NOT stored—just the id.
+	const selectedVenueId = ref<string | null>(null)
+	if (import.meta.client) {
+		try { selectedVenueId.value = localStorage.getItem('gioi.venueId') ?? null } catch { /* storage unavailable */ }
+	}
+	function setSelectedVenueId(id: string | null) {
+		selectedVenueId.value = id
+		if (import.meta.client) {
+			try { id ? localStorage.setItem('gioi.venueId', id) : localStorage.removeItem('gioi.venueId') } catch { /* storage unavailable */ }
+		}
+	}
 
 	async function login(body: { login: string; password: string }) {
 		await apiLogin(body)
@@ -31,5 +42,5 @@ export const useAuthStore = defineStore('auth', () => {
 		ready.value = true
 	}
 
-	return { user, ready, isSuperAdmin, isAdmin, adminVenueId, me, login, logout }
+	return { user, ready, isSuperAdmin, isAdmin, adminVenueId, selectedVenueId, setSelectedVenueId, me, login, logout }
 })

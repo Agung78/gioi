@@ -70,7 +70,7 @@ export default defineNuxtConfig({
 		host: process.env.NUXT_PUBLIC_POSTHOG_HOST ?? 'https://us.i.posthog.com',
 		clientConfig: {
 			autocapture: false,
-			capture_pageleave: false,
+			capture_pageleave: true,
 			person_profiles: 'identified_only',
 			disable_session_recording: true,
 			opt_out_capturing_by_default: !process.env.NUXT_PUBLIC_POSTHOG_KEY, // no key (dev/CI): capture() is a silent no-op

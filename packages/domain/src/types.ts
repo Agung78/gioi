@@ -118,13 +118,18 @@ export interface Reservation {
   id: string
   bookingCode: string // human-readable, random
   guestId: string
+  guestName?: string // resolved guest full name (admin analytics only)
+  guestPhone?: string | null // resolved guest phone (admin analytics only)
+  guestEmail?: string | null // resolved guest email (admin analytics CSV only)
+  guestAllergies?: string[] // resolved guest allergies (admin analytics CSV only)
+  guestAccessibility?: string | null // resolved guest accessibility (admin analytics CSV only)
   date: string // "YYYY-MM-DD" local
   time: string // "HH:MM" local
   partySize: number
   seatingAreaId: string
   occasion?: string
   guestNotes?: string // sensitive — never on public pages
-  internalNotes?: string
+  internalNotes?: string // sensitive — never on public pages
   source: Channel
   status: ReservationStatus
   createdBy: string // user id or 'system' or 'guest'

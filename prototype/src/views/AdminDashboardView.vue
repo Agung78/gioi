@@ -10,6 +10,8 @@ import { downloadCSV, reservationsCSV } from '../stores/export'
 import BarChart from '../components/BarChart.vue'
 import Sparkline from '../components/Sparkline.vue'
 import StatusChip from '../components/StatusChip.vue'
+import Pagination from '../components/Pagination.vue'
+import { usePagination } from '../composables/usePagination'
 
 const data = useDataStore()
 const today = todayISO()
@@ -68,6 +70,9 @@ const isMilestoneDay = (date: string, index: number) => {
   return index === 0 || index === 29 || day === 1 || day === 15 || (index + 1) % 5 === 0
 }
 const cueLabel:Record<string, string> = { slot_over_capacity: 'Slot over capacity', no_show_rate_high: 'No-show rate above target', cancellation_rate_high: 'Cancellation rate high', allergy_repeat_today: 'Allergy repeat guest today' }
+const feedbackResponsesRef = computed(() => data.feedbackResponses)
+const { page: fbPage, pageCount: fbPageCount, paged: fbPaged } = usePagination(feedbackResponsesRef, 10)
+const { page: resPage, pageCount: resPageCount, paged: resPaged } = usePagination(searchedReservations, 10)
 </script>
 
 <template>
@@ -239,7 +244,7 @@ const cueLabel:Record<string, string> = { slot_over_capacity: 'Slot over capacit
       </div>
       <div v-if="data.feedbackResponses.length" class="mt-4 space-y-3">
         <article
-          v-for="response in data.feedbackResponses.slice(0, 10)"
+          v-for="response in fbPaged"
           :key="response.id"
           class="group rounded-input bg-line/30 p-3 text-sm cursor-pointer transition hover:bg-line/60 focus:outline-none focus:ring-2 focus:ring-accent"
           tabindex="0"
@@ -255,6 +260,7 @@ const cueLabel:Record<string, string> = { slot_over_capacity: 'Slot over capacit
             <span class="text-xs font-medium text-accent underline underline-offset-2">View details →</span>
           </div>
         </article>
+        <Pagination v-model:page="fbPage" :page-count="fbPageCount" />
       </div>
       <p v-else class="mt-4 text-sm text-muted">No native feedback responses yet.</p>
     </section>
@@ -373,9 +379,9 @@ const cueLabel:Record<string, string> = { slot_over_capacity: 'Slot over capacit
       <div v-if="searchedReservations.length" class="mt-4 overflow-x-auto">
         <table class="w-full text-left text-sm">
           <thead><tr class="border-b border-line text-muted"><th class="p-2">Date</th><th class="p-2">Guest</th><th class="p-2">Party</th><th class="p-2">Area</th><th class="p-2">Source</th><th class="p-2">Status</th></tr></thead>
-          <tbody><tr v-for="reservation in searchedReservations.slice(0, 50)" :key="reservation.id" class="border-b border-line"><td class="p-2">{{ reservation.date }} {{ reservation.time }}</td><td class="p-2"><RouterLink :to="{ name: 'guest', params: { id: reservation.guestId } }" class="font-medium text-accent underline underline-offset-2">{{ guestName(reservation.guestId) }}</RouterLink><div class="text-xs text-muted">{{ reservation.bookingCode }}</div></td><td class="p-2">{{ reservation.partySize }}</td><td class="p-2">{{ areaName(reservation.seatingAreaId) }}</td><td class="p-2">{{ reservation.source }}</td><td class="p-2"><StatusChip :status="reservation.status" /></td></tr></tbody>
+          <tbody><tr v-for="reservation in resPaged" :key="reservation.id" class="border-b border-line"><td class="p-2">{{ reservation.date }} {{ reservation.time }}</td><td class="p-2"><RouterLink :to="{ name: 'guest', params: { id: reservation.guestId } }" class="font-medium text-accent underline underline-offset-2">{{ guestName(reservation.guestId) }}</RouterLink><div class="text-xs text-muted">{{ reservation.bookingCode }}</div></td><td class="p-2">{{ reservation.partySize }}</td><td class="p-2">{{ areaName(reservation.seatingAreaId) }}</td><td class="p-2">{{ reservation.source }}</td><td class="p-2"><StatusChip :status="reservation.status" /></td></tr></tbody>
         </table>
-        <p v-if="searchedReservations.length > 50" class="mt-2 text-xs text-muted">Showing first 50 reservations.</p>
+        <Pagination v-model:page="resPage" :page-count="resPageCount" />
       </div>
       <p v-else class="mt-4 text-sm text-muted">No reservations match these filters.</p>
     </section>

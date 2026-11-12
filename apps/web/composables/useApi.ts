@@ -69,8 +69,8 @@ export interface DayView {
 	venue: { slug: string; name: string; feedbackMessageTemplate: string }
 }
 
-export async function fetchDay(date?: string): Promise<DayView> {
-	return apiFetch<DayView>('/staff/day', { query: date ? { date } : undefined })
+export async function fetchDay(date?: string, venueId?: string): Promise<DayView> {
+	return apiFetch<DayView>('/staff/day', { query: date ? { date, ...(venueId ? { venueId } : {}) } : undefined })
 }
 
 export interface CreateWalkInBody {
@@ -83,6 +83,7 @@ export interface CreateWalkInBody {
 	seatingAreaId?: string
 	tableIds?: string[]
 	takeOver?: boolean
+	status?: 'pending' | 'confirmed'
 	occasion?: string
 	guestNotes?: string
 	internalNotes?: string
@@ -166,8 +167,8 @@ export interface StaffGuest {
 	}>
 }
 
-export async function fetchGuests(q?: string): Promise<StaffGuest[]> {
-	return apiFetch<StaffGuest[]>('/staff/guests', { query: q ? { q } : undefined })
+export async function fetchGuests(q?: string, venueId?: string): Promise<StaffGuest[]> {
+	return apiFetch<StaffGuest[]>('/staff/guests', { query: q || venueId ? { ...(q ? { q } : {}), ...(venueId ? { venueId } : {}) } : undefined })
 }
 
 export async function fetchGuest(id: string): Promise<StaffGuest> {
@@ -193,12 +194,6 @@ export interface AdminAnalytics {
 	today: string
 	timeZone: string
 	settings: unknown
-	guests: Array<{
-		id: string
-		fullName: string
-		phone: string
-		allergies: string[]
-	}>
 	feedback: Array<{
 		id: string
 		reservationId: string
@@ -282,6 +277,11 @@ export interface AdminAnalytics {
 			id: string
 			bookingCode: string
 			guestId: string
+			guestName?: string | null
+			guestPhone?: string | null
+			guestEmail?: string | null
+			guestAllergies?: string[]
+			guestAccessibility?: string | null
 			date: string
 			time: string
 			partySize: number
@@ -289,6 +289,15 @@ export interface AdminAnalytics {
 			source: string
 		status: ReservationStatus
 			occasion?: string
+		}>
+	}
+	turnTime: {
+		byArea: Array<{
+			areaId: string
+			areaName: string
+			averageMinutes: number
+			sampleCount: number
+			diningMinutes: number
 		}>
 	}
 }
