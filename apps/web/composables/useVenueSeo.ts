@@ -48,6 +48,7 @@ export async function useVenueSeo(venue = (useRoute().params.venue as string)) {
     ogSiteName: 'GIOI Group',
     twitterImage: image,
     ogLocale: 'en_US',
+    ogLocaleAlternate: (seo.languages ?? ['en']).includes('id') ? ['id_ID'] : undefined,
     ogImageWidth: og.width,
     ogImageHeight: og.height,
     twitterCard: 'summary_large_image',
@@ -64,6 +65,9 @@ export async function useVenueSeo(venue = (useRoute().params.venue as string)) {
           '@type': 'Restaurant',
           name,
           url: pageUrl,
+          description,
+          sameAs: seo.sameAs,
+          ...(venue === 'bali' ? { containedInPlace: { '@type': 'ShoppingCenter', name: 'Discovery Mall Bali' } } : {}), // ponytail: move to VenueSeo when a second venue needs it
           parentOrganization: { '@type': 'Organization', name: 'GIOI Group', url: siteUrl, logo: `${siteUrl}/logo.jpg`, '@id': `${siteUrl}#organization` },
           ...(image ? { image: [...new Set([image, siteUrl + seo.image.url])] } : {}),
           ...(info?.phone ? { telephone: phoneE164 } : {}),

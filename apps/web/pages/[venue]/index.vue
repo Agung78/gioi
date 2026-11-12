@@ -88,6 +88,29 @@ onBeforeUnmount(() => ctx?.revert())
         <div data-hero-media class="relative order-1 overflow-hidden rounded-[28px] md:order-2"><div class="aspect-[4/3] bg-navy md:aspect-auto md:h-[min(60svh,34rem)]"><img :src="seo.image.url" :alt="p.imageAlt" width="1600" height="1600" class="h-full w-full object-cover" fetchpriority="high" /></div></div>
       </div>
     </section>
+    <section id="about" class="mx-auto max-w-7xl px-4 py-24 md:px-8 md:py-32 border-b border-line">
+      <h2 class="text-[clamp(2rem,4.5vw,3.5rem)] font-extrabold leading-[1.05]">About GIOI Ocean Gourmet Bali</h2>
+      <div class="mt-8 max-w-3xl space-y-4">
+        <p v-for="(para, i) in p.about" :key="i" class="leading-relaxed text-muted">{{ para }}</p>
+        <p lang="id" class="mt-8 leading-relaxed text-muted">{{ p.aboutId }}</p>
+      </div>
+    </section>
+
+    <section id="signatures" class="mx-auto max-w-7xl px-4 py-24 md:px-8 md:py-32 border-b border-line">
+      <h2 class="text-[clamp(2rem,4.5vw,3.5rem)] font-extrabold leading-[1.05]">{{ p.signaturesTitle }}</h2>
+      <div class="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+        <article v-for="s in p.signatures" :key="s.name" class="leading-relaxed text-muted">
+          <h3 class="text-xl font-extrabold">{{ s.name }}</h3>
+          <p class="mt-1">{{ s.price }}</p>
+          <p class="mt-2">{{ s.copy }}</p>
+        </article>
+      </div>
+      <p v-if="p.signaturesNote" class="mt-8 max-w-3xl text-sm leading-relaxed text-muted">{{ p.signaturesNote }}</p>
+      <div v-if="seo?.menus?.length" class="mt-8 flex flex-wrap gap-x-6 gap-y-2 text-sm">
+        <a v-for="m in seo.menus" :key="m.path" :href="m.path" class="text-accent underline hover:no-underline">{{ m.label }} (PDF)</a>
+      </div>
+    </section>
+
 
     <section id="experience" class="mx-auto max-w-7xl px-4 py-24 md:px-8 md:py-36">
       <div class="max-w-3xl space-y-3"><p class="text-xs font-semibold uppercase tracking-[0.2em] text-muted">From first light to last call</p><h2 data-reveal :aria-label="p.experienceTitle" class="text-[clamp(2rem,4.5vw,3.5rem)] font-extrabold leading-[1.05]"><span aria-hidden="true"><template v-for="w in p.experienceTitle.split(' ')" :key="w"><span class="inline-block overflow-hidden align-bottom"><span data-word class="inline-block pr-[0.2em]">{{ w }}</span>{{ ' ' }}</span></template></span></h2></div>
@@ -99,11 +122,11 @@ onBeforeUnmount(() => ctx?.revert())
     <section id="faq" class="mx-auto max-w-7xl px-4 py-24 md:px-8 md:py-32 border-b border-line">
       <h2 class="text-[clamp(2rem,4.5vw,3.5rem)] font-extrabold leading-[1.05]">Frequently asked questions</h2>
       <div class="mt-12 border-t border-line">
-        <details v-for="(faq, i) in p.faqs" :key="i" class="group border-b border-line"><summary class="flex cursor-pointer list-none items-center justify-between py-4 font-medium focus:outline-none"><span>{{ faq.q }}</span><span class="text-xl leading-none text-muted transition-transform group-open:rotate-45" aria-hidden="true">+</span></summary><div class="pb-4 text-muted leading-relaxed">{{ faq.a }}</div></details>
+<details v-for="(faq, i) in p.faqs" :key="i" :lang="faq.lang" class="group border-b border-line"><summary class="flex cursor-pointer list-none items-center justify-between py-4 font-medium focus:outline-none"><span>{{ faq.q }}</span><span class="text-xl leading-none text-muted transition-transform group-open:rotate-45" aria-hidden="true">+</span></summary><div class="pb-4 text-muted leading-relaxed">{{ faq.a }}</div></details>
       </div>
     </section>
 
-    <section class="bg-navy text-white"><div class="mx-auto max-w-7xl px-4 pb-10 pt-24 md:px-8 md:pt-32"><h2 data-reveal :aria-label="p.ctaTitle" class="max-w-[14ch] text-[clamp(2.5rem,7vw,6rem)] font-extrabold leading-[0.95] tracking-[-0.03em] text-white"><span aria-hidden="true"><template v-for="(w, wi) in p.ctaTitle.split(' ')" :key="w"><span class="inline-block overflow-hidden align-bottom"><span data-word class="inline-block pr-[0.2em]" :class="wi === p.ctaTitle.split(' ').length - 1 ? 'text-sun' : ''">{{ w }}</span>{{ ' ' }}</span></template></span></h2><div data-rise class="mt-10 flex flex-wrap items-center gap-6"><a :href="bookHref" class="btn min-h-12 bg-sun px-8 text-base text-navy hover:bg-sand focus-visible:ring-sand focus-visible:ring-offset-navy">Reserve a table</a><p class="max-w-[48ch] text-sm leading-relaxed text-white/65">{{ p.ctaNote }}</p></div><footer class="mt-24 flex flex-col gap-4 border-t border-white/10 pt-6 text-xs text-white/50 sm:flex-row sm:items-center sm:justify-between"><img src="/logo-96.webp" alt="GIOI Ocean Gourmet logo" width="96" height="96" class="h-10 w-10 rounded-full object-cover" /><span>{{ name }} · {{ info?.address }}</span><a :href="`tel:${phoneE164}`" class="inline-flex min-h-11 items-center hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-sand">{{ info?.phone }}</a><a :href="ig" v-if="ig" target="_blank" rel="noopener noreferrer" :aria-label="`${name} on Instagram`" class="inline-flex min-h-11 items-center gap-1.5 hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-sand"><PhInstagramLogo :size="20" aria-hidden="true" /> {{ '@' + igHandle }}</a><NuxtLink to="/privacy" class="inline-flex min-h-11 items-center hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-sand">Privacy</NuxtLink></footer></div></section>
+    <section class="bg-navy text-white"><div class="mx-auto max-w-7xl px-4 pb-10 pt-24 md:px-8 md:pt-32"><h2 data-reveal :aria-label="p.ctaTitle" class="max-w-[14ch] text-[clamp(2.5rem,7vw,6rem)] font-extrabold leading-[0.95] tracking-[-0.03em] text-white"><span aria-hidden="true"><template v-for="(w, wi) in p.ctaTitle.split(' ')" :key="w"><span class="inline-block overflow-hidden align-bottom"><span data-word class="inline-block pr-[0.2em]" :class="wi === p.ctaTitle.split(' ').length - 1 ? 'text-sun' : ''">{{ w }}</span>{{ ' ' }}</span></template></span></h2><div data-rise class="mt-10 flex flex-wrap items-center gap-6"><a :href="bookHref" class="btn min-h-12 bg-sun px-8 text-base text-navy hover:bg-sand focus-visible:ring-sand focus-visible:ring-offset-navy">Reserve a table</a><p class="max-w-[48ch] text-sm leading-relaxed text-white/65">{{ p.ctaNote }}</p><p lang="id" class="mt-2 max-w-[48ch] text-sm leading-relaxed text-white/65">{{ p.idCta }}</p></div><footer class="mt-24 flex flex-col gap-4 border-t border-white/10 pt-6 text-xs text-white/50 sm:flex-row sm:items-center sm:justify-between"><img src="/logo-96.webp" alt="GIOI Ocean Gourmet logo" width="96" height="96" class="h-10 w-10 rounded-full object-cover" /><span>{{ name }} · {{ info?.address }}</span><a :href="`tel:${phoneE164}`" class="inline-flex min-h-11 items-center hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-sand">{{ info?.phone }}</a><a :href="ig" v-if="ig" target="_blank" rel="noopener noreferrer" :aria-label="`${name} on Instagram`" class="inline-flex min-h-11 items-center gap-1.5 hover:text-white focus-visible:outline focus-visible:outline-sand"><PhInstagramLogo :size="20" aria-hidden="true" /> {{ '@' + igHandle }}</a><NuxtLink to="/privacy" class="inline-flex min-h-11 items-center hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-sand">Privacy</NuxtLink></footer></div></section>
   </div>
 </template>
 
