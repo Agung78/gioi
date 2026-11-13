@@ -24,7 +24,7 @@ export interface VenueSeo {
     about: string[]
     signaturesTitle: string
     signaturesNote: string
-    signatures: { name: string; price: string; copy: string; img: string; alt: string }[]
+    signatures: { name: string; price: string; copy: string; img: string; alt: string; pos?: number }[] // pos: object-position Y %
     faqs: { q: string; a: string }[]
     visitTitle: string
     ctaTitle: string
@@ -54,7 +54,7 @@ export const VENUE_SEO: Record<string, VenueSeo> = {
     ],
     tzLabel: 'WITA',
     page: {
-      badge: 'Beachfront dining in Kuta',
+      badge: 'Beachfront seafood restaurant at Discovery Mall, Kuta Beach, Bali',
       heroLines: ['Fresh from', 'the coast.', 'Made for sunset.'],
       intro: 'A beachfront restaurant for seafood, modern Asian flavours and long afternoons beside Kuta Beach.',
       imageAlt: 'GIOI Ocean Gourmet beachfront dining area in Kuta, Bali',
@@ -78,7 +78,8 @@ export const VENUE_SEO: Record<string, VenueSeo> = {
       ],
       faqs: [
         { q: 'What are your opening hours?', a: 'We serve breakfast from 10 AM and are open through dinner. See the hours block on this page for daily open and close times.' },
-        { q: 'Where are you located?', a: 'GIOI Ocean Gourmet is beachfront at Discovery Mall, Kuta Beach, Bali.' },
+        { q: 'Where in Discovery Mall Bali is the restaurant?', a: 'GIOI Ocean Gourmet is on the ground floor of Discovery Mall Bali, on the beach side facing Kuta Beach, Jl. Kartika Plaza, Kuta.' },
+        { q: 'Is GIOI Ocean Gourmet kid-friendly?', a: 'Yes. Families with children are welcome for breakfast, lunch and dinner, and high chairs are available. Mention children when you reserve so the team can set up your table.' },
         { q: 'Can I reserve a table online?', a: 'Yes. Use the Reserve a table button to book online for your chosen date and party size.' },
         { q: 'Are menus available as PDF?', a: 'Yes. Food & beverage and alcohol menus are available as downloadable PDFs from the Visit section.' },
         { q: 'What food do you serve?', a: 'Fresh seafood and grilled dishes alongside Thai, Japanese, Balinese and Indonesian plates, plus all-day brunch and cocktails.' },

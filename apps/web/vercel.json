@@ -19,7 +19,7 @@
       "permanent": true
     },
     {
-      "source": "/brands/:path*",
+      "source": "/brands/gioi-ocean-gourment{/}?",
       "destination": "/bali",
       "permanent": true
     },

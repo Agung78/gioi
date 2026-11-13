@@ -6,7 +6,9 @@ Inputs: GSC "Performance on Search" export (last 24h only: 564 impressions, 9 cl
 
 ## Status
 
-### Done in code (uncommitted, not deployed)
+### Done in code
+
+Rows 1–5 are committed in `d332a38`; rows 6–8 are uncommitted. Nothing is deployed yet: live `/exclusive-offers` still returns 500.
 
 | Change | Files | Verified |
 |---|---|---|
@@ -15,10 +17,14 @@ Inputs: GSC "Performance on Search" export (last 24h only: 564 impressions, 9 cl
 | `sameAs` + Google Maps CID `https://maps.google.com/?cid=3840486500794243861` and TripAdvisor | `apps/web/utils/venueSeo.ts` | JSON-LD in local build |
 | `/privacy` (noindex) removed from sitemap | `apps/web/server/routes/sitemap.xml.ts` | Local `/sitemap.xml` |
 | "Share your visit on Google" button on feedback thank-you screen, shown to **every** guest (no rating gating: Google policy). `reviewUrl` field, Place ID `ChIJraC4OABH0i0RFRuG7B8mTDU` (verified resolves to the listing) | `apps/web/utils/venueSeo.ts`, `apps/web/pages/[venue]/feedback/[code].vue` | Typecheck clean (except 4 pre-existing `pos` errors in `venueSeo.ts`). Thank-you screen not viewed: needs a completed reservation |
+| Legacy redirect narrowed: only `/brands/gioi-ocean-gourment` 301 → `/bali`. Other `/brands/*` (Penn, Brassey, Sinar Mandala, Shabu Baru, GIOI Cafe) now get Nuxt's 404 instead of a soft-404 redirect to a Bali page. Vercel redirects can't return 410; 404 drops them from the index just as well | `apps/web/vercel.json` | Local prod build: `/brands/penn` → 404 (the `vercel.json` rule itself only applies on Vercel) |
+| Copy (owner decision, see below): badge, Discovery Mall location FAQ, kid-friendly FAQ with high chairs | `apps/web/utils/venueSeo.ts` | Local build: text present in HTML and FAQPage JSON-LD |
+| `pos?: number` added to the `signatures` type (fixes the 4 pre-existing typecheck errors) | `apps/web/utils/venueSeo.ts` | `pnpm typecheck` clean |
 
 After deploy:
 - GSC → URL Inspection → `/bali` → Request indexing.
-- Inspect `/exclusive-offers` in GSC: must be 404, not 500.
+- Inspect `/exclusive-offers` and `/brands/penn` in GSC: must be 404, not 500.
+- Inspect `https://www.gioigroup.com/brands/gioi-ocean-gourment` in GSC (Google still shows it with the old title "GIOI - GIOI Ocean Gourment"). It must redirect to `/bali`; Google swaps the result once it recrawls. The trailing-slash variant used to return 500; the rule now uses `{/}?` to cover it.
 - On staging, complete one reservation, submit feedback, confirm the Google button opens the review dialog.
 
 ### Checked and fine
@@ -27,22 +33,22 @@ After deploy:
 - One H1, hero image preloaded with `fetchpriority=high`, all images have alt, Restaurant schema (hours, geo, menus, ReserveAction) + FAQPage.
 - Signature dishes with prices already in HTML; full menus are PDFs (enough for now).
 
-## Open decisions
+## Decisions
 
-### 1. Legacy `/brands/*` redirect (`apps/web/vercel.json`)
-All `/brands/*` 301 to `/bali`, including Jakarta/PIK venues (Penn, The Brassey, Sinar Mandala, Shabu Baru, GIOI Cafe). Someone clicking an old "penn jakarta" result lands on a Bali seafood page; Google treats it as a soft 404 and it adds nothing to `/bali`.
+### 1. Legacy `/brands/*` redirect: done
+Previously every `/brands/*` URL 301'd to `/bali`, including the Jakarta/PIK venues. Now only the Ocean Gourmet URL does; the rest return 404 until those venues have pages. When a Jakarta venue page ships, redirect its old `/brands/<slug>` URL to it.
 
-Proposal: only `/brands/gioi-ocean-gourment` → `/bali` (301); other `/brands/*` → 410 until those venues have pages. Two-line change. **Awaiting approval.**
+### 2. Copy changes in `VENUE_SEO.bali`: done (owner decision 2026-11-13)
+Owner: of the legacy keywords only **discovery mall restaurant** and **kid-friendly** are still relevant; the rest (free-flow beer etc.) are not offered/targeted anymore.
+- Badge above H1 → `Beachfront seafood restaurant at Discovery Mall, Kuta Beach, Bali`. H1 slogan kept.
+- FAQ "Where are you located?" → "Where in Discovery Mall Bali is the restaurant?" (ground floor, beach side, Jl. Kartika Plaza).
+- New FAQ "Is GIOI Ocean Gourmet kid-friendly?": families welcome, high chairs available. No kids play area, so don't claim one.
+- Dropped: free-flow beer, sunset-time FAQ, romantic dinner FAQ. Do **not** target `halal`.
 
-### 2. Copy changes in `VENUE_SEO.bali` (awaiting wording approval)
-- Badge line above H1: `Beachfront dining in Kuta` → `Beachfront seafood restaurant at Discovery Mall, Kuta Beach, Bali`. Keep the H1 slogan.
-- New FAQs covering searches already in GSC and target keywords: sunset time and seating, where in Discovery Mall, kid-friendly, free-flow beer, romantic dinner.
-- Do **not** target `halal` (pork and alcohol are served).
-- Optional: today's sunset time in the hero ("Sunset today 18:24, book a beachfront table").
-
-### 3. Later
-- Indonesian version (`/id/bali` + hreflang) for domestic searchers (93% of impressions are from Indonesia).
-- Full menu as HTML (`/bali/menu` + `Menu` schema) only if "gioi ocean gourmet menu" (pos 6–7) matters.
+### 3. Not doing now
+- Indonesian version (`/id/bali` + hreflang): excluded by decision on 2026-11-13, even though most Discovery Mall searches are in Indonesian (see Reference).
+- Full menu as HTML (`/bali/menu` + `Menu` schema): only if "gioi ocean gourmet menu" (pos 6–7) starts to matter.
+- Group homepage and other venues: not built yet, out of scope.
 
 ## Manual tasks (not code)
 
@@ -72,4 +78,22 @@ Always say "Kuta, Bali" or "Kuta Beach": many autocomplete results are for Kuta,
 
 GSC queries already landing on /bali: `gioi` (1.6), `gioi ocean gourmet bali` (2), `gioi ocean gourmet` (2.6), `gioi bali` (1), `menu gioi ocean gourmet` (6.3), `salmon lodeh` (10), `discovery mall restaurants` (1), `free flow beer` (1), `kid friendly` (2).
 
-Pull a 3-month GSC export before the next round; 24h is too small for trends.
+### GSC export "Last 3 months" (pulled 2026-11-13)
+The export only has data for 2026-11-08 to 2026-11-10 (3 days, 1,921 impressions, 28 clicks), so the property is new. Pull it again in about 4 weeks to see trends.
+
+| Page | Clicks | Impr. | Pos |
+|---|---|---|---|
+| `/` (homepage) | 8 | 1,277 | 10.9 |
+| `/brands/gioi-ocean-gourment` | 7 | 230 | 4.5 |
+| `/brands/penn` | 3 | 193 | 7.3 |
+| `/brands/the-brassey` | 3 | 159 | 5.4 |
+| `/bali` | 8 | 149 | 3.1 |
+| `/exclusive-offers` (still 500 live) | 3 | 91 | 7.3 |
+| `/brands/sinar-mandala` | 1 | 97 | 9.3 |
+
+Query impressions by cluster (1,220 attributed): Senopati/Jaksel 509 (homepage, Jakarta intent), Jakarta brands 316 (Penn, Brassey, Sinar Mandala, Setiabudi, Menteng, PIK), Bali 66.
+
+- The Discovery Mall cluster is mostly searched in **Indonesian**: `restoran di discovery mall bali` (pos 1.25), `makanan di discovery mall (bali)` (4–4.5), `tempat makan di discovery mall bali` (1), `discovery mall food` (4), `discovery mall bali restaurant` (3). This backs the owner's pick and moves the `/id/bali` page up the list.
+- `kid friendly` did not appear in this window.
+- Jakarta brand pages still get about 450 impressions; redirecting them to `/bali` throws that away (supports decision 1). The homepage does not mention Penn, Brassey, Sinar Mandala or Senopati, so it is no better as a redirect target.
+- Query `gioi menteng tutup` ("GIOI Menteng closed") showed up. Confirm with the owner which Jakarta venues are still open before planning pages for them.
