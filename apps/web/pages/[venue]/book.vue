@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter, useHead } from '#app'
-import { addDays, todayISO, isOpenOn, hoursFor, checkAvailability } from '@gioi/domain'
+import { addDays, localDate, isOpenOn, hoursFor, checkAvailability } from '@gioi/domain'
 import { PhArrowLeft, PhCaretDown, PhMinus, PhPlus } from '@phosphor-icons/vue'
 import DatePicker from '@/components/DatePicker.vue'
 import AvailabilityGrid from '@/components/AvailabilityGrid.vue'
@@ -44,7 +44,16 @@ const settings = computed(() => {
   } as any
 })
 
-const today = todayISO()
+const venueTz: string = venueData.value?.timeZone ?? 'Asia/Makassar'
+const today = localDate(new Date(), venueTz) // venue (WITA) date, not the guest's
+const tzNote = ref('') // client-only: differs per guest, so it must not render in SSR
+function setTzNote() {
+  const at = (z: string) => new Date(new Date().toLocaleString('en-US', { timeZone: z })).getTime()
+  const h = Math.round((at(venueTz) - at(Intl.DateTimeFormat().resolvedOptions().timeZone)) / 3600000 * 2) / 2
+  if (!h) return
+  const label = new Intl.DateTimeFormat('en-ID', { timeZone: venueTz, timeZoneName: 'short' }).formatToParts().find((p) => p.type === 'timeZoneName')?.value
+  tzNote.value = `All times are ${label} (venue time), ${Math.abs(h)}h ${h > 0 ? 'ahead of' : 'behind'} your local time.`
+}
 const date = ref<string>(typeof route.query.date === 'string' ? route.query.date : today)
 const partySize = ref<number>(Number(route.query.party ?? 2) || 2)
 const time = ref<string | null>(typeof route.query.time === 'string' ? route.query.time : null)
@@ -96,10 +105,12 @@ const summary = computed(() => {
 
 const error = ref<string | null>(null)
 const noticeActive = computed(() => !!settings.value?.noticeEnabled && !!settings.value.noticeDate && date.value === settings.value.noticeDate)
+const noticeUpcoming = computed(() => !!settings.value?.noticeEnabled && !!settings.value.noticeDate && settings.value.noticeDate >= today)
+watch(noticeUpcoming, (on) => { noticeOpen.value = on }, { immediate: true })
 watch(noticeActive, (on) => {
   noticeRead.value = noticeAccepted.value = false
-  noticeOpen.value = on
-}, { immediate: true })
+  if (on) noticeOpen.value = true
+})
 function closeNotice() { noticeOpen.value = false; noticeRead.value = true }
 
 const days = computed(() => {
@@ -294,6 +305,7 @@ const partyOptions = computed(() => {
 })
 
 onMounted(() => {
+  setTzNote()
   fetchSlots()
 })
 </script>
@@ -400,6 +412,7 @@ onMounted(() => {
           </div>
           <div>
             <span class="label">Time</span>
+            <p v-if="tzNote" class="mb-2 text-xs text-muted">{{ tzNote }}</p>
             <AvailabilityGrid v-if="!slotPending" v-model="time" :slots="slotGrid" :party-size="partySize" />
             <div v-else class="text-muted text-sm">Loading slots…</div>
           </div>
@@ -494,7 +507,7 @@ onMounted(() => {
           </div>
           <Teleport to="body">
             <Transition name="modal">
-              <div v-if="noticeActive && noticeOpen" class="fixed inset-0 z-50 flex items-end justify-center bg-black/40 p-4 md:items-center"
+              <div v-if="noticeUpcoming && noticeOpen" class="fixed inset-0 z-50 flex items-end justify-center bg-black/40 p-4 md:items-center"
                 @click.self="closeNotice" @keydown.esc="closeNotice">
                 <div role="dialog" aria-modal="true" aria-labelledby="notice-title"
                   class="modal-panel w-full max-w-md space-y-4 rounded-surface border border-line bg-raised p-5 text-ink shadow-soft">
