@@ -11,6 +11,7 @@ export interface VenueSeo {
   cuisine: string[]
   sameAs: string[]
   menus?: { label: string; path: string }[]
+  reviewUrl?: string // Google "write a review" link, offered to every guest after feedback (no gating by rating: Google policy)
   tzLabel: string
   // default [venue] template only; custom-designed venue pages omit it
   page?: {
@@ -33,7 +34,7 @@ export interface VenueSeo {
 
 export const VENUE_SEO: Record<string, VenueSeo> = {
   bali: {
-    title: 'GIOI Ocean Gourmet Bali | Beachfront Seafood & Table Reservations in Kuta',
+    title: 'GIOI Ocean Gourmet Bali | Beachfront Seafood in Kuta',
     description: 'Beachfront seafood restaurant at Discovery Mall Bali, Kuta Beach. See the menu, enjoy sunset dining and reserve a table online.',
     city: 'Kuta',
     region: 'Bali',
@@ -41,7 +42,12 @@ export const VENUE_SEO: Record<string, VenueSeo> = {
     geo: { lat: -8.7283604, lng: 115.1668197 },
     priceRange: 'IDR 250,000 - 300,000',
     cuisine: ['Seafood', 'Asian', 'Indonesian'],
-    sameAs: ['https://www.instagram.com/gioioceangourmet/'],
+    sameAs: [
+      'https://www.instagram.com/gioioceangourmet/',
+      'https://maps.google.com/?cid=3840486500794243861',
+      'https://www.tripadvisor.com/Restaurant_Review-g297697-d27093249-Reviews-Gioi_Ocean_Gourmet-Kuta_Kuta_District_Badung_Regency_Bali.html',
+    ],
+    reviewUrl: 'https://search.google.com/local/writereview?placeid=ChIJraC4OABH0i0RFRuG7B8mTDU',
     menus: [
       { label: 'Food and Beverage Menu', path: '/menus/bali-menu.pdf' },
       { label: 'Alcohol Menu', path: '/menus/bali-alcohol-menu.pdf' },

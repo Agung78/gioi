@@ -14,12 +14,12 @@
     "@gioi/domain": "workspace:*",
     "@nuxtjs/tailwindcss": "^6.13.0",
     "@phosphor-icons/vue": "^2.2.1",
-    "@pinia/nuxt": "^0.10.1",
+    "@pinia/nuxt": "^0.11.3",
     "@posthog/nuxt": "^1.9.0",
     "@vercel/analytics": "^2.0.1",
     "gsap": "^3.12.0",
     "nuxt": "^3.21.11",
-    "pinia": "^2.3.0",
+    "pinia": "^3.0.4",
     "vue": "^3.5.13"
   },
   "devDependencies": {
