@@ -11,6 +11,7 @@ export interface VenueSeo {
   cuisine: string[]
   sameAs: string[]
   menus?: { label: string; path: string }[]
+  reviewUrl?: string // Google "write a review" link, offered to every guest after feedback (no gating by rating: Google policy)
   tzLabel: string
   // default [venue] template only; custom-designed venue pages omit it
   page?: {
@@ -23,7 +24,7 @@ export interface VenueSeo {
     about: string[]
     signaturesTitle: string
     signaturesNote: string
-    signatures: { name: string; price: string; copy: string; img: string; alt: string }[]
+    signatures: { name: string; price: string; copy: string; img: string; alt: string; pos?: number }[] // pos: object-position Y %
     faqs: { q: string; a: string }[]
     visitTitle: string
     ctaTitle: string
@@ -33,7 +34,7 @@ export interface VenueSeo {
 
 export const VENUE_SEO: Record<string, VenueSeo> = {
   bali: {
-    title: 'GIOI Ocean Gourmet Bali | Beachfront Seafood & Table Reservations in Kuta',
+    title: 'GIOI Ocean Gourmet Bali | Beachfront Seafood in Kuta',
     description: 'Beachfront seafood restaurant at Discovery Mall Bali, Kuta Beach. See the menu, enjoy sunset dining and reserve a table online.',
     city: 'Kuta',
     region: 'Bali',
@@ -41,14 +42,19 @@ export const VENUE_SEO: Record<string, VenueSeo> = {
     geo: { lat: -8.7283604, lng: 115.1668197 },
     priceRange: 'IDR 250,000 - 300,000',
     cuisine: ['Seafood', 'Asian', 'Indonesian'],
-    sameAs: ['https://www.instagram.com/gioioceangourmet/'],
+    sameAs: [
+      'https://www.instagram.com/gioioceangourmet/',
+      'https://maps.google.com/?cid=3840486500794243861',
+      'https://www.tripadvisor.com/Restaurant_Review-g297697-d27093249-Reviews-Gioi_Ocean_Gourmet-Kuta_Kuta_District_Badung_Regency_Bali.html',
+    ],
+    reviewUrl: 'https://search.google.com/local/writereview?placeid=ChIJraC4OABH0i0RFRuG7B8mTDU',
     menus: [
       { label: 'Food and Beverage Menu', path: '/menus/bali-menu.pdf' },
       { label: 'Alcohol Menu', path: '/menus/bali-alcohol-menu.pdf' },
     ],
     tzLabel: 'WITA',
     page: {
-      badge: 'Beachfront dining in Kuta',
+      badge: 'Beachfront seafood restaurant at Discovery Mall, Kuta Beach, Bali',
       heroLines: ['Fresh from', 'the coast.', 'Made for sunset.'],
       intro: 'A beachfront restaurant for seafood, modern Asian flavours and long afternoons beside Kuta Beach.',
       imageAlt: 'GIOI Ocean Gourmet beachfront dining area in Kuta, Bali',
@@ -72,7 +78,8 @@ export const VENUE_SEO: Record<string, VenueSeo> = {
       ],
       faqs: [
         { q: 'What are your opening hours?', a: 'We serve breakfast from 10 AM and are open through dinner. See the hours block on this page for daily open and close times.' },
-        { q: 'Where are you located?', a: 'GIOI Ocean Gourmet is beachfront at Discovery Mall, Kuta Beach, Bali.' },
+        { q: 'Where in Discovery Mall Bali is the restaurant?', a: 'GIOI Ocean Gourmet is on the ground floor of Discovery Mall Bali, on the beach side facing Kuta Beach, Jl. Kartika Plaza, Kuta.' },
+        { q: 'Is GIOI Ocean Gourmet kid-friendly?', a: 'Yes. Families with children are welcome for breakfast, lunch and dinner, and high chairs are available. Mention children when you reserve so the team can set up your table.' },
         { q: 'Can I reserve a table online?', a: 'Yes. Use the Reserve a table button to book online for your chosen date and party size.' },
         { q: 'Are menus available as PDF?', a: 'Yes. Food & beverage and alcohol menus are available as downloadable PDFs from the Visit section.' },
         { q: 'What food do you serve?', a: 'Fresh seafood and grilled dishes alongside Thai, Japanese, Balinese and Indonesian plates, plus all-day brunch and cocktails.' },

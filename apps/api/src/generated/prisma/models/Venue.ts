@@ -75,6 +75,8 @@ export type VenueMinAggregateOutputType = {
   noticeEnabled: boolean | null
   noticeDate: Date | null
   noticeText: string | null
+  noticeEventName: string | null
+  noticeEventTime: string | null
   feedbackTitle: string | null
   feedbackSubtitle: string | null
   feedbackMessageTemplate: string | null
@@ -107,6 +109,8 @@ export type VenueMaxAggregateOutputType = {
   noticeEnabled: boolean | null
   noticeDate: Date | null
   noticeText: string | null
+  noticeEventName: string | null
+  noticeEventTime: string | null
   feedbackTitle: string | null
   feedbackSubtitle: string | null
   feedbackMessageTemplate: string | null
@@ -139,6 +143,8 @@ export type VenueCountAggregateOutputType = {
   noticeEnabled: number
   noticeDate: number
   noticeText: number
+  noticeEventName: number
+  noticeEventTime: number
   feedbackTitle: number
   feedbackSubtitle: number
   feedbackTags: number
@@ -198,6 +204,8 @@ export type VenueMinAggregateInputType = {
   noticeEnabled?: true
   noticeDate?: true
   noticeText?: true
+  noticeEventName?: true
+  noticeEventTime?: true
   feedbackTitle?: true
   feedbackSubtitle?: true
   feedbackMessageTemplate?: true
@@ -230,6 +238,8 @@ export type VenueMaxAggregateInputType = {
   noticeEnabled?: true
   noticeDate?: true
   noticeText?: true
+  noticeEventName?: true
+  noticeEventTime?: true
   feedbackTitle?: true
   feedbackSubtitle?: true
   feedbackMessageTemplate?: true
@@ -262,6 +272,8 @@ export type VenueCountAggregateInputType = {
   noticeEnabled?: true
   noticeDate?: true
   noticeText?: true
+  noticeEventName?: true
+  noticeEventTime?: true
   feedbackTitle?: true
   feedbackSubtitle?: true
   feedbackTags?: true
@@ -382,6 +394,8 @@ export type VenueGroupByOutputType = {
   noticeEnabled: boolean
   noticeDate: Date | null
   noticeText: string
+  noticeEventName: string | null
+  noticeEventTime: string | null
   feedbackTitle: string | null
   feedbackSubtitle: string | null
   feedbackTags: string[]
@@ -438,6 +452,8 @@ export type VenueWhereInput = {
   noticeEnabled?: Prisma.BoolFilter<"Venue"> | boolean
   noticeDate?: Prisma.DateTimeNullableFilter<"Venue"> | Date | string | null
   noticeText?: Prisma.StringFilter<"Venue"> | string
+  noticeEventName?: Prisma.StringNullableFilter<"Venue"> | string | null
+  noticeEventTime?: Prisma.StringNullableFilter<"Venue"> | string | null
   feedbackTitle?: Prisma.StringNullableFilter<"Venue"> | string | null
   feedbackSubtitle?: Prisma.StringNullableFilter<"Venue"> | string | null
   feedbackTags?: Prisma.StringNullableListFilter<"Venue">
@@ -482,6 +498,8 @@ export type VenueOrderByWithRelationInput = {
   noticeEnabled?: Prisma.SortOrder
   noticeDate?: Prisma.SortOrderInput | Prisma.SortOrder
   noticeText?: Prisma.SortOrder
+  noticeEventName?: Prisma.SortOrderInput | Prisma.SortOrder
+  noticeEventTime?: Prisma.SortOrderInput | Prisma.SortOrder
   feedbackTitle?: Prisma.SortOrderInput | Prisma.SortOrder
   feedbackSubtitle?: Prisma.SortOrderInput | Prisma.SortOrder
   feedbackTags?: Prisma.SortOrder
@@ -529,6 +547,8 @@ export type VenueWhereUniqueInput = Prisma.AtLeast<{
   noticeEnabled?: Prisma.BoolFilter<"Venue"> | boolean
   noticeDate?: Prisma.DateTimeNullableFilter<"Venue"> | Date | string | null
   noticeText?: Prisma.StringFilter<"Venue"> | string
+  noticeEventName?: Prisma.StringNullableFilter<"Venue"> | string | null
+  noticeEventTime?: Prisma.StringNullableFilter<"Venue"> | string | null
   feedbackTitle?: Prisma.StringNullableFilter<"Venue"> | string | null
   feedbackSubtitle?: Prisma.StringNullableFilter<"Venue"> | string | null
   feedbackTags?: Prisma.StringNullableListFilter<"Venue">
@@ -573,6 +593,8 @@ export type VenueOrderByWithAggregationInput = {
   noticeEnabled?: Prisma.SortOrder
   noticeDate?: Prisma.SortOrderInput | Prisma.SortOrder
   noticeText?: Prisma.SortOrder
+  noticeEventName?: Prisma.SortOrderInput | Prisma.SortOrder
+  noticeEventTime?: Prisma.SortOrderInput | Prisma.SortOrder
   feedbackTitle?: Prisma.SortOrderInput | Prisma.SortOrder
   feedbackSubtitle?: Prisma.SortOrderInput | Prisma.SortOrder
   feedbackTags?: Prisma.SortOrder
@@ -614,6 +636,8 @@ export type VenueScalarWhereWithAggregatesInput = {
   noticeEnabled?: Prisma.BoolWithAggregatesFilter<"Venue"> | boolean
   noticeDate?: Prisma.DateTimeNullableWithAggregatesFilter<"Venue"> | Date | string | null
   noticeText?: Prisma.StringWithAggregatesFilter<"Venue"> | string
+  noticeEventName?: Prisma.StringNullableWithAggregatesFilter<"Venue"> | string | null
+  noticeEventTime?: Prisma.StringNullableWithAggregatesFilter<"Venue"> | string | null
   feedbackTitle?: Prisma.StringNullableWithAggregatesFilter<"Venue"> | string | null
   feedbackSubtitle?: Prisma.StringNullableWithAggregatesFilter<"Venue"> | string | null
   feedbackTags?: Prisma.StringNullableListFilter<"Venue">
@@ -647,6 +671,8 @@ export type VenueCreateInput = {
   noticeEnabled?: boolean
   noticeDate?: Date | string | null
   noticeText?: string
+  noticeEventName?: string | null
+  noticeEventTime?: string | null
   feedbackTitle?: string | null
   feedbackSubtitle?: string | null
   feedbackTags?: Prisma.VenueCreatefeedbackTagsInput | string[]
@@ -691,6 +717,8 @@ export type VenueUncheckedCreateInput = {
   noticeEnabled?: boolean
   noticeDate?: Date | string | null
   noticeText?: string
+  noticeEventName?: string | null
+  noticeEventTime?: string | null
   feedbackTitle?: string | null
   feedbackSubtitle?: string | null
   feedbackTags?: Prisma.VenueCreatefeedbackTagsInput | string[]
@@ -735,6 +763,8 @@ export type VenueUpdateInput = {
   noticeEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   noticeDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   noticeText?: Prisma.StringFieldUpdateOperationsInput | string
+  noticeEventName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  noticeEventTime?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   feedbackTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   feedbackSubtitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   feedbackTags?: Prisma.VenueUpdatefeedbackTagsInput | string[]
@@ -779,6 +809,8 @@ export type VenueUncheckedUpdateInput = {
   noticeEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   noticeDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   noticeText?: Prisma.StringFieldUpdateOperationsInput | string
+  noticeEventName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  noticeEventTime?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   feedbackTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   feedbackSubtitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   feedbackTags?: Prisma.VenueUpdatefeedbackTagsInput | string[]
@@ -823,6 +855,8 @@ export type VenueCreateManyInput = {
   noticeEnabled?: boolean
   noticeDate?: Date | string | null
   noticeText?: string
+  noticeEventName?: string | null
+  noticeEventTime?: string | null
   feedbackTitle?: string | null
   feedbackSubtitle?: string | null
   feedbackTags?: Prisma.VenueCreatefeedbackTagsInput | string[]
@@ -856,6 +890,8 @@ export type VenueUpdateManyMutationInput = {
   noticeEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   noticeDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   noticeText?: Prisma.StringFieldUpdateOperationsInput | string
+  noticeEventName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  noticeEventTime?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   feedbackTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   feedbackSubtitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   feedbackTags?: Prisma.VenueUpdatefeedbackTagsInput | string[]
@@ -889,6 +925,8 @@ export type VenueUncheckedUpdateManyInput = {
   noticeEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   noticeDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   noticeText?: Prisma.StringFieldUpdateOperationsInput | string
+  noticeEventName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  noticeEventTime?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   feedbackTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   feedbackSubtitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   feedbackTags?: Prisma.VenueUpdatefeedbackTagsInput | string[]
@@ -930,6 +968,8 @@ export type VenueCountOrderByAggregateInput = {
   noticeEnabled?: Prisma.SortOrder
   noticeDate?: Prisma.SortOrder
   noticeText?: Prisma.SortOrder
+  noticeEventName?: Prisma.SortOrder
+  noticeEventTime?: Prisma.SortOrder
   feedbackTitle?: Prisma.SortOrder
   feedbackSubtitle?: Prisma.SortOrder
   feedbackTags?: Prisma.SortOrder
@@ -975,6 +1015,8 @@ export type VenueMaxOrderByAggregateInput = {
   noticeEnabled?: Prisma.SortOrder
   noticeDate?: Prisma.SortOrder
   noticeText?: Prisma.SortOrder
+  noticeEventName?: Prisma.SortOrder
+  noticeEventTime?: Prisma.SortOrder
   feedbackTitle?: Prisma.SortOrder
   feedbackSubtitle?: Prisma.SortOrder
   feedbackMessageTemplate?: Prisma.SortOrder
@@ -1007,6 +1049,8 @@ export type VenueMinOrderByAggregateInput = {
   noticeEnabled?: Prisma.SortOrder
   noticeDate?: Prisma.SortOrder
   noticeText?: Prisma.SortOrder
+  noticeEventName?: Prisma.SortOrder
+  noticeEventTime?: Prisma.SortOrder
   feedbackTitle?: Prisma.SortOrder
   feedbackSubtitle?: Prisma.SortOrder
   feedbackMessageTemplate?: Prisma.SortOrder
@@ -1254,6 +1298,8 @@ export type VenueCreateWithoutOpeningHoursInput = {
   noticeEnabled?: boolean
   noticeDate?: Date | string | null
   noticeText?: string
+  noticeEventName?: string | null
+  noticeEventTime?: string | null
   feedbackTitle?: string | null
   feedbackSubtitle?: string | null
   feedbackTags?: Prisma.VenueCreatefeedbackTagsInput | string[]
@@ -1297,6 +1343,8 @@ export type VenueUncheckedCreateWithoutOpeningHoursInput = {
   noticeEnabled?: boolean
   noticeDate?: Date | string | null
   noticeText?: string
+  noticeEventName?: string | null
+  noticeEventTime?: string | null
   feedbackTitle?: string | null
   feedbackSubtitle?: string | null
   feedbackTags?: Prisma.VenueCreatefeedbackTagsInput | string[]
@@ -1356,6 +1404,8 @@ export type VenueUpdateWithoutOpeningHoursInput = {
   noticeEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   noticeDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   noticeText?: Prisma.StringFieldUpdateOperationsInput | string
+  noticeEventName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  noticeEventTime?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   feedbackTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   feedbackSubtitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   feedbackTags?: Prisma.VenueUpdatefeedbackTagsInput | string[]
@@ -1399,6 +1449,8 @@ export type VenueUncheckedUpdateWithoutOpeningHoursInput = {
   noticeEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   noticeDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   noticeText?: Prisma.StringFieldUpdateOperationsInput | string
+  noticeEventName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  noticeEventTime?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   feedbackTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   feedbackSubtitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   feedbackTags?: Prisma.VenueUpdatefeedbackTagsInput | string[]
@@ -1442,6 +1494,8 @@ export type VenueCreateWithoutClosedDatesInput = {
   noticeEnabled?: boolean
   noticeDate?: Date | string | null
   noticeText?: string
+  noticeEventName?: string | null
+  noticeEventTime?: string | null
   feedbackTitle?: string | null
   feedbackSubtitle?: string | null
   feedbackTags?: Prisma.VenueCreatefeedbackTagsInput | string[]
@@ -1485,6 +1539,8 @@ export type VenueUncheckedCreateWithoutClosedDatesInput = {
   noticeEnabled?: boolean
   noticeDate?: Date | string | null
   noticeText?: string
+  noticeEventName?: string | null
+  noticeEventTime?: string | null
   feedbackTitle?: string | null
   feedbackSubtitle?: string | null
   feedbackTags?: Prisma.VenueCreatefeedbackTagsInput | string[]
@@ -1544,6 +1600,8 @@ export type VenueUpdateWithoutClosedDatesInput = {
   noticeEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   noticeDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   noticeText?: Prisma.StringFieldUpdateOperationsInput | string
+  noticeEventName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  noticeEventTime?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   feedbackTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   feedbackSubtitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   feedbackTags?: Prisma.VenueUpdatefeedbackTagsInput | string[]
@@ -1587,6 +1645,8 @@ export type VenueUncheckedUpdateWithoutClosedDatesInput = {
   noticeEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   noticeDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   noticeText?: Prisma.StringFieldUpdateOperationsInput | string
+  noticeEventName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  noticeEventTime?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   feedbackTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   feedbackSubtitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   feedbackTags?: Prisma.VenueUpdatefeedbackTagsInput | string[]
@@ -1630,6 +1690,8 @@ export type VenueCreateWithoutSeatingAreasInput = {
   noticeEnabled?: boolean
   noticeDate?: Date | string | null
   noticeText?: string
+  noticeEventName?: string | null
+  noticeEventTime?: string | null
   feedbackTitle?: string | null
   feedbackSubtitle?: string | null
   feedbackTags?: Prisma.VenueCreatefeedbackTagsInput | string[]
@@ -1673,6 +1735,8 @@ export type VenueUncheckedCreateWithoutSeatingAreasInput = {
   noticeEnabled?: boolean
   noticeDate?: Date | string | null
   noticeText?: string
+  noticeEventName?: string | null
+  noticeEventTime?: string | null
   feedbackTitle?: string | null
   feedbackSubtitle?: string | null
   feedbackTags?: Prisma.VenueCreatefeedbackTagsInput | string[]
@@ -1732,6 +1796,8 @@ export type VenueUpdateWithoutSeatingAreasInput = {
   noticeEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   noticeDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   noticeText?: Prisma.StringFieldUpdateOperationsInput | string
+  noticeEventName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  noticeEventTime?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   feedbackTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   feedbackSubtitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   feedbackTags?: Prisma.VenueUpdatefeedbackTagsInput | string[]
@@ -1775,6 +1841,8 @@ export type VenueUncheckedUpdateWithoutSeatingAreasInput = {
   noticeEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   noticeDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   noticeText?: Prisma.StringFieldUpdateOperationsInput | string
+  noticeEventName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  noticeEventTime?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   feedbackTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   feedbackSubtitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   feedbackTags?: Prisma.VenueUpdatefeedbackTagsInput | string[]
@@ -1818,6 +1886,8 @@ export type VenueCreateWithoutFloorPlanInput = {
   noticeEnabled?: boolean
   noticeDate?: Date | string | null
   noticeText?: string
+  noticeEventName?: string | null
+  noticeEventTime?: string | null
   feedbackTitle?: string | null
   feedbackSubtitle?: string | null
   feedbackTags?: Prisma.VenueCreatefeedbackTagsInput | string[]
@@ -1861,6 +1931,8 @@ export type VenueUncheckedCreateWithoutFloorPlanInput = {
   noticeEnabled?: boolean
   noticeDate?: Date | string | null
   noticeText?: string
+  noticeEventName?: string | null
+  noticeEventTime?: string | null
   feedbackTitle?: string | null
   feedbackSubtitle?: string | null
   feedbackTags?: Prisma.VenueCreatefeedbackTagsInput | string[]
@@ -1920,6 +1992,8 @@ export type VenueUpdateWithoutFloorPlanInput = {
   noticeEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   noticeDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   noticeText?: Prisma.StringFieldUpdateOperationsInput | string
+  noticeEventName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  noticeEventTime?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   feedbackTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   feedbackSubtitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   feedbackTags?: Prisma.VenueUpdatefeedbackTagsInput | string[]
@@ -1963,6 +2037,8 @@ export type VenueUncheckedUpdateWithoutFloorPlanInput = {
   noticeEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   noticeDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   noticeText?: Prisma.StringFieldUpdateOperationsInput | string
+  noticeEventName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  noticeEventTime?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   feedbackTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   feedbackSubtitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   feedbackTags?: Prisma.VenueUpdatefeedbackTagsInput | string[]
@@ -2006,6 +2082,8 @@ export type VenueCreateWithoutFloorTablesInput = {
   noticeEnabled?: boolean
   noticeDate?: Date | string | null
   noticeText?: string
+  noticeEventName?: string | null
+  noticeEventTime?: string | null
   feedbackTitle?: string | null
   feedbackSubtitle?: string | null
   feedbackTags?: Prisma.VenueCreatefeedbackTagsInput | string[]
@@ -2049,6 +2127,8 @@ export type VenueUncheckedCreateWithoutFloorTablesInput = {
   noticeEnabled?: boolean
   noticeDate?: Date | string | null
   noticeText?: string
+  noticeEventName?: string | null
+  noticeEventTime?: string | null
   feedbackTitle?: string | null
   feedbackSubtitle?: string | null
   feedbackTags?: Prisma.VenueCreatefeedbackTagsInput | string[]
@@ -2108,6 +2188,8 @@ export type VenueUpdateWithoutFloorTablesInput = {
   noticeEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   noticeDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   noticeText?: Prisma.StringFieldUpdateOperationsInput | string
+  noticeEventName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  noticeEventTime?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   feedbackTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   feedbackSubtitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   feedbackTags?: Prisma.VenueUpdatefeedbackTagsInput | string[]
@@ -2151,6 +2233,8 @@ export type VenueUncheckedUpdateWithoutFloorTablesInput = {
   noticeEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   noticeDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   noticeText?: Prisma.StringFieldUpdateOperationsInput | string
+  noticeEventName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  noticeEventTime?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   feedbackTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   feedbackSubtitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   feedbackTags?: Prisma.VenueUpdatefeedbackTagsInput | string[]
@@ -2194,6 +2278,8 @@ export type VenueCreateWithoutFloorObjectsInput = {
   noticeEnabled?: boolean
   noticeDate?: Date | string | null
   noticeText?: string
+  noticeEventName?: string | null
+  noticeEventTime?: string | null
   feedbackTitle?: string | null
   feedbackSubtitle?: string | null
   feedbackTags?: Prisma.VenueCreatefeedbackTagsInput | string[]
@@ -2237,6 +2323,8 @@ export type VenueUncheckedCreateWithoutFloorObjectsInput = {
   noticeEnabled?: boolean
   noticeDate?: Date | string | null
   noticeText?: string
+  noticeEventName?: string | null
+  noticeEventTime?: string | null
   feedbackTitle?: string | null
   feedbackSubtitle?: string | null
   feedbackTags?: Prisma.VenueCreatefeedbackTagsInput | string[]
@@ -2296,6 +2384,8 @@ export type VenueUpdateWithoutFloorObjectsInput = {
   noticeEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   noticeDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   noticeText?: Prisma.StringFieldUpdateOperationsInput | string
+  noticeEventName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  noticeEventTime?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   feedbackTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   feedbackSubtitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   feedbackTags?: Prisma.VenueUpdatefeedbackTagsInput | string[]
@@ -2339,6 +2429,8 @@ export type VenueUncheckedUpdateWithoutFloorObjectsInput = {
   noticeEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   noticeDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   noticeText?: Prisma.StringFieldUpdateOperationsInput | string
+  noticeEventName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  noticeEventTime?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   feedbackTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   feedbackSubtitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   feedbackTags?: Prisma.VenueUpdatefeedbackTagsInput | string[]
@@ -2382,6 +2474,8 @@ export type VenueCreateWithoutGuestsInput = {
   noticeEnabled?: boolean
   noticeDate?: Date | string | null
   noticeText?: string
+  noticeEventName?: string | null
+  noticeEventTime?: string | null
   feedbackTitle?: string | null
   feedbackSubtitle?: string | null
   feedbackTags?: Prisma.VenueCreatefeedbackTagsInput | string[]
@@ -2425,6 +2519,8 @@ export type VenueUncheckedCreateWithoutGuestsInput = {
   noticeEnabled?: boolean
   noticeDate?: Date | string | null
   noticeText?: string
+  noticeEventName?: string | null
+  noticeEventTime?: string | null
   feedbackTitle?: string | null
   feedbackSubtitle?: string | null
   feedbackTags?: Prisma.VenueCreatefeedbackTagsInput | string[]
@@ -2484,6 +2580,8 @@ export type VenueUpdateWithoutGuestsInput = {
   noticeEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   noticeDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   noticeText?: Prisma.StringFieldUpdateOperationsInput | string
+  noticeEventName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  noticeEventTime?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   feedbackTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   feedbackSubtitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   feedbackTags?: Prisma.VenueUpdatefeedbackTagsInput | string[]
@@ -2527,6 +2625,8 @@ export type VenueUncheckedUpdateWithoutGuestsInput = {
   noticeEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   noticeDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   noticeText?: Prisma.StringFieldUpdateOperationsInput | string
+  noticeEventName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  noticeEventTime?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   feedbackTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   feedbackSubtitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   feedbackTags?: Prisma.VenueUpdatefeedbackTagsInput | string[]
@@ -2570,6 +2670,8 @@ export type VenueCreateWithoutReservationsInput = {
   noticeEnabled?: boolean
   noticeDate?: Date | string | null
   noticeText?: string
+  noticeEventName?: string | null
+  noticeEventTime?: string | null
   feedbackTitle?: string | null
   feedbackSubtitle?: string | null
   feedbackTags?: Prisma.VenueCreatefeedbackTagsInput | string[]
@@ -2613,6 +2715,8 @@ export type VenueUncheckedCreateWithoutReservationsInput = {
   noticeEnabled?: boolean
   noticeDate?: Date | string | null
   noticeText?: string
+  noticeEventName?: string | null
+  noticeEventTime?: string | null
   feedbackTitle?: string | null
   feedbackSubtitle?: string | null
   feedbackTags?: Prisma.VenueCreatefeedbackTagsInput | string[]
@@ -2672,6 +2776,8 @@ export type VenueUpdateWithoutReservationsInput = {
   noticeEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   noticeDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   noticeText?: Prisma.StringFieldUpdateOperationsInput | string
+  noticeEventName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  noticeEventTime?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   feedbackTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   feedbackSubtitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   feedbackTags?: Prisma.VenueUpdatefeedbackTagsInput | string[]
@@ -2715,6 +2821,8 @@ export type VenueUncheckedUpdateWithoutReservationsInput = {
   noticeEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   noticeDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   noticeText?: Prisma.StringFieldUpdateOperationsInput | string
+  noticeEventName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  noticeEventTime?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   feedbackTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   feedbackSubtitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   feedbackTags?: Prisma.VenueUpdatefeedbackTagsInput | string[]
@@ -2758,6 +2866,8 @@ export type VenueCreateWithoutFeedbackInput = {
   noticeEnabled?: boolean
   noticeDate?: Date | string | null
   noticeText?: string
+  noticeEventName?: string | null
+  noticeEventTime?: string | null
   feedbackTitle?: string | null
   feedbackSubtitle?: string | null
   feedbackTags?: Prisma.VenueCreatefeedbackTagsInput | string[]
@@ -2801,6 +2911,8 @@ export type VenueUncheckedCreateWithoutFeedbackInput = {
   noticeEnabled?: boolean
   noticeDate?: Date | string | null
   noticeText?: string
+  noticeEventName?: string | null
+  noticeEventTime?: string | null
   feedbackTitle?: string | null
   feedbackSubtitle?: string | null
   feedbackTags?: Prisma.VenueCreatefeedbackTagsInput | string[]
@@ -2860,6 +2972,8 @@ export type VenueUpdateWithoutFeedbackInput = {
   noticeEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   noticeDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   noticeText?: Prisma.StringFieldUpdateOperationsInput | string
+  noticeEventName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  noticeEventTime?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   feedbackTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   feedbackSubtitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   feedbackTags?: Prisma.VenueUpdatefeedbackTagsInput | string[]
@@ -2903,6 +3017,8 @@ export type VenueUncheckedUpdateWithoutFeedbackInput = {
   noticeEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   noticeDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   noticeText?: Prisma.StringFieldUpdateOperationsInput | string
+  noticeEventName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  noticeEventTime?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   feedbackTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   feedbackSubtitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   feedbackTags?: Prisma.VenueUpdatefeedbackTagsInput | string[]
@@ -2946,6 +3062,8 @@ export type VenueCreateWithoutUserVenuesInput = {
   noticeEnabled?: boolean
   noticeDate?: Date | string | null
   noticeText?: string
+  noticeEventName?: string | null
+  noticeEventTime?: string | null
   feedbackTitle?: string | null
   feedbackSubtitle?: string | null
   feedbackTags?: Prisma.VenueCreatefeedbackTagsInput | string[]
@@ -2989,6 +3107,8 @@ export type VenueUncheckedCreateWithoutUserVenuesInput = {
   noticeEnabled?: boolean
   noticeDate?: Date | string | null
   noticeText?: string
+  noticeEventName?: string | null
+  noticeEventTime?: string | null
   feedbackTitle?: string | null
   feedbackSubtitle?: string | null
   feedbackTags?: Prisma.VenueCreatefeedbackTagsInput | string[]
@@ -3048,6 +3168,8 @@ export type VenueUpdateWithoutUserVenuesInput = {
   noticeEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   noticeDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   noticeText?: Prisma.StringFieldUpdateOperationsInput | string
+  noticeEventName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  noticeEventTime?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   feedbackTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   feedbackSubtitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   feedbackTags?: Prisma.VenueUpdatefeedbackTagsInput | string[]
@@ -3091,6 +3213,8 @@ export type VenueUncheckedUpdateWithoutUserVenuesInput = {
   noticeEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   noticeDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   noticeText?: Prisma.StringFieldUpdateOperationsInput | string
+  noticeEventName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  noticeEventTime?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   feedbackTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   feedbackSubtitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   feedbackTags?: Prisma.VenueUpdatefeedbackTagsInput | string[]
@@ -3134,6 +3258,8 @@ export type VenueCreateWithoutAuditEventsInput = {
   noticeEnabled?: boolean
   noticeDate?: Date | string | null
   noticeText?: string
+  noticeEventName?: string | null
+  noticeEventTime?: string | null
   feedbackTitle?: string | null
   feedbackSubtitle?: string | null
   feedbackTags?: Prisma.VenueCreatefeedbackTagsInput | string[]
@@ -3177,6 +3303,8 @@ export type VenueUncheckedCreateWithoutAuditEventsInput = {
   noticeEnabled?: boolean
   noticeDate?: Date | string | null
   noticeText?: string
+  noticeEventName?: string | null
+  noticeEventTime?: string | null
   feedbackTitle?: string | null
   feedbackSubtitle?: string | null
   feedbackTags?: Prisma.VenueCreatefeedbackTagsInput | string[]
@@ -3236,6 +3364,8 @@ export type VenueUpdateWithoutAuditEventsInput = {
   noticeEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   noticeDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   noticeText?: Prisma.StringFieldUpdateOperationsInput | string
+  noticeEventName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  noticeEventTime?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   feedbackTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   feedbackSubtitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   feedbackTags?: Prisma.VenueUpdatefeedbackTagsInput | string[]
@@ -3279,6 +3409,8 @@ export type VenueUncheckedUpdateWithoutAuditEventsInput = {
   noticeEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   noticeDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   noticeText?: Prisma.StringFieldUpdateOperationsInput | string
+  noticeEventName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  noticeEventTime?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   feedbackTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   feedbackSubtitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   feedbackTags?: Prisma.VenueUpdatefeedbackTagsInput | string[]
@@ -3434,6 +3566,8 @@ export type VenueSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   noticeEnabled?: boolean
   noticeDate?: boolean
   noticeText?: boolean
+  noticeEventName?: boolean
+  noticeEventTime?: boolean
   feedbackTitle?: boolean
   feedbackSubtitle?: boolean
   feedbackTags?: boolean
@@ -3479,6 +3613,8 @@ export type VenueSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensi
   noticeEnabled?: boolean
   noticeDate?: boolean
   noticeText?: boolean
+  noticeEventName?: boolean
+  noticeEventTime?: boolean
   feedbackTitle?: boolean
   feedbackSubtitle?: boolean
   feedbackTags?: boolean
@@ -3512,6 +3648,8 @@ export type VenueSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensi
   noticeEnabled?: boolean
   noticeDate?: boolean
   noticeText?: boolean
+  noticeEventName?: boolean
+  noticeEventTime?: boolean
   feedbackTitle?: boolean
   feedbackSubtitle?: boolean
   feedbackTags?: boolean
@@ -3545,6 +3683,8 @@ export type VenueSelectScalar = {
   noticeEnabled?: boolean
   noticeDate?: boolean
   noticeText?: boolean
+  noticeEventName?: boolean
+  noticeEventTime?: boolean
   feedbackTitle?: boolean
   feedbackSubtitle?: boolean
   feedbackTags?: boolean
@@ -3553,7 +3693,7 @@ export type VenueSelectScalar = {
   updatedAt?: boolean
 }
 
-export type VenueOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "slug" | "name" | "timeZone" | "tagline" | "intro" | "address" | "phone" | "whatsapp" | "email" | "mapsUrl" | "bookingIntervalMinutes" | "partyMin" | "partyMax" | "diningMinutes" | "graceMinutes" | "leadTimeMinutes" | "cutoffMinutes" | "noShowTargetPercent" | "overCapacityAlertPercent" | "cancellationPolicy" | "noticeEnabled" | "noticeDate" | "noticeText" | "feedbackTitle" | "feedbackSubtitle" | "feedbackTags" | "feedbackMessageTemplate" | "createdAt" | "updatedAt", ExtArgs["result"]["venue"]>
+export type VenueOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "slug" | "name" | "timeZone" | "tagline" | "intro" | "address" | "phone" | "whatsapp" | "email" | "mapsUrl" | "bookingIntervalMinutes" | "partyMin" | "partyMax" | "diningMinutes" | "graceMinutes" | "leadTimeMinutes" | "cutoffMinutes" | "noShowTargetPercent" | "overCapacityAlertPercent" | "cancellationPolicy" | "noticeEnabled" | "noticeDate" | "noticeText" | "noticeEventName" | "noticeEventTime" | "feedbackTitle" | "feedbackSubtitle" | "feedbackTags" | "feedbackMessageTemplate" | "createdAt" | "updatedAt", ExtArgs["result"]["venue"]>
 export type VenueInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   openingHours?: boolean | Prisma.Venue$openingHoursArgs<ExtArgs>
   closedDates?: boolean | Prisma.Venue$closedDatesArgs<ExtArgs>
@@ -3611,6 +3751,8 @@ export type $VenuePayload<ExtArgs extends runtime.Types.Extensions.InternalArgs 
     noticeEnabled: boolean
     noticeDate: Date | null
     noticeText: string
+    noticeEventName: string | null
+    noticeEventTime: string | null
     feedbackTitle: string | null
     feedbackSubtitle: string | null
     feedbackTags: string[]
@@ -4075,6 +4217,8 @@ export interface VenueFieldRefs {
   readonly noticeEnabled: Prisma.FieldRef<"Venue", 'Boolean'>
   readonly noticeDate: Prisma.FieldRef<"Venue", 'DateTime'>
   readonly noticeText: Prisma.FieldRef<"Venue", 'String'>
+  readonly noticeEventName: Prisma.FieldRef<"Venue", 'String'>
+  readonly noticeEventTime: Prisma.FieldRef<"Venue", 'String'>
   readonly feedbackTitle: Prisma.FieldRef<"Venue", 'String'>
   readonly feedbackSubtitle: Prisma.FieldRef<"Venue", 'String'>
   readonly feedbackTags: Prisma.FieldRef<"Venue", 'String[]'>

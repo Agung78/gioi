@@ -1680,6 +1680,8 @@ export const VenueScalarFieldEnum = {
   noticeEnabled: 'noticeEnabled',
   noticeDate: 'noticeDate',
   noticeText: 'noticeText',
+  noticeEventName: 'noticeEventName',
+  noticeEventTime: 'noticeEventTime',
   feedbackTitle: 'feedbackTitle',
   feedbackSubtitle: 'feedbackSubtitle',
   feedbackTags: 'feedbackTags',

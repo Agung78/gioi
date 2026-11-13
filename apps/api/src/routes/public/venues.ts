@@ -64,6 +64,8 @@ export function registerPublicVenueRoutes(app: FastifyInstance, prisma: PrismaCl
 				noticeEnabled: venue.noticeEnabled,
 				noticeDate: noticeDateOf(venue),
 				noticeText: venue.noticeText,
+				noticeEventName: venue.noticeEventName,
+				noticeEventTime: venue.noticeEventTime,
 				feedbackTitle: venue.feedbackTitle,
 				feedbackSubtitle: venue.feedbackSubtitle,
 				feedbackTags: venue.feedbackTags,

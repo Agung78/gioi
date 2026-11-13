@@ -5,12 +5,14 @@ import { PhCheckCircle, PhStar } from '@phosphor-icons/vue'
 import { submitFeedback } from '@/composables/useGuestApi'
 import { useVenue } from '@/composables/useVenue'
 import type { FeedbackBody } from '@/types/venue'
+import { VENUE_SEO } from '@/utils/venueSeo'
 
 const route = useRoute()
 const venueSlug = String(route.params.venue)
 const venueHome = useVenueHome(venueSlug)
 const { venue } = await useVenue()
 const venueName = computed(() => venue.value?.name || 'GIOI Ocean Gourmet')
+const reviewUrl = VENUE_SEO[venueSlug]?.reviewUrl
 useHead({ title: computed(() => `Feedback | ${venueName.value}`) })
 const code = String(route.params.code)
 const exists = await $fetch(`/api/public/reservations/${encodeURIComponent(code)}`).then(() => true, () => false)
@@ -68,7 +70,8 @@ async function submit() {
       <PhCheckCircle :size="52" weight="fill" class="mx-auto text-accent" aria-hidden="true" />
       <h1 class="mt-4 text-3xl font-extrabold">Thank you.</h1>
       <p class="mt-2 text-muted">Your feedback helps GIOI improve the next visit.</p>
-      <NuxtLink :to="venueHome" class="mt-8 inline-block text-sm font-medium text-accent underline underline-offset-4">Back to GIOI</NuxtLink>
+      <a v-if="reviewUrl" :href="reviewUrl" target="_blank" rel="noopener" class="btn-primary mt-8 inline-flex">Share your visit on Google</a>
+      <NuxtLink :to="venueHome" class="mt-6 block text-sm font-medium text-accent underline underline-offset-4">Back to GIOI</NuxtLink>
     </div>
   </div>
 </template>

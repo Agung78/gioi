@@ -296,3 +296,19 @@ describe('getDayAvailability', () => {
     expect(openSlot?.open).toBe(true)
   })
 })
+
+describe('event slot (special notice)', () => {
+  const now = new Date('2026-11-01T00:00:00Z')
+  const ev = { ...baseSettings, noticeEnabled: true, noticeDate: '2026-12-31', noticeText: 'open gate start 18.00', noticeEventName: 'NYE Dinner & Party', noticeEventTime: '18:00' }
+
+  it('collapses the event date to one named slot', () => {
+    const slots = getDayAvailability(ev, [], '2026-12-31', 2, { now })
+    expect(slots).toEqual([{ time: '18:00', open: true, remaining: expect.any(Number), label: 'NYE Dinner & Party', note: 'open gate start 18.00' }])
+    expect(checkAvailability(ev, [], { date: '2026-12-31', time: '19:00', partySize: 2 }, { now }).reasons).toContain('outside_hours')
+  })
+
+  it('leaves other dates and a nameless notice untouched', () => {
+    expect(getDayAvailability(ev, [], '2026-12-30', 2, { now }).length).toBeGreaterThan(1)
+    expect(getDayAvailability({ ...ev, noticeEventName: null }, [], '2026-12-31', 2, { now }).length).toBeGreaterThan(1)
+  })
+})

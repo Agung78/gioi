@@ -93,7 +93,9 @@ export function registerPublicReservationRoutes(app: FastifyInstance, prisma: Pr
 			const minute = toMinutes(body.time)
 			const diffMin = (startsAt.getTime() - Date.now()) / 60000
 			if (body.partySize < venue.partyMin || body.partySize > venue.partyMax) throw unprocessable('party size out of range')
-			if (venue.closedDates.some((cd) => cd.date.toISOString().slice(0, 10) === body.date) || !hours || minute < hours.openMinute || minute >= hours.closeMinute) {
+			const onEvent = venue.noticeEnabled && venue.noticeDate?.toISOString().slice(0, 10) === body.date && venue.noticeEventName && venue.noticeEventTime
+			const outsideHours = onEvent ? body.time !== venue.noticeEventTime : !hours || minute < hours.openMinute || minute >= hours.closeMinute
+			if (venue.closedDates.some((cd) => cd.date.toISOString().slice(0, 10) === body.date) || outsideHours) {
 				throw unprocessable('outside opening hours')
 			}
 			if (diffMin < venue.leadTimeMinutes || diffMin <= venue.cutoffMinutes) throw unprocessable('too soon to book')

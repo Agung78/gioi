@@ -14,10 +14,8 @@ export default defineEventHandler((event) => {
   </url>`
 		)
 		.join('\n')
-	const privacyUrl = `  <url>
-    <loc>${siteUrl}/privacy</loc>
-  </url>`
-	const urls = `${rootUrl}\n${venueUrls}\n${privacyUrl}`
+	// /privacy is noindex, so it stays out of the sitemap.
+	const urls = `${rootUrl}\n${venueUrls}`
 	const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 ${urls}

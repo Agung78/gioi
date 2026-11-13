@@ -39,6 +39,8 @@ const settings = computed(() => {
     noticeEnabled: v.noticeEnabled,
     noticeDate: v.noticeDate,
     noticeText: v.noticeText,
+    noticeEventName: v.noticeEventName,
+    noticeEventTime: v.noticeEventTime,
   } as any
 })
 

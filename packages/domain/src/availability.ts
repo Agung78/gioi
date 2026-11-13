@@ -18,6 +18,14 @@ export interface SlotAvailability {
   open: boolean
   reason?: 'closed' | 'past' | 'full'
   remaining?: number // covers left in the most-constrained area for that party size
+  label?: string // event slots only
+  note?: string
+}
+
+/** The one bookable slot on an event date (admin-configured via the special notice), or null. */
+export function eventSlotOf(settings: Settings, dateISO: string): { name: string; time: string } | null {
+  const { noticeEnabled, noticeDate, noticeEventName: name, noticeEventTime: time } = settings
+  return noticeEnabled && noticeDate === dateISO && name && time ? { name, time } : null
 }
 
 export function generateIntervals(open: string, close: string, stepMinutes: number): string[] {
@@ -143,13 +151,18 @@ export function checkAvailability(
   const now = opts.now ?? new Date()
   const reasons: UnavailableReason[] = []
 
-  if (!isOpenOn(settings, draft.date)) reasons.push('closed_date')
-
-  const hours = hoursFor(settings, draft.date)
-  if (hours) {
-    const mins = toMinutes(draft.time)
-    if (mins < toMinutes(hours.open) || mins > toMinutes(hours.close)) {
-      reasons.push('outside_hours')
+  const event = eventSlotOf(settings, draft.date)
+  if (event) {
+    if (isClosedDate(settings, draft.date)) reasons.push('closed_date')
+    if (draft.time !== event.time) reasons.push('outside_hours')
+  } else {
+    if (!isOpenOn(settings, draft.date)) reasons.push('closed_date')
+    const hours = hoursFor(settings, draft.date)
+    if (hours) {
+      const mins = toMinutes(draft.time)
+      if (mins < toMinutes(hours.open) || mins > toMinutes(hours.close)) {
+        reasons.push('outside_hours')
+      }
     }
   }
 
@@ -206,6 +219,22 @@ export function getDayAvailability(
   opts: CheckOptions = {},
 ): SlotAvailability[] {
   const now = opts.now ?? new Date()
+  const event = eventSlotOf(settings, dateISO)
+  if (event) {
+    const r = isClosedDate(settings, dateISO)
+      ? { ok: false, reasons: ['closed_date' as const], areaId: undefined }
+      : checkAvailability(settings, reservations, { date: dateISO, time: event.time, partySize, seatingAreaId: opts.seatingAreaId }, { now })
+    const label = { label: event.name, note: settings.noticeText || undefined }
+    if (!r.ok) {
+      const p = r.reasons[0]
+      return [{ time: event.time, open: false, reason: p === 'closed_date' ? 'closed' : p === 'full' ? 'full' : 'past', ...label }]
+    }
+    const area = opts.seatingAreaId ? settings.seatingAreas.find((a) => a.id === opts.seatingAreaId) : undefined
+    const remaining = area
+      ? area.capacity - reservedCovers(reservations, dateISO, event.time, area.id, settings.diningMinutes)
+      : remainingCapacityForParty(settings, reservations, dateISO, event.time, partySize)?.remaining
+    return [{ time: event.time, open: true, remaining, ...label }]
+  }
   const hours = hoursFor(settings, dateISO)
   if (!hours || !isOpenOn(settings, dateISO)) {
     const fallback = hours ?? { open: '00:00', close: '00:00' }

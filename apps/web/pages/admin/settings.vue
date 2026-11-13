@@ -137,7 +137,7 @@ function settingsBody() {
 	const keys = ['tagline', 'intro', 'address', 'phone', 'whatsapp', 'email', 'mapsUrl',
 		'bookingIntervalMinutes', 'partyMin', 'partyMax', 'diningMinutes', 'leadTimeMinutes',
 		'cutoffMinutes', 'graceMinutes', 'noShowTargetPercent', 'overCapacityAlertPercent', 'cancellationPolicy',
-		'noticeEnabled', 'noticeDate', 'noticeText',
+		'noticeEnabled', 'noticeDate', 'noticeText', 'noticeEventName', 'noticeEventTime',
 		'feedbackTitle', 'feedbackSubtitle', 'feedbackMessageTemplate'] as const
 	return Object.fromEntries(keys.map((k) => [k, d[k]]))
 }
@@ -294,9 +294,19 @@ definePageMeta({ middleware: ['auth', 'admin'] })
 								<DatePicker :model-value="draft!.noticeDate ?? ''" @update:model-value="draft!.noticeDate = $event" />
 							</div>
 							<div>
+								<label class="label" for="event-time">Event time</label>
+								<TimePicker id="event-time" :model-value="draft!.noticeEventTime ?? ''" @update:model-value="draft!.noticeEventTime = $event" />
+							</div>
+							<div>
+								<label class="label" for="event-name">Event name</label>
+								<input id="event-name" v-model="draft!.noticeEventName" class="field" placeholder="e.g. NYE Dinner &amp; Party" />
+							</div>
+							<div>
 								<label class="label">Notice text</label>
 								<input v-model="draft!.noticeText" class="field" />
 							</div>
+							<p v-if="!!draft!.noticeEventName?.trim() !== !!draft!.noticeEventTime" class="text-xs text-danger sm:col-span-2">Set both an event name and time, or the normal slots stay.</p>
+							<p v-else class="text-xs text-muted sm:col-span-2">With an event name and time, guests see only that one slot on the notice date. The notice text shows in the popup and under the slot.</p>
 						</div>
 					</div>
 				</div>

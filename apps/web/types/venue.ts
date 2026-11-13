@@ -31,6 +31,8 @@ export interface Venue {
   noticeEnabled: boolean
   noticeDate: string | null
   noticeText: string
+  noticeEventName?: string | null
+  noticeEventTime?: string | null
   feedbackTitle?: string
   feedbackSubtitle?: string
   feedbackTags?: string[]
@@ -42,6 +44,8 @@ export interface SlotAvailability {
   open: boolean
   reason?: 'closed' | 'past' | 'lead_time' | 'cutoff' | 'full'
   remaining?: number
+  label?: string
+  note?: string
 }
 
 export interface CreateReservationBody {

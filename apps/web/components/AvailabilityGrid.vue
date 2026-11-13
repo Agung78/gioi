@@ -19,6 +19,9 @@ const GROUPS = [
   { key: 'dinner', label: 'Dinner', from: 19 * 60 },
 ] as const
 
+/** One admin-configured event slot replaces every normal slot on that date. */
+const eventSlot = computed(() => props.slots.find((s) => s.label))
+
 const grouped = computed(() =>
   GROUPS.map((g, i) => {
     const to = GROUPS[i + 1]?.from ?? Infinity
@@ -48,7 +51,24 @@ function reasonLabel(reason: SlotAvailability['reason'] | undefined): string {
 
 <template>
   <div class="space-y-5">
-    <div v-for="g in grouped" :key="g.key">
+    <!-- Event day: exactly one named slot, replaces all normal groups. -->
+    <div v-if="eventSlot" class="mb-2">
+      <button
+        type="button"
+        class="pill min-h-16 flex-col items-start px-4 py-2"
+        :class="[modelValue === eventSlot.time ? 'pill-on' : '', !eventSlot.open ? 'cursor-not-allowed opacity-40' : 'hover:border-accent']"
+        :aria-disabled="!eventSlot.open"
+        :disabled="!eventSlot.open"
+        :aria-pressed="modelValue === eventSlot.time"
+        @click="pick(eventSlot.time)"
+      >
+        <span class="font-semibold">{{ eventSlot.label }}</span>
+        <span class="text-xs font-medium opacity-80">{{ eventSlot.time }}</span>
+        <span v-if="eventSlot.note" class="text-xs opacity-80 whitespace-pre-line">{{ eventSlot.note }}</span>
+      </button>
+    </div>
+
+    <div v-for="g in (eventSlot ? [] : grouped)" :key="g.key">
       <p class="mb-2 flex items-center gap-2 text-sm font-semibold">
         <PhSunHorizon v-if="g.key === 'sunset'" :size="20" class="text-accent" aria-hidden="true" />
         {{ g.label }}

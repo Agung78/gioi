@@ -337,6 +337,8 @@ export interface VenueSettings {
 	noticeEnabled: boolean
 	noticeDate: string | null
 	noticeText: string
+	noticeEventName?: string | null
+	noticeEventTime?: string | null
 	feedbackTitle?: string
 	feedbackSubtitle?: string
 	feedbackTags?: string[]
