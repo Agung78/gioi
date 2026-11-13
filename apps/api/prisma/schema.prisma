@@ -72,6 +72,8 @@ model Venue {
   noticeEnabled            Boolean  @default(false) @map("notice_enabled")
   noticeDate               DateTime? @map("notice_date") @db.Date // local date in the venue zone
   noticeText               String   @default("") @map("notice_text")
+  noticeEventName   String?   @map("notice_event_name")
+  noticeEventTime   String?   @map("notice_event_time")
   feedbackTitle            String?  @map("feedback_title")
   feedbackSubtitle         String?  @map("feedback_subtitle")
   feedbackTags             String[] @map("feedback_tags")

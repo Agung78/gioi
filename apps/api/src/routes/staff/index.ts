@@ -614,6 +614,7 @@ export function registerStaffRoutes(app: FastifyInstance, prisma: PrismaClient):
 				'leadTimeMinutes', 'cutoffMinutes', 'noShowTargetPercent',
 				'overCapacityAlertPercent', 'cancellationPolicy', 'feedbackTitle',
 				'feedbackSubtitle', 'feedbackMessageTemplate', 'noticeEnabled', 'noticeText',
+				'noticeEventName', 'noticeEventTime',
 			]
 			const changes: Record<string, { from: unknown; to: unknown }> = {}
 			const data: Record<string, unknown> = {}
@@ -634,6 +635,10 @@ export function registerStaffRoutes(app: FastifyInstance, prisma: PrismaClient):
 			}
 			if (typeof (data.noticeEnabled ?? venue.noticeEnabled) !== 'boolean') throw unprocessable('noticeEnabled must be a boolean')
 			if ((data.noticeEnabled ?? venue.noticeEnabled) && (data.noticeDate === undefined ? venue.noticeDate : data.noticeDate) === null) throw unprocessable('noticeDate is required when the notice is enabled')
+			if ('noticeEventTime' in request.body) {
+				const to = request.body.noticeEventTime
+				if (to !== null && to !== undefined && to !== '' && !/^\d{2}:\d{2}$/.test(String(to))) throw unprocessable('noticeEventTime must be HH:MM or null')
+			}
 			for (const key of ['bookingIntervalMinutes', 'partyMin', 'partyMax', 'diningMinutes', 'leadTimeMinutes', 'cutoffMinutes', 'noShowTargetPercent', 'overCapacityAlertPercent']) {
 				const v = data[key]
 				if (v !== undefined && (!Number.isInteger(v) || (v as number) < 0)) throw unprocessable(`${key} must be a non-negative integer`)
@@ -661,7 +666,7 @@ export function registerStaffRoutes(app: FastifyInstance, prisma: PrismaClient):
 				},
 			})
 
-			return { ...updated, noticeDate: noticeDateOf(updated) }
+			return { ...updated, noticeDate: noticeDateOf(updated), noticeEventName: updated.noticeEventName, noticeEventTime: updated.noticeEventTime }
 		},
 	)
 
