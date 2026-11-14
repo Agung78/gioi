@@ -512,7 +512,7 @@ onMounted(() => {
                 <div role="dialog" aria-modal="true" aria-labelledby="notice-title"
                   class="modal-panel w-full max-w-md space-y-4 rounded-surface border border-line bg-raised p-5 text-ink shadow-soft">
                   <h3 id="notice-title" class="text-xl font-extrabold">Special notice</h3>
-                  <p class="max-h-[60vh] overflow-y-auto whitespace-pre-line text-sm leading-relaxed">{{ settings.noticeText }}</p>
+                  <p class="max-h-[60vh] overflow-y-auto whitespace-pre-line text-sm leading-relaxed"><template v-for="(part, i) in settings.noticeText.split(/(WhatsApp)/)" :key="i"><a v-if="part === 'WhatsApp'" :href="`https://wa.me/${settings.restaurant.whatsapp.replace(/\D/g, '')}`" target="_blank" rel="noopener" class="btn-secondary !inline-flex !min-h-0 !px-3 !py-0.5 align-baseline" @click="capture('whatsapp_clicked', { from: 'notice' })">WhatsApp</a><template v-else>{{ part }}</template></template></p>
                   <button type="button" class="btn-primary w-full" autofocus @click="closeNotice">Close</button>
                 </div>
               </div>
