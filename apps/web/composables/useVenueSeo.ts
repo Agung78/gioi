@@ -1,9 +1,10 @@
 import { useRoute, useRuntimeConfig, useSeoMeta, useHead, useNuxtApp, createError } from '#app'
 import { useVenue } from '@/composables/useVenue'
 import { bookingSource } from '@/utils/bookingSource'
-import { VENUE_SEO, type VenueSeo } from '@/utils/venueSeo'
+import { VENUE_SEO, imageSrcset, type VenueSeo } from '@/utils/venueSeo'
 
 const dayName = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
+const dayAbbr = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa']
 // '<' escaped so venue text like '</script>' cannot break out of the JSON-LD script tag.
 const ldJson = (o: unknown) => JSON.stringify(o).replace(/</g, '\\u003c')
 
@@ -54,7 +55,13 @@ export async function useVenueSeo(venue = (useRoute().params.venue as string)) {
   })
 
   useHead({
-    link: [{ rel: 'canonical', href: pageUrl }, ...(seo ? [{ rel: 'preload', as: 'image', href: seo.image.url, fetchpriority: 'high' } as const] : [])],
+    meta: [
+      { name: 'geo.region', content: 'ID-BA' },
+      { name: 'geo.placename', content: seo.city },
+      { name: 'geo.position', content: `${seo.geo.lat};${seo.geo.lng}` },
+      { name: 'ICBM', content: `${seo.geo.lat}, ${seo.geo.lng}` },
+    ],
+    link: [{ rel: 'canonical', href: pageUrl }, ...(seo ? [{ rel: 'preload', as: 'image', href: seo.image.url, imagesrcset: imageSrcset(seo.image.url, [800, 1200], 1600), imagesizes: '(min-width: 768px) 45vw, 100vw', fetchpriority: 'high' } as const] : [])],
     script: [
       {
         type: 'application/ld+json',
@@ -108,8 +115,22 @@ export async function useVenueSeo(venue = (useRoute().params.venue as string)) {
                     opens: h.open,
                     closes: h.close,
                   })),
+                openingHours: Object.entries(hours)
+                  .filter(([, h]) => h != null)
+                  .map(([day, h]) => `${dayAbbr[Number(day)]} ${h.open}-${h.close}`),
               }
             : {}),
+        }),
+      },
+      {
+        type: 'application/ld+json',
+        innerHTML: ldJson({
+          '@context': 'https://schema.org',
+          '@type': 'BreadcrumbList',
+          itemListElement: [
+            { '@type': 'ListItem', position: 1, name: 'Home', item: siteUrl },
+            { '@type': 'ListItem', position: 2, name, item: pageUrl },
+          ],
         }),
       },
       ...(seo.page?.faqs?.length

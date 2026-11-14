@@ -1,10 +1,11 @@
 <script setup lang="ts">
 definePageMeta({ public: true })
 import { onBeforeUnmount, onMounted, ref } from 'vue'
-import { PhMapPin, PhClock, PhWhatsappLogo, PhPhone, PhInstagramLogo, PhSunHorizon, PhArrowUpRight, PhForkKnife, PhWine } from '@phosphor-icons/vue'
+import { PhMapPin, PhClock, PhWhatsappLogo, PhPhone, PhInstagramLogo, PhSunHorizon, PhArrowUpRight, PhForkKnife, PhWine, PhGoogleLogo, PhStar } from '@phosphor-icons/vue'
 import { addDays, todayISO } from '@gioi/domain'
 import DatePicker from '@/components/DatePicker.vue'
 import { useVenueSeo } from '@/composables/useVenueSeo'
+import { imageSrcset } from '@/utils/venueSeo'
 
 const { venue, info, hours, seo, name, bookHref, bookPath, phoneE164, wa, src } = await useVenueSeo()
 const p = seo.page
@@ -28,7 +29,10 @@ function quickBook() {
   navigateTo(`${bookPath}?${q}`, { external: true })
 }
 
+const heroSrcset = imageSrcset(seo.image.url, [800, 1200], 1600)
 const ig = seo.sameAs.find((u) => u.includes('instagram.com'))
+const gmaps = seo.sameAs.find((u) => u.includes('maps.google.com'))
+const tripadvisor = seo.sameAs.find((u) => u.includes('tripadvisor.com'))
 const igHandle = ig ? new URL(ig).pathname.replace(/\//g, '') : ''
 
 const root = ref<HTMLElement>()
@@ -65,7 +69,7 @@ onBeforeUnmount(() => ctx?.revert())
     <section data-hero class="relative isolate z-10 flex min-h-[100svh] flex-col bg-navy text-white">
       <header class="relative z-20">
         <div class="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 md:px-8">
-          <NuxtLink :to="`/${venue}`" class="leading-none" aria-label="GIOI Ocean Gourmet, home"><img src="/logo-96.webp" alt="GIOI Ocean Gourmet logo" width="96" height="96" class="h-12 w-12 rounded-full object-cover" /></NuxtLink>
+          <NuxtLink :to="`/${venue}`" class="flex"><img src="/logo-96.webp" alt="" width="96" height="96" fetchpriority="high" class="h-12 w-12 rounded-full object-cover" /><span class="sr-only">GIOI Ocean Gourmet, home</span></NuxtLink>
           <nav class="flex items-center gap-1 sm:gap-2">
             <a href="#signatures" class="hidden rounded-full px-4 py-2 text-sm font-medium text-white/80 transition hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-sand sm:inline-flex">Menu</a>
             <a href="#experience" class="hidden rounded-full px-4 py-2 text-sm font-medium text-white/80 transition hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-sand sm:inline-flex">Experience</a>
@@ -88,7 +92,7 @@ onBeforeUnmount(() => ctx?.revert())
             <button class="btn h-12 flex-1 bg-sun px-6 text-base text-navy hover:bg-sand focus-visible:ring-sand focus-visible:ring-offset-navy sm:flex-none" type="submit">Find a table</button>
           </form>
         </div>
-        <div data-hero-media class="relative order-1 overflow-hidden rounded-[28px] md:order-2"><div class="aspect-[4/3] bg-navy md:aspect-auto md:h-[min(60svh,34rem)]"><img :src="seo.image.url" :alt="p.imageAlt" width="1600" height="1600" class="h-full w-full object-cover" fetchpriority="high" /></div></div>
+        <div data-hero-media class="relative order-1 overflow-hidden rounded-[28px] md:order-2"><div class="aspect-[4/3] bg-navy md:aspect-auto md:h-[min(60svh,34rem)]"><img :src="seo.image.url" :alt="p.imageAlt" :srcset="heroSrcset" sizes="(min-width: 768px) 45vw, 100vw" width="1600" height="1600" class="h-full w-full object-cover" fetchpriority="high" /></div></div>
       </div>
     </section>
 
@@ -100,7 +104,7 @@ onBeforeUnmount(() => ctx?.revert())
             <p v-for="(para, i) in p.about" :key="i" class="leading-relaxed text-muted">{{ para }}</p>
           </div>
         </div>
-        <img src="/logo-480.webp" alt="GIOI Ocean Gourmet logo" width="480" height="480" loading="lazy" class="aspect-square w-48 rounded-full object-cover md:w-64 md:justify-self-end" />
+        <img src="/logo-480.webp" alt="GIOI Ocean Gourmet logo" width="480" height="480" class="aspect-square w-48 rounded-full object-cover md:w-64 md:justify-self-end" />
       </div>
     </section>
 
@@ -108,7 +112,7 @@ onBeforeUnmount(() => ctx?.revert())
       <h2 class="text-[clamp(2rem,4.5vw,3.5rem)] font-extrabold leading-[1.05]">{{ p.signaturesTitle }}</h2>
       <div class="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
         <article v-for="s in p.signatures" :key="s.name" class="leading-relaxed text-muted">
-          <button type="button" class="block aspect-[4/3] w-full cursor-zoom-in overflow-hidden rounded-surface bg-line/50" :aria-label="`View ${s.name} full size`" @click="zoom = s"><img :src="s.img" :alt="s.alt" loading="lazy" decoding="async" width="320" height="240" class="h-full w-full object-cover" :style="{ objectPosition: `50% ${s.pos}%` }" /></button>
+          <button type="button" class="block aspect-[4/3] w-full cursor-zoom-in overflow-hidden rounded-surface bg-line/50" :aria-label="`View ${s.name} full size`" @click="zoom = s"><img :src="s.img" :alt="s.alt" :srcset="`${s.img.replace(/\.webp$/, '-640.webp')} 640w, ${s.img} 1024w`" sizes="(min-width: 1024px) 25vw, (min-width: 640px) 50vw, 100vw" loading="lazy" decoding="async" width="320" height="240" class="h-full w-full object-cover" :style="{ objectPosition: `50% ${s.pos}%` }" /></button>
           <h3 class="mt-4 text-xl font-extrabold">{{ s.name }}</h3>
           <p class="mt-1">{{ s.price }}</p>
           <p class="mt-2">{{ s.copy }}</p>
@@ -131,16 +135,18 @@ onBeforeUnmount(() => ctx?.revert())
       <ol class="mt-16 grid gap-6 md:mt-24 md:grid-cols-3 md:gap-8"><li v-for="scene in p.scenes" :key="scene.title" data-rise :class="scene.feature ? 'md:-translate-y-12' : ''"><div class="group relative overflow-hidden rounded-surface"><div class="aspect-[4/5] overflow-hidden bg-line/50"><img :src="scene.img" :alt="scene.alt" loading="lazy" width="1600" height="900" class="h-full w-full object-cover transition duration-700 group-hover:scale-[1.03]" /></div><span class="absolute left-4 top-4 rounded-full bg-navy/85 px-3 py-1 font-display text-sm font-bold text-sand backdrop-blur">{{ scene.time }}</span></div><div class="mt-5"><h3 class="text-2xl font-extrabold">{{ scene.title }}</h3><p class="mt-2 max-w-[36ch] leading-relaxed text-muted">{{ scene.copy }}</p></div></li></ol>
     </section>
 
-    <section id="visit" class="border-b border-line"><div class="mx-auto grid max-w-7xl gap-16 px-4 py-24 md:grid-cols-[1.1fr_0.9fr] md:px-8 md:py-32"><div><h2 data-rise class="text-[clamp(2rem,4.5vw,3.5rem)] font-extrabold leading-[1.02]">{{ p.visitTitle }}</h2><div data-rise class="mt-8 flex gap-3 text-lg leading-relaxed"><PhMapPin :size="24" class="mt-1 shrink-0 text-accent" aria-hidden="true" /><address class="not-italic">{{ info?.address }}<br /><a :href="info?.mapsUrl" target="_blank" rel="noopener" class="group inline-flex min-h-11 items-center gap-1 font-medium text-accent underline decoration-line underline-offset-4">Get directions <PhArrowUpRight :size="16" aria-hidden="true" /></a></address></div><div data-rise class="mt-10 flex flex-wrap gap-3"><a v-for="m in seo?.menus" :key="m.path" :href="m.path" target="_blank" rel="noopener" class="btn-secondary"><component :is="m.path.includes('alcohol') ? PhWine : PhForkKnife" :size="20" aria-hidden="true" /> {{ m.label }}</a><a v-if="info" :href="wa" @click="posthog?.capture('whatsapp_clicked', { from: 'venue_page' })" class="btn-secondary"><PhWhatsappLogo :size="20" aria-hidden="true" /> WhatsApp</a><a :href="`tel:${phoneE164}`" class="btn-secondary"><PhPhone :size="20" aria-hidden="true" /> {{ info?.phone }}</a><a :href="ig" v-if="ig" target="_blank" rel="noopener noreferrer" class="btn-secondary"><PhInstagramLogo :size="20" aria-hidden="true" /> Instagram</a></div></div><div data-rise class="self-end"><div class="flex items-center justify-between"><h3 class="flex items-center gap-2 text-sm font-semibold uppercase tracking-[0.2em] text-muted"><PhClock :size="18" aria-hidden="true" /> Hours</h3><ClientOnly><span class="text-sm font-semibold uppercase tracking-[0.2em] tabular-nums" :aria-label="`Current time at ${name}`">{{ wita }} <span class="text-muted">{{ seo.tzLabel }}</span></span><template #fallback><span class="text-sm font-semibold uppercase tracking-[0.2em] tabular-nums" /></template></ClientOnly></div><ul class="mt-4 divide-y divide-line border-y border-line"><li v-for="d in days" :key="d" class="flex justify-between py-3"><span class="text-muted">{{ dayLabel[d] }}</span><span class="font-medium">{{ hours[d] ? `${hours[d].open} to ${hours[d].close}` : 'Closed' }}</span></li></ul></div></div></section>
+    <section id="visit" class="border-b border-line"><div class="mx-auto grid max-w-7xl gap-16 px-4 py-24 md:grid-cols-[1.1fr_0.9fr] md:px-8 md:py-32"><div><h2 data-rise class="text-[clamp(2rem,4.5vw,3.5rem)] font-extrabold leading-[1.02]">{{ p.visitTitle }}</h2><div data-rise class="mt-8 flex gap-3 text-lg leading-relaxed"><PhMapPin :size="24" class="mt-1 shrink-0 text-accent" aria-hidden="true" /><address class="not-italic">{{ info?.address }}<br /><a :href="info?.mapsUrl" target="_blank" rel="noopener" class="group inline-flex min-h-11 items-center gap-1 font-medium text-accent underline decoration-line underline-offset-4">Get directions <PhArrowUpRight :size="16" aria-hidden="true" /></a></address></div><div data-rise class="mt-10 flex flex-wrap gap-3"><a v-for="m in seo?.menus" :key="m.path" :href="m.path" target="_blank" rel="noopener" class="btn-secondary"><component :is="m.path.includes('alcohol') ? PhWine : PhForkKnife" :size="20" aria-hidden="true" /> {{ m.label }}</a><a v-if="info" :href="wa" @click="posthog?.capture('whatsapp_clicked', { from: 'venue_page' })" class="btn-secondary"><PhWhatsappLogo :size="20" aria-hidden="true" /> WhatsApp</a><a :href="`tel:${phoneE164}`" class="btn-secondary"><PhPhone :size="20" aria-hidden="true" /> {{ info?.phone }}</a><a :href="ig" v-if="ig" target="_blank" rel="noopener noreferrer" class="btn-secondary"><PhInstagramLogo :size="20" aria-hidden="true" /> Instagram</a>
+          <a v-if="gmaps" :href="gmaps" target="_blank" rel="noopener noreferrer" class="btn-secondary"><PhGoogleLogo :size="20" aria-hidden="true" /> Google Maps</a>
+          <a v-if="tripadvisor" :href="tripadvisor" target="_blank" rel="noopener noreferrer" class="btn-secondary"><PhStar :size="20" aria-hidden="true" /> TripAdvisor</a></div></div><div data-rise class="self-end"><div class="flex items-center justify-between"><h3 class="flex items-center gap-2 text-sm font-semibold uppercase tracking-[0.2em] text-muted"><PhClock :size="18" aria-hidden="true" /> Hours</h3><ClientOnly><span class="text-sm font-semibold uppercase tracking-[0.2em] tabular-nums" :aria-label="`Current time at ${name}`">{{ wita }} <span class="text-muted">{{ seo.tzLabel }}</span></span><template #fallback><span class="text-sm font-semibold uppercase tracking-[0.2em] tabular-nums" /></template></ClientOnly></div><ul class="mt-4 divide-y divide-line border-y border-line"><li v-for="d in days" :key="d" class="flex justify-between py-3"><span class="text-muted">{{ dayLabel[d] }}</span><span class="font-medium">{{ hours[d] ? `${hours[d].open} to ${hours[d].close}` : 'Closed' }}</span></li></ul></div></div></section>
 
     <section id="faq" class="mx-auto max-w-7xl px-4 py-16 md:px-8 md:py-20 border-b border-line">
       <h2 class="text-[clamp(2rem,4.5vw,3.5rem)] font-extrabold leading-[1.05]">Frequently asked questions</h2>
       <div class="mt-12 border-t border-line">
-<details v-for="(faq, i) in p.faqs" :key="i" class="group border-b border-line"><summary class="flex cursor-pointer list-none items-center justify-between py-4 font-medium focus:outline-none"><span>{{ faq.q }}</span><span class="text-xl leading-none text-muted transition-transform group-open:rotate-45" aria-hidden="true">+</span></summary><div class="pb-4 text-muted leading-relaxed">{{ faq.a }}</div></details>
+<details v-for="(faq, i) in p.faqs" :key="i" class="group border-b border-line"><summary class="flex cursor-pointer list-none items-center justify-between py-4 font-medium focus:outline-none"><span>{{ faq.q }}</span><span class="text-xl leading-[1.2] text-muted transition-transform group-open:rotate-45" aria-hidden="true">+</span></summary><div class="pb-4 text-muted leading-relaxed">{{ faq.a }}</div></details>
       </div>
     </section>
 
-    <section class="bg-navy text-white"><div class="mx-auto max-w-7xl px-4 pb-10 pt-24 md:px-8 md:pt-32"><h2 data-reveal :aria-label="p.ctaTitle" class="max-w-[14ch] text-[clamp(2.5rem,7vw,6rem)] font-extrabold leading-[0.95] tracking-[-0.03em] text-white"><span aria-hidden="true"><template v-for="(w, wi) in p.ctaTitle.split(' ')" :key="w"><span class="inline-block overflow-hidden align-bottom"><span data-word class="inline-block pr-[0.2em]" :class="wi === p.ctaTitle.split(' ').length - 1 ? 'text-sun' : ''">{{ w }}</span>{{ ' ' }}</span></template></span></h2><div data-rise class="mt-10 flex flex-wrap items-center gap-6"><a :href="bookHref" class="btn min-h-12 bg-sun px-8 text-base text-navy hover:bg-sand focus-visible:ring-sand focus-visible:ring-offset-navy">Reserve a table</a><p class="max-w-[48ch] text-sm leading-relaxed text-white/65">{{ p.ctaNote }}</p></div><footer class="mt-24 flex flex-col gap-4 border-t border-white/10 pt-6 text-xs text-white/50 sm:flex-row sm:items-center sm:justify-between"><img src="/logo-96.webp" alt="GIOI Ocean Gourmet logo" width="96" height="96" class="h-10 w-10 rounded-full object-cover" /><span>{{ name }} · {{ info?.address }}</span><a :href="`tel:${phoneE164}`" class="inline-flex min-h-11 items-center hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-sand">{{ info?.phone }}</a><a :href="ig" v-if="ig" target="_blank" rel="noopener noreferrer" :aria-label="`${name} on Instagram`" class="inline-flex min-h-11 items-center gap-1.5 hover:text-white focus-visible:outline focus-visible:outline-sand"><PhInstagramLogo :size="20" aria-hidden="true" /> {{ '@' + igHandle }}</a><NuxtLink to="/privacy" class="inline-flex min-h-11 items-center hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-sand">Privacy</NuxtLink></footer></div></section>
+    <section class="bg-navy text-white"><div class="mx-auto max-w-7xl px-4 pb-10 pt-24 md:px-8 md:pt-32"><h2 data-reveal :aria-label="p.ctaTitle" class="max-w-[14ch] text-[clamp(2.5rem,7vw,6rem)] font-extrabold leading-[0.95] tracking-[-0.03em] text-white"><span aria-hidden="true"><template v-for="(w, wi) in p.ctaTitle.split(' ')" :key="w"><span class="inline-block overflow-hidden align-bottom"><span data-word class="inline-block pr-[0.2em]" :class="wi === p.ctaTitle.split(' ').length - 1 ? 'text-sun' : ''">{{ w }}</span>{{ ' ' }}</span></template></span></h2><div data-rise class="mt-10 flex flex-wrap items-center gap-6"><a :href="bookHref" class="btn min-h-12 bg-sun px-8 text-base text-navy hover:bg-sand focus-visible:ring-sand focus-visible:ring-offset-navy">Reserve a table</a><p class="max-w-[48ch] text-sm leading-relaxed text-white/65">{{ p.ctaNote }}</p></div><footer class="mt-24 flex flex-col gap-4 border-t border-white/10 pt-6 text-xs text-white/50 sm:flex-row sm:items-center sm:justify-between"><img src="/logo-96.webp" alt="GIOI Ocean Gourmet logo" width="96" height="96" loading="lazy" class="h-10 w-10 rounded-full object-cover" /><span>{{ name }} · {{ info?.address }}</span><a :href="`tel:${phoneE164}`" class="inline-flex min-h-11 items-center hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-sand">{{ info?.phone }}</a><a :href="ig" v-if="ig" target="_blank" rel="noopener noreferrer" :aria-label="`@${igHandle} on Instagram`" class="inline-flex min-h-11 items-center gap-1.5 hover:text-white focus-visible:outline focus-visible:outline-sand"><PhInstagramLogo :size="20" aria-hidden="true" /> {{ '@' + igHandle }}</a><NuxtLink to="/privacy" class="inline-flex min-h-11 items-center hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-sand">Privacy</NuxtLink></footer></div></section>
   </div>
 </template>
 

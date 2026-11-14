@@ -19,6 +19,8 @@ export default defineNuxtConfig({
 			routes: Object.keys(VENUE_SEO).map((s) => `/${s}`),
 		},
 	},
+	// Nuxt emits ~80KB of inline CSS; serve external cached CSS instead.
+	features: { inlineStyles: false },
 	routeRules: {
 		// / is the group landing page now; prerendered.
 		'/': { prerender: true },
