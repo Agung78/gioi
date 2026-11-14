@@ -61,7 +61,7 @@ export async function useVenueSeo(venue = (useRoute().params.venue as string)) {
       { name: 'geo.position', content: `${seo.geo.lat};${seo.geo.lng}` },
       { name: 'ICBM', content: `${seo.geo.lat}, ${seo.geo.lng}` },
     ],
-    link: [{ rel: 'canonical', href: pageUrl }, ...(seo ? [{ rel: 'preload', as: 'image', href: seo.image.url, imagesrcset: imageSrcset(seo.image.url, [800, 1200], 1600), imagesizes: '(min-width: 768px) 45vw, 100vw', fetchpriority: 'high' } as const] : [])],
+    link: [{ rel: 'canonical', href: pageUrl }, { rel: 'llms', href: '/llms.txt' }, { rel: 'preload', as: 'image', href: '/logo-96.webp', fetchpriority: 'high' }, ...(seo ? [{ rel: 'preload', as: 'image', href: seo.image.url, imagesrcset: imageSrcset(seo.image.url, [800, 1200], 1600), imagesizes: '(min-width: 768px) 45vw, 100vw', fetchpriority: 'high' } as const] : [])],
     script: [
       {
         type: 'application/ld+json',

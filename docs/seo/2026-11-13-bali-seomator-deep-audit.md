@@ -103,9 +103,9 @@ Lab results vary with cache state; treat CWV as indicative until CrUX field data
 5. Replace CSP `unsafe-inline` with nonces/hashes.
 6. Add `<lastmod>` to the sitemap, `llms.txt`.
 
-## Implementation status (2026-11-14, uncommitted)
+## Implementation status (2026-11-14)
 
-Scope rule: no copy or layout change; small typographic/markup tweaks allowed. Verified by `pnpm build` and the prerendered `/bali` HTML (122KB to 42KB, zero inline `<style>`, two external CSS files). Not deployed; re-run SEOmator after deploy to confirm scores.
+Scope rule: no copy or layout change; small typographic/markup tweaks allowed. Verified by `pnpm build` and the prerendered `/bali` HTML (122KB to 42KB, zero inline `<style>`, two external CSS files). Deployed; see the re-audit below.
 
 | Audit item | Change |
 |---|---|
@@ -133,3 +133,61 @@ Not done:
 - `security-csp-xss` (nonces/hashes) and Trusted Types: Nuxt prerender plus inline theme/JSON-LD/PostHog scripts need a CSP module and testing; high risk of breaking the page.
 - `perf-http2` (`alt-svc` is platform-set), `.well-known` agent manifests and Markdown representation (speculative, no consumer). `llms.txt` already exists.
 - `images-size` for scenes (see above); `schema-organization` suggestions.
+
+## Re-audit after deploy (2026-11-14)
+
+Same command, same target (`/tmp/audit2.json`, not saved in repo). **Overall 95 to 97.** Failures 3 to 3 (the same three rules), warnings about 45 to 28.
+
+### Core Web Vitals (lab)
+
+| Metric | Before | After | Note |
+|---|---|---|---|
+| LCP | 0.79s | 0.98s | good; regressed |
+| FCP | 0.34s | 0.90s | good; regressed |
+| CLS | 0.002 | 0.002 | same |
+
+FCP/LCP regression is the expected cost of `inlineStyles: false` (two render-blocking CSS files instead of inline CSS). Both stay well inside "good" (FCP <1.8s, LCP <2.5s). Single cold lab run, so treat as indicative. If it matters, a CSS preload or keeping only the entry CSS inline would recover it.
+
+### Category scores
+
+| Category | Before | After |
+|---|---|---|
+| Performance | 86 | 96 |
+| Images | 89 | 93 |
+| Mobile | 81 | 87 |
+| Schema | 94 | 98 |
+| A11y | 99 | 100 |
+| Crawlability | 99 | 100 |
+| Security | 93 | 95 |
+| E-E-A-T | 75 | 76 |
+| Content | 93 | 93 |
+| Social | 89 | 89 |
+| GEO / AI | 91 | 91 |
+| Links | 99 | 99 |
+
+### Fixed (now pass)
+
+`perf-lazy-above-fold`, `images-lazy-loading`, `perf-image-encoding` (0 images over 100KB), `perf-css-file-size` (0 inline KB, 2 external), `perf-page-weight` (HTML 119KB to 42KB), `perf-font-loading`, `perf-asset-cache-policy` for the logos, `schema-breadcrumb`, `schema-local-business`, `crawl-sitemap-lastmod`, `a11y-label-name-mismatch`, `links-anchor-text`, `mobile-font-size`, `security-ssl-protocol` (HSTS preload token), geo meta tag.
+
+### Still failing
+
+| Rule | Now | Why |
+|---|---|---|
+| `content-text-html-ratio` | 8.7% (was 3.1%); threshold low <10%, good >=25% | Inline CSS gone (122KB to 43KB), but 3.8KB text is still small against Tailwind class markup (~7.6KB inline SVG icons, 5KB JSON-LD, 9KB head). Reaching 10% needs ~38KB HTML; the next step is a lighter DOM or more text, a content/layout call |
+| `mobile-horizontal-scroll` | 10 elements | Same false positive as before (measured `scrollWidth` 390 at 390px) |
+| `security-csp-xss` | unsafe-inline | Deliberately not done (see Not done) |
+
+### Still warning, accepted or deferred
+
+- `perf-lcp-hints`: candidate is still the header logo. It now has `fetchpriority="high"` (`hasFetchPriority: true`), but the rule also wants a `<link rel=preload>` for it. The preload slot is used by the hero; adding a logo preload is a 96px file, cheap, optional.
+- `images-responsive` 9 of 11 (was 82% with none; now 5 images have srcset and sizes): the remaining are scenes (see Not done), the two logos, and 320x240 dish thumbnails the rule counts from width/height attributes.
+- `images-size`: `outlet-06` 1600x1600 (schema/OG image, kept) and a filename heuristic on `dish-jimbaran-king-prawn` (actual file 320x240; false positive).
+- `perf-asset-cache-policy`: only the PostHog `config.js` ingest URL remains (max-age 300s, third-party proxy).
+- New: `links-external-valid`: the TripAdvisor link returns 403 to the crawler (bot blocking). Works in a browser; ignore. This appeared because the link was added.
+- `geo-llms-txt`: `/llms.txt` exists but the page has no `<link rel="llms" href="/llms.txt">`. One-line head addition if wanted.
+- `eeat-physical-address`: still flagged although an `<address>` element exists in Visit; the rule seems to want PostalAddress markup in-page. Not investigated further.
+- `eeat-about-page`, `eeat-contact-page` (phone only visible), `eeat-author-byline`, `eeat-editorial-policy`, `eeat-citations`, `social-share-buttons`, `social-profiles` (Instagram only detected; the Maps/TripAdvisor buttons are not counted as profiles), `content-heading-length`, `perf-http2`, `security-trusted-types`, `schema-organization`, `geo-agents-md`, `geo-well-known`, `geo-markdown-*`: unchanged, see Not done.
+
+### Follow-up (not yet deployed, build verified)
+
+Added in `useVenueSeo.ts`: `<link rel="preload" as="image" href="/logo-96.webp" fetchpriority="high">` (for `perf-lcp-hints`) and `<link rel="llms" href="/llms.txt">` (for `geo-llms-txt`). Both confirmed in the prerendered `/bali` HTML. Re-run SEOmator after deploy.
