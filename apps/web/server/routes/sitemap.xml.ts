@@ -11,6 +11,7 @@ export default defineEventHandler((event) => {
 			(slug) =>
 			`  <url>
     <loc>${siteUrl}/${slug}</loc>
+    <lastmod>${new Date().toISOString().slice(0, 10)}</lastmod>
   </url>`
 		)
 		.join('\n')

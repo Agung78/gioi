@@ -102,3 +102,34 @@ Lab results vary with cache state; treat CWV as indicative until CrUX field data
 4. Add `BreadcrumbList`, visible address and secondary contact method, about link.
 5. Replace CSP `unsafe-inline` with nonces/hashes.
 6. Add `<lastmod>` to the sitemap, `llms.txt`.
+
+## Implementation status (2026-11-14, uncommitted)
+
+Scope rule: no copy or layout change; small typographic/markup tweaks allowed. Verified by `pnpm build` and the prerendered `/bali` HTML (122KB to 42KB, zero inline `<style>`, two external CSS files). Not deployed; re-run SEOmator after deploy to confirm scores.
+
+| Audit item | Change |
+|---|---|
+| `content-text-html-ratio`, `perf-css-file-size`, `perf-page-weight` | `nuxt.config.ts` `features.inlineStyles = false`. Trade-off: two render-blocking CSS requests; check LCP after deploy |
+| `perf-lazy-above-fold` | Removed `loading="lazy"` from the About-section logo (SEOmator's viewport counts it above the fold) |
+| `images-lazy-loading` | Footer logo (the flagged image) now `loading="lazy"` |
+| `perf-lcp-hints` | SEOmator's LCP candidate is the header logo; it now has `fetchpriority="high"`. Hero keeps its preload, which now carries `imagesrcset`/`imagesizes` |
+| `images-responsive` | Hero: 800/1200/1600w variants. Signature dishes: 640w variants. Scene images left alone: `object-cover` into a 4:5 card makes the 1600px original about 1.8x the displayed width, so smaller variants would visibly soften them |
+| `perf-image-encoding` | Re-encoded webp >100KB at q78, same dimensions: outlet-06 254 to 227KB, outlet-07 224 to 207KB, salmon-lodeh 278 to 232KB, crispy-duck 168 to 138KB, outlet-02 207 to 190KB, og-seafood-platter 223 to 185KB. outlet-05 kept (re-encode larger). Mobile now gets 38-130KB variants for hero and dishes |
+| `perf-asset-cache-policy` | `vercel.json` immutable Cache-Control for `/logo-480.webp`, `/logo-96.webp` (unhashed names; rename on change) |
+| `schema-breadcrumb` | Standalone `BreadcrumbList` JSON-LD |
+| `schema-local-business` | `openingHours` string array next to `openingHoursSpecification` |
+| geo meta tag (E-E-A-T) | `geo.region`, `geo.placename`, `geo.position`, `ICBM` meta (region hardcoded `ID-BA`; move to `VenueSeo` for a non-Bali venue) |
+| `crawl-sitemap-lastmod` | `<lastmod>` = request date, not the real content date |
+| `a11y-label-name-mismatch` | Instagram aria-label now `@gioioceangourmet on Instagram` (contains the visible text) |
+| `links-anchor-text` | Header logo link had no text: img `alt=""` plus `sr-only` "GIOI Ocean Gourmet, home" |
+| `mobile-font-size` | Base `h1,h2,h3` line-height 1.1 to 1.2; `leading-none` removed from header link (now `flex`) and FAQ "+" glyph. Page headings keep their explicit `leading-[0.98..1.05]` (display type; changing them alters layout) |
+| `social-profiles` | Visible Google Maps and TripAdvisor buttons added after Instagram in the Visit section (same `btn-secondary` style, URLs from `sameAs`). Only layout addition; wraps in the existing flex row |
+| `security-ssl-protocol` | HSTS header now includes `preload`. Submission to hstspreload.org is a separate, hard-to-reverse step, not done |
+
+Not done:
+- `content-heading-length` ("Breakfast", "Hours"): needs copy change.
+- E-E-A-T visible address block (an `<address>` already exists in Visit), second contact method, about link: layout additions.
+- `perf-font-loading`: 5 woff2 files, all weights in use; reducing changes typography.
+- `security-csp-xss` (nonces/hashes) and Trusted Types: Nuxt prerender plus inline theme/JSON-LD/PostHog scripts need a CSP module and testing; high risk of breaking the page.
+- `perf-http2` (`alt-svc` is platform-set), `.well-known` agent manifests and Markdown representation (speculative, no consumer). `llms.txt` already exists.
+- `images-size` for scenes (see above); `schema-organization` suggestions.

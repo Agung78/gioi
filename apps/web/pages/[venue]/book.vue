@@ -106,6 +106,11 @@ const summary = computed(() => {
 const error = ref<string | null>(null)
 const noticeActive = computed(() => !!settings.value?.noticeEnabled && !!settings.value.noticeDate && date.value === settings.value.noticeDate)
 const noticeUpcoming = computed(() => !!settings.value?.noticeEnabled && !!settings.value.noticeDate && settings.value.noticeDate >= today)
+// Admin text often opens with "*****HEADLINE*****"; lift it into the heading, keep the rest as body.
+const noticeParts = computed(() => {
+  const m = (settings.value?.noticeText ?? '').trim().match(/^\*+\s*(.+?)\s*\*+\s*([\s\S]*)$/)
+  return m ? { headline: m[1], body: m[2] } : { headline: '', body: (settings.value?.noticeText ?? '').trim() }
+})
 watch(noticeUpcoming, (on) => { noticeOpen.value = on }, { immediate: true })
 watch(noticeActive, (on) => {
   noticeRead.value = noticeAccepted.value = false
@@ -510,10 +515,11 @@ onMounted(() => {
               <div v-if="noticeUpcoming && noticeOpen" class="fixed inset-0 z-50 flex items-end justify-center bg-black/40 p-4 md:items-center"
                 @click.self="closeNotice" @keydown.esc="closeNotice">
                 <div role="dialog" aria-modal="true" aria-labelledby="notice-title"
-                  class="modal-panel w-full max-w-md space-y-4 rounded-surface border border-line bg-raised p-5 text-ink shadow-soft">
-                  <h3 id="notice-title" class="text-xl font-extrabold">Special notice</h3>
-                  <p class="max-h-[60vh] overflow-y-auto whitespace-pre-line text-sm leading-relaxed"><template v-for="(part, i) in settings.noticeText.split(/(WhatsApp)/)" :key="i"><a v-if="part === 'WhatsApp'" :href="`https://wa.me/${settings.restaurant.whatsapp.replace(/\D/g, '')}`" target="_blank" rel="noopener" class="btn-secondary !inline-flex !min-h-0 !px-3 !py-0.5 align-baseline" @click="capture('whatsapp_clicked', { from: 'notice' })">WhatsApp</a><template v-else>{{ part }}</template></template></p>
-                  <button type="button" class="btn-primary w-full" autofocus @click="closeNotice">Close</button>
+                  class="modal-panel w-full max-w-md rounded-surface border border-line bg-raised p-6 text-ink shadow-soft">
+                  <p id="notice-title" class="text-xs font-semibold uppercase tracking-wide text-ink-muted">Special notice</p>
+                  <h3 v-if="noticeParts.headline" class="mt-2 text-2xl font-extrabold leading-tight">{{ noticeParts.headline }}</h3>
+                  <p class="mt-4 max-h-[55vh] overflow-y-auto whitespace-pre-line text-[15px] leading-7 text-ink-muted"><template v-for="(part, i) in noticeParts.body.split(/(WhatsApp)/)" :key="i"><a v-if="part === 'WhatsApp'" :href="`https://wa.me/${settings.restaurant.whatsapp.replace(/\D/g, '')}`" target="_blank" rel="noopener" class="font-semibold text-accent underline underline-offset-2" @click="capture('whatsapp_clicked', { from: 'notice' })">WhatsApp</a><template v-else>{{ part }}</template></template></p>
+                  <button type="button" class="btn-primary mt-6 w-full" @click="closeNotice">I understand</button>
                 </div>
               </div>
             </Transition>

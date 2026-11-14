@@ -92,3 +92,7 @@ export const VENUE_SEO: Record<string, VenueSeo> = {
     },
   },
 }
+
+/** srcset for `name.webp` with generated `name-<w>.webp` variants plus the original at `fullWidth`. */
+export const imageSrcset = (url: string, widths: number[], fullWidth: number) =>
+  [...widths.map((w) => `${url.replace(/\.webp$/, `-${w}.webp`)} ${w}w`), `${url} ${fullWidth}w`].join(', ')
