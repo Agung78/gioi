@@ -34,7 +34,7 @@ onBeforeUnmount(() => document.removeEventListener('keydown', onKey))
   <template v-if="live">
     <div class="bg-sun text-navy">
       <div class="mx-auto flex max-w-7xl flex-wrap items-center justify-center gap-x-4 gap-y-1 px-4 py-2 text-center text-sm font-medium md:px-8">
-        <span><strong class="font-extrabold">The Final Splash NYE 2027</strong> · Early Bird from IDR 450,000++ until 10 Dec</span>
+        <span><strong class="font-extrabold">The Final Splash NYE 2027</strong> · Early Bird from IDR 450,000++</span>
         <a :href="PROMO.href" class="inline-flex min-h-8 items-center font-extrabold underline underline-offset-4 hover:no-underline" @click="track('promo_banner_clicked')">Book your table</a>
       </div>
     </div>
