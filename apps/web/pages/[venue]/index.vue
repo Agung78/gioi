@@ -67,7 +67,7 @@ onBeforeUnmount(() => ctx?.revert())
 
 <template>
   <div ref="root" class="overflow-x-clip">
-    <NyePromo v-if="venue === 'bali'" :book-href="bookHref" />
+    <NyePromo v-if="venue === 'bali'" />
     <section data-hero class="relative isolate z-10 flex min-h-[100svh] flex-col bg-navy text-white">
       <header class="relative z-20">
         <div class="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 md:px-8">

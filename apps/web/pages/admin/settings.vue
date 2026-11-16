@@ -36,6 +36,7 @@ function flash() { saved.value = `Saved at ${new Date().toLocaleTimeString()}`; 
 
 const clone = <T>(v: T): T => JSON.parse(JSON.stringify(v))
 const draft = ref<VenueSettings | null>(null)
+const noticeIncomplete = computed(() => !!draft.value?.noticeEventName?.trim() !== !!draft.value?.noticeEventTime)
 watch(() => venue.value, (val) => { if (val) draft.value = clone(val) }, { deep: true })
 
 const opening = ref<OpeningHoursRow[]>([])
@@ -288,26 +289,26 @@ definePageMeta({ middleware: ['auth', 'admin'] })
 							<input v-model="draft!.noticeEnabled" type="checkbox" class="h-5 w-5 accent-[rgb(var(--accent))]" />
 							<span>Enable special notice</span>
 						</label>
-						<div v-if="draft!.noticeEnabled" class="grid gap-4 sm:grid-cols-2">
+						<div v-if="draft!.noticeEnabled" class="grid gap-3 sm:grid-cols-3">
 							<div>
 								<label class="label">Notice date</label>
 								<DatePicker :model-value="draft!.noticeDate ?? ''" @update:model-value="draft!.noticeDate = $event" />
 							</div>
 							<div>
-								<label class="label" for="event-time">Event time</label>
-								<TimePicker id="event-time" :model-value="draft!.noticeEventTime ?? ''" @update:model-value="draft!.noticeEventTime = $event" />
+								<label class="label" for="event-time">Event time <span class="text-muted">(required with name)</span></label>
+								<TimePicker id="event-time" :model-value="draft!.noticeEventTime ?? ''" :aria-invalid="noticeIncomplete" :class="noticeIncomplete && '!border-danger'" @update:model-value="draft!.noticeEventTime = $event" />
 							</div>
 							<div>
 								<label class="label" for="event-name">Event name</label>
 								<input id="event-name" v-model="draft!.noticeEventName" class="field" placeholder="e.g. NYE Dinner &amp; Party" />
 							</div>
-							<div class="sm:col-span-2 space-y-2">
-								<label class="label" for="notice-title">Notice popup</label>
-								<input id="notice-title" v-model="draft!.noticeTitle" class="field font-semibold" placeholder="Headline, e.g. New Year's Eve 2026 special policy" />
-								<textarea v-model="draft!.noticeText" rows="5" class="field" aria-label="Notice message" placeholder="Message" />
+							<div class="sm:col-span-3 space-y-1.5">
+								<label class="label" for="notice-title">Popup headline</label>
+								<input id="notice-title" v-model="draft!.noticeTitle" class="field font-semibold placeholder:font-normal" placeholder="e.g. New Year's Eve 2026 special policy" />
+								<label class="label" for="notice-text">Popup message</label>
+								<textarea id="notice-text" v-model="draft!.noticeText" rows="3" class="field" />
 							</div>
-							<p v-if="!!draft!.noticeEventName?.trim() !== !!draft!.noticeEventTime" class="text-xs text-danger sm:col-span-2">Set both an event name and time, or the normal slots stay.</p>
-							<p v-else class="text-xs text-muted sm:col-span-2">With an event name and time, guests see only that one slot on the notice date. The notice text shows in the popup and under the slot.</p>
+							<p class="text-xs text-muted sm:col-span-3">With an event name and time, guests see only that one slot on the notice date. The notice text shows in the popup and under the slot.</p>
 						</div>
 					</div>
 				</div>
