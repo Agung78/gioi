@@ -2,7 +2,7 @@
 import { onBeforeUnmount, onMounted, ref } from 'vue'
 import { PhX } from '@phosphor-icons/vue'
 
-// One campaign, hardcoded. Bump `id` for the next promo so returning guests see it again.
+// One campaign, hardcoded. Seen-flag lives in sessionStorage: shown once per tab session, again on a later visit. Bump `id` to re-show within a session.
 const PROMO = { id: 'nye-2027', endsAt: '2027-01-01T00:00:00+08:00', href: 'https://book.gioigroup.com/bali/book?date=2026-12-31&party=2' }
 const KEY = `promo-seen:${PROMO.id}`
 
@@ -17,13 +17,13 @@ function close() {
 }
 const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape' && popup.value) close() }
 
-// Client-only: the page is prerendered, so localStorage must not influence SSR output.
+// Client-only: the page is prerendered, so sessionStorage must not influence SSR output.
 onMounted(() => {
 	if (!live) return
 	document.addEventListener('keydown', onKey)
 	try {
-		if (localStorage.getItem(KEY)) return
-		localStorage.setItem(KEY, '1')
+		if (sessionStorage.getItem(KEY)) return
+		sessionStorage.setItem(KEY, '1')
 	} catch { /* storage blocked: still show once per page load */ }
 	setTimeout(() => { popup.value = true; track('promo_popup_shown') }, 1200)
 })
@@ -34,7 +34,7 @@ onBeforeUnmount(() => document.removeEventListener('keydown', onKey))
   <template v-if="live">
     <div class="bg-sun text-navy">
       <div class="mx-auto flex max-w-7xl flex-wrap items-center justify-center gap-x-4 gap-y-1 px-4 py-2 text-center text-sm font-medium md:px-8">
-        <span><strong class="font-extrabold">The Final Splash NYE 2027</strong> · Early Bird from IDR 450,000++ until 10 Dec</span>
+        <span><strong class="font-extrabold">The Final Splash NYE 2027</strong> · Early Bird from IDR 450,000++</span>
         <a :href="PROMO.href" class="inline-flex min-h-8 items-center font-extrabold underline underline-offset-4 hover:no-underline" @click="track('promo_banner_clicked')">Book your table</a>
       </div>
     </div>
