@@ -322,7 +322,7 @@ onMounted(() => {
   <div v-else-if="venueError || !settings" class="mx-auto max-w-5xl px-4 pt-8 pb-32 text-center">
     <p class="text-muted">Venue not found.</p>
   </div>
-  <div v-else class="mx-auto max-w-5xl px-4 pb-32 pt-8 md:px-8 lg:pb-16">
+  <div v-else class="mx-auto max-w-5xl px-4 pb-28 pt-8 md:px-8 lg:pb-16">
     <div class="flex items-center justify-between">
       <NuxtLink :to="venueHome" class="btn-ghost !min-h-10 !px-3 -ml-3 gap-2 text-sm text-ink">
         <PhArrowLeft :size="16" aria-hidden="true" />
@@ -496,11 +496,11 @@ onMounted(() => {
         <section class="space-y-3">
           <p class="text-sm leading-relaxed text-muted">{{ settings.cancellationPolicy }}</p>
           <label class="flex min-h-11 items-start gap-3 py-2 text-sm">
-            <input v-model="acceptedPolicy" type="checkbox" class="mt-0.5 h-5 w-5 accent-[rgb(var(--accent))]" />
+            <input v-model="acceptedPolicy" type="checkbox" class="mt-0.5 h-5 w-5 shrink-0 accent-[rgb(var(--accent))]" />
             <span>I understand the cancellation policy.</span>
           </label>
           <label class="flex min-h-11 items-start gap-3 py-2 text-sm">
-            <input v-model="marketingConsent" type="checkbox" class="mt-0.5 h-5 w-5 accent-[rgb(var(--accent))]" />
+            <input v-model="marketingConsent" type="checkbox" class="mt-0.5 h-5 w-5 shrink-0 accent-[rgb(var(--accent))]" />
             <span>Send me occasional news and events. (Optional)</span>
           </label>
           <div v-if="noticeActive" class="space-y-1">
@@ -553,10 +553,9 @@ onMounted(() => {
       </aside>
     </div>
 
-    <div class="fixed inset-x-0 bottom-0 z-20 border-t border-line bg-surface/95 p-4 pb-[max(1rem,env(safe-area-inset-bottom))] backdrop-blur-md lg:hidden">
-      <p class="mb-2 text-center text-sm font-medium">{{ summary }}</p>
-      <p v-if="!canSubmit && missingStepPrompt" class="mb-2 text-center text-xs font-medium text-accent" role="status">{{ missingStepPrompt }}</p>
-      <button class="btn-primary min-h-14 w-full text-base" form="book-form" :disabled="!canSubmit || submitting"
+    <div class="fixed inset-x-0 bottom-0 z-20 border-t border-line bg-surface/95 px-4 pt-3 pb-[max(1rem,env(safe-area-inset-bottom))] backdrop-blur-md lg:hidden">
+      <p class="mb-1.5 text-center text-xs font-medium">{{ summary }}<span v-if="!canSubmit && missingStepPrompt" class="text-accent" role="status"> · {{ missingStepPrompt }}</span></p>
+      <button class="btn-primary min-h-12 w-full text-base" form="book-form" :disabled="!canSubmit || submitting"
         type="submit">
         {{ submitting ? 'Confirming…' : 'Confirm booking' }}
       </button>

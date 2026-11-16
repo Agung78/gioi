@@ -222,6 +222,7 @@ definePageMeta({ middleware: ['auth', 'admin', () => (useAuthStore().isSuperAdmi
 				<button class="btn-primary" type="button" :disabled="!dirty" @click="save">Save layout</button>
 			</div>
 		</header>
+		<p class="alert-warn mb-4 md:hidden" role="note">Editing table positions works best on a larger screen. Tables are small on phones, so use a tablet or desktop to drag and rotate them.</p>
 
 		<div v-if="!venueId" class="card py-16 text-center">
 			<p class="text-muted">Only venue admins can edit the floor plan.</p>

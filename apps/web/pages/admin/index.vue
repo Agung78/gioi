@@ -452,10 +452,11 @@ definePageMeta({ middleware: ['auth', 'admin'] })
 					<span v-if="exportMsg" class="text-sm text-red-600" role="alert">{{ exportMsg }}</span>
 				</div>
 			</div>
-			<div v-if="searchedReservations.length" class="mt-4 overflow-x-auto">
-				<table class="w-full text-left text-sm">
-					<thead><tr class="border-b border-line text-muted"><th class="p-2">Date</th><th class="p-2">Guest</th><th class="p-2">Party</th><th class="p-2">Area</th><th class="p-2">Source</th><th class="p-2">Status</th></tr></thead>
-					<tbody><tr v-for="reservation in resPaged" :key="reservation.id" class="border-b border-line"><td class="p-2">{{ reservation.date }} {{ reservation.time }}</td><td class="p-2"><NuxtLink :to="`/guests/${reservation.guestId}`" class="font-medium text-accent underline underline-offset-2">{{ reservation.guestName ?? 'Unknown guest' }}</NuxtLink><div class="text-xs text-muted">{{ reservation.bookingCode }}</div></td><td class="p-2">{{ reservation.partySize }}</td><td class="p-2">{{ areaName(reservation.seatingAreaId) }}</td><td class="p-2">{{ reservation.source }}</td><td class="p-2"><StatusChip :status="reservation.status" /></td></tr></tbody>
+			<div v-if="searchedReservations.length" class="mt-4 overflow-x-auto relative">
+				<p class="mb-2 text-xs text-muted sm:hidden">Swipe sideways for more columns</p>
+				<table class="min-w-[40rem] w-full text-left text-sm">
+					<thead><tr class="border-b border-line text-muted"><th class="p-2 whitespace-nowrap">Date</th><th class="p-2">Guest</th><th class="p-2">Party</th><th class="p-2">Area</th><th class="p-2">Source</th><th class="p-2">Status</th></tr></thead>
+					<tbody><tr v-for="reservation in resPaged" :key="reservation.id" class="border-b border-line"><td class="p-2 whitespace-nowrap">{{ reservation.date }} {{ reservation.time }}</td><td class="p-2"><NuxtLink :to="`/guests/${reservation.guestId}`" class="font-medium text-accent underline underline-offset-2">{{ reservation.guestName ?? 'Unknown guest' }}</NuxtLink><div class="text-xs text-muted">{{ reservation.bookingCode }}</div></td><td class="p-2">{{ reservation.partySize }}</td><td class="p-2">{{ areaName(reservation.seatingAreaId) }}</td><td class="p-2">{{ reservation.source }}</td><td class="p-2"><StatusChip :status="reservation.status" /></td></tr></tbody>
 				</table>
 				<Pagination v-model:page="resPage" :page-count="resPageCount" />
 			</div>

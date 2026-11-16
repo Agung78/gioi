@@ -27,7 +27,9 @@ const grouped = computed(() =>
     const to = GROUPS[i + 1]?.from ?? Infinity
     const items = props.slots.filter((s) => {
       const m = Number(s.time.slice(0, 2)) * 60 + Number(s.time.slice(3, 5))
-      return m >= g.from && m < to
+      if (m < g.from || m >= to) return false
+      if (s.reason === 'past' || s.reason === 'lead_time' || s.reason === 'cutoff') return false
+      return true
     })
     return { ...g, items }
   }).filter((g) => g.items.length),
@@ -95,5 +97,6 @@ function reasonLabel(reason: SlotAvailability['reason'] | undefined): string {
         </button>
       </div>
     </div>
+    <p v-if="!eventSlot && grouped.length === 0" class="text-sm text-muted">No more times available today. Try another date.</p>
   </div>
 </template>
