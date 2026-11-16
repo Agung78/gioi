@@ -19,7 +19,6 @@ export interface SlotAvailability {
   reason?: 'closed' | 'past' | 'full'
   remaining?: number // covers left in the most-constrained area for that party size
   label?: string // event slots only
-  note?: string
 }
 
 /** The one bookable slot on an event date (admin-configured via the special notice), or null. */
@@ -224,7 +223,7 @@ export function getDayAvailability(
     const r = isClosedDate(settings, dateISO)
       ? { ok: false, reasons: ['closed_date' as const], areaId: undefined }
       : checkAvailability(settings, reservations, { date: dateISO, time: event.time, partySize, seatingAreaId: opts.seatingAreaId }, { now })
-    const label = { label: event.name, note: settings.noticeText || undefined }
+    const label = { label: event.name }
     if (!r.ok) {
       const p = r.reasons[0]
       return [{ time: event.time, open: false, reason: p === 'closed_date' ? 'closed' : p === 'full' ? 'full' : 'past', ...label }]
