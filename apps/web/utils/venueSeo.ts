@@ -12,6 +12,9 @@ export interface VenueSeo {
   sameAs: string[]
   menus?: { label: string; path: string }[]
   reviewUrl?: string // Google "write a review" link, offered to every guest after feedback (no gating by rating: Google policy)
+  // Shown as text on the Visit buttons only; never in JSON-LD (self-serving review markup is against Google policy). Update by hand.
+  googleRating?: { rating: string; count: string }
+  tripadvisorRating?: { rating: string; count: string }
   tzLabel: string
   // default [venue] template only; custom-designed venue pages omit it
   page?: {
@@ -48,6 +51,8 @@ export const VENUE_SEO: Record<string, VenueSeo> = {
       'https://www.tripadvisor.com/Restaurant_Review-g297697-d27093249-Reviews-Gioi_Ocean_Gourmet-Kuta_Kuta_District_Badung_Regency_Bali.html',
     ],
     reviewUrl: 'https://search.google.com/local/writereview?placeid=ChIJraC4OABH0i0RFRuG7B8mTDU',
+    googleRating: { rating: '4.9', count: '3,000+' },
+    tripadvisorRating: { rating: '4.9', count: '750+' },
     menus: [
       { label: 'Food and Beverage Menu', path: '/menus/bali-menu.pdf' },
       { label: 'Alcohol Menu', path: '/menus/bali-alcohol-menu.pdf' },
