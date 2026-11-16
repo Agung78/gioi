@@ -11,8 +11,8 @@ import { imageSrcset } from '@/utils/venueSeo'
 const { venue, info, hours, seo, name, bookHref, bookPath, phoneE164, wa, src } = await useVenueSeo()
 const p = seo.page
 if (!p) throw createError({ statusCode: 404, statusMessage: 'Venue not found', fatal: true })
-const days = [1, 2, 3, 4, 5, 6, 0] as const // openingHours keys: 0 = Sunday
-const dayLabel: Record<number, string> = { 1: 'Mon', 2: 'Tue', 3: 'Wed', 4: 'Thu', 5: 'Fri', 6: 'Sat', 0: 'Sun' }
+const days = [0, 1, 2, 3, 4, 5, 6] as const // openingHours keys from the API: 0 = Monday … 6 = Sunday
+const dayLabel: Record<number, string> = { 0: 'Mon', 1: 'Tue', 2: 'Wed', 3: 'Thu', 4: 'Fri', 5: 'Sat', 6: 'Sun' }
 const posthog = usePostHog()
 const today = todayISO()
 const witaFmt = new Intl.DateTimeFormat('en-GB', { timeZone: info?.timeZone ?? 'Asia/Makassar', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false })

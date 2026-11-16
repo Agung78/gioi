@@ -3,8 +3,8 @@ import { useVenue } from '@/composables/useVenue'
 import { bookingSource } from '@/utils/bookingSource'
 import { VENUE_SEO, imageSrcset, type VenueSeo } from '@/utils/venueSeo'
 
-const dayName = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
-const dayAbbr = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa']
+const dayName = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'] // API keys: 0 = Monday
+const dayAbbr = ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su']
 // '<' escaped so venue text like '</script>' cannot break out of the JSON-LD script tag.
 const ldJson = (o: unknown) => JSON.stringify(o).replace(/</g, '\\u003c')
 
