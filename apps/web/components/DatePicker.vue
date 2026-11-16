@@ -50,14 +50,14 @@ onBeforeUnmount(() => { document.removeEventListener('pointerdown', away); docum
   <div ref="root" class="relative">
     <button :id="id" type="button" v-bind="$attrs" aria-haspopup="dialog" :aria-expanded="open"
       class="field flex items-center justify-between gap-2 text-left" @click="toggle">
-      <span>{{ label }}</span>
+      <span class="whitespace-nowrap">{{ label }}</span>
       <PhCalendarBlank :size="18" class="shrink-0 opacity-70" />
     </button>
 
     <Transition enter-active-class="transition duration-150 ease-out" enter-from-class="opacity-0 -translate-y-1"
       leave-active-class="transition duration-100" leave-to-class="opacity-0">
       <div v-if="open" role="dialog" aria-label="Choose a date"
-        class="absolute left-0 top-full z-50 mt-2 w-[19rem] rounded-surface border border-line bg-raised p-4 text-ink shadow-soft">
+        class="fixed inset-x-4 top-28 z-50 rounded-surface border border-line bg-raised p-4 text-ink shadow-soft sm:absolute sm:inset-x-auto sm:left-0 sm:top-full sm:mt-2 sm:w-[19rem]">
         <div class="mb-3 flex items-center justify-between">
           <button type="button" aria-label="Previous month" :disabled="!canPrev"
             class="grid h-9 w-9 place-items-center rounded-full hover:bg-line/50 disabled:opacity-30 disabled:hover:bg-transparent" @click="step(-1)">

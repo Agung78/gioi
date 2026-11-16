@@ -92,7 +92,7 @@ onBeforeUnmount(() => ctx?.revert())
             <button class="btn h-12 flex-1 bg-sun px-6 text-base text-navy hover:bg-sand focus-visible:ring-sand focus-visible:ring-offset-navy sm:flex-none" type="submit">Find a table</button>
           </form>
         </div>
-        <div data-hero-media class="relative order-1 overflow-hidden rounded-[28px] md:order-2"><div class="aspect-[4/3] bg-navy md:aspect-auto md:h-[min(60svh,34rem)]"><img :src="seo.image.url" :alt="p.imageAlt" :srcset="heroSrcset" sizes="(min-width: 768px) 45vw, 100vw" width="1600" height="1600" class="h-full w-full object-cover" fetchpriority="high" /></div></div>
+<div data-hero-media class="relative order-1 overflow-hidden rounded-[28px] md:order-2"><div class="aspect-[16/10] bg-navy md:aspect-auto md:h-[min(60svh,34rem)]"><img :src="seo.image.url" :alt="p.imageAlt" :srcset="heroSrcset" sizes="(min-width: 768px) 45vw, 100vw" width="1600" height="1600" class="h-full w-full object-cover" fetchpriority="high" /></div></div>
       </div>
     </section>
 
@@ -108,13 +108,13 @@ onBeforeUnmount(() => ctx?.revert())
       </div>
     </section>
 
-    <section id="signatures" class="mx-auto max-w-7xl px-4 py-24 md:px-8 md:py-32 border-b border-line">
+<section id="signatures" class="mx-auto max-w-7xl px-4 py-16 md:px-8 md:py-32 border-b border-line">
       <h2 class="text-[clamp(2rem,4.5vw,3.5rem)] font-extrabold leading-[1.05]">{{ p.signaturesTitle }}</h2>
       <div class="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
         <article v-for="s in p.signatures" :key="s.name" class="leading-relaxed text-muted">
           <button type="button" class="block aspect-[4/3] w-full cursor-zoom-in overflow-hidden rounded-surface bg-line/50" :aria-label="`View ${s.name} full size`" @click="zoom = s"><img :src="s.img" :alt="s.alt" :srcset="`${s.img.replace(/\.webp$/, '-640.webp')} 640w, ${s.img} 1024w`" sizes="(min-width: 1024px) 25vw, (min-width: 640px) 50vw, 100vw" loading="lazy" decoding="async" width="320" height="240" class="h-full w-full object-cover" :style="{ objectPosition: `50% ${s.pos}%` }" /></button>
           <h3 class="mt-4 text-xl font-extrabold">{{ s.name }}</h3>
-          <p class="mt-1">{{ s.price }}</p>
+          <div class="mt-1"><p v-for="line in [s.price].flat()" :key="line">{{ line }}</p></div>
           <p class="mt-2">{{ s.copy }}</p>
         </article>
       </div>
@@ -124,18 +124,18 @@ onBeforeUnmount(() => ctx?.revert())
         </div>
       </Transition>
       <p v-if="p.signaturesNote" class="mt-8 max-w-3xl text-sm leading-relaxed text-muted">{{ p.signaturesNote }}</p>
-      <div v-if="seo?.menus?.length" class="mt-8 flex flex-wrap gap-x-6 gap-y-2 text-sm">
-        <a v-for="m in seo.menus" :key="m.path" :href="m.path" class="text-accent underline hover:no-underline">{{ m.label }} (PDF)</a>
+<div v-if="seo?.menus?.length" class="mt-8 flex flex-wrap gap-x-6 gap-y-1 text-sm">
+<a v-for="m in seo.menus" :key="m.path" :href="m.path" class="inline-flex min-h-11 items-center text-accent underline hover:no-underline">{{ m.label }} (PDF)</a>
       </div>
     </section>
 
 
-    <section id="experience" class="mx-auto max-w-7xl px-4 py-24 md:px-8 md:py-36">
+<section id="experience" class="mx-auto max-w-7xl px-4 py-16 md:px-8 md:py-36">
       <div class="max-w-3xl"><h2 data-rise class="text-[clamp(2rem,4.5vw,3.5rem)] font-extrabold leading-[1.05]">{{ p.experienceTitle }}</h2></div>
       <ol class="mt-16 grid gap-6 md:mt-24 md:grid-cols-3 md:gap-8"><li v-for="scene in p.scenes" :key="scene.title" data-rise :class="scene.feature ? 'md:-translate-y-12' : ''"><div class="group relative overflow-hidden rounded-surface"><div class="aspect-[4/5] overflow-hidden bg-line/50"><img :src="scene.img" :alt="scene.alt" loading="lazy" width="1600" height="900" class="h-full w-full object-cover transition duration-700 group-hover:scale-[1.03]" /></div><span class="absolute left-4 top-4 rounded-full bg-navy/85 px-3 py-1 font-display text-sm font-bold text-sand backdrop-blur">{{ scene.time }}</span></div><div class="mt-5"><h3 class="text-2xl font-extrabold">{{ scene.title }}</h3><p class="mt-2 max-w-[36ch] leading-relaxed text-muted">{{ scene.copy }}</p></div></li></ol>
     </section>
 
-    <section id="visit" class="border-b border-line"><div class="mx-auto grid max-w-7xl gap-16 px-4 py-24 md:grid-cols-[1.1fr_0.9fr] md:px-8 md:py-32"><div><h2 data-rise class="text-[clamp(2rem,4.5vw,3.5rem)] font-extrabold leading-[1.02]">{{ p.visitTitle }}</h2><div data-rise class="mt-8 flex gap-3 text-lg leading-relaxed"><PhMapPin :size="24" class="mt-1 shrink-0 text-accent" aria-hidden="true" /><address class="not-italic">{{ info?.address }}<br /><a :href="info?.mapsUrl" target="_blank" rel="noopener" class="group inline-flex min-h-11 items-center gap-1 font-medium text-accent underline decoration-line underline-offset-4">Get directions <PhArrowUpRight :size="16" aria-hidden="true" /></a></address></div><div data-rise class="mt-10 flex flex-wrap gap-3"><a v-for="m in seo?.menus" :key="m.path" :href="m.path" target="_blank" rel="noopener" class="btn-secondary"><component :is="m.path.includes('alcohol') ? PhWine : PhForkKnife" :size="20" aria-hidden="true" /> {{ m.label }}</a><a v-if="info" :href="wa" @click="posthog?.capture('whatsapp_clicked', { from: 'venue_page' })" class="btn-secondary"><PhWhatsappLogo :size="20" aria-hidden="true" /> WhatsApp</a><a :href="`tel:${phoneE164}`" class="btn-secondary"><PhPhone :size="20" aria-hidden="true" /> {{ info?.phone }}</a><a :href="ig" v-if="ig" target="_blank" rel="noopener noreferrer" class="btn-secondary"><PhInstagramLogo :size="20" aria-hidden="true" /> Instagram</a>
+    <section id="visit" class="border-b border-line"><div class="mx-auto grid max-w-7xl gap-16 px-4 py-16 md:grid-cols-[1.1fr_0.9fr] md:px-8 md:py-32"><div><h2 data-rise class="text-[clamp(2rem,4.5vw,3.5rem)] font-extrabold leading-[1.02]">{{ p.visitTitle }}</h2><div data-rise class="mt-8 flex gap-3 text-lg leading-relaxed"><PhMapPin :size="24" class="mt-1 shrink-0 text-accent" aria-hidden="true" /><address class="not-italic">{{ info?.address }}<br /><a :href="info?.mapsUrl" target="_blank" rel="noopener" class="group inline-flex min-h-11 items-center gap-1 font-medium text-accent underline decoration-line underline-offset-4">Get directions <PhArrowUpRight :size="16" aria-hidden="true" /></a></address></div><div data-rise class="mt-10 flex flex-wrap gap-3">
           <a v-if="gmaps" :href="gmaps" target="_blank" rel="noopener noreferrer" class="btn-secondary"><PhGoogleLogo :size="20" aria-hidden="true" /> Google Maps</a>
           <a v-if="tripadvisor" :href="tripadvisor" target="_blank" rel="noopener noreferrer" class="btn-secondary"><PhStar :size="20" aria-hidden="true" /> TripAdvisor</a></div></div><div data-rise class="self-end"><div class="flex items-center justify-between"><h3 class="flex items-center gap-2 text-sm font-semibold uppercase tracking-[0.2em] text-muted"><PhClock :size="18" aria-hidden="true" /> Hours</h3><ClientOnly><span class="text-sm font-semibold uppercase tracking-[0.2em] tabular-nums" :aria-label="`Current time at ${name}`">{{ wita }} <span class="text-muted">{{ seo.tzLabel }}</span></span><template #fallback><span class="text-sm font-semibold uppercase tracking-[0.2em] tabular-nums" /></template></ClientOnly></div><ul class="mt-4 divide-y divide-line border-y border-line"><li v-for="d in days" :key="d" class="flex justify-between py-3"><span class="text-muted">{{ dayLabel[d] }}</span><span class="font-medium">{{ hours[d] ? `${hours[d].open} to ${hours[d].close}` : 'Closed' }}</span></li></ul></div></div></section>
 

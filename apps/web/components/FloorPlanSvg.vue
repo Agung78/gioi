@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import type { PublicFloorPlan } from '@gioi/domain'
 import { TABLE_SCALE, areaColor, objectText, tableShape } from '@/utils/floorPlan'
 
@@ -23,6 +23,20 @@ const emit = defineEmits<{
 }>()
 
 const svg = ref<SVGSVGElement | null>(null)
+const pxPerUnit = ref(1)
+function updatePxPerUnit() {
+	pxPerUnit.value = svg.value ? svg.value.getBoundingClientRect().width / props.plan.width : 1
+	if (!pxPerUnit.value || !Number.isFinite(pxPerUnit.value)) pxPerUnit.value = 1
+}
+let hitObserver: ResizeObserver | null = null
+onMounted(() => {
+	updatePxPerUnit()
+	if (svg.value) { hitObserver = new ResizeObserver(updatePxPerUnit); hitObserver.observe(svg.value) }
+})
+onBeforeUnmount(() => { hitObserver?.disconnect(); hitObserver = null })
+function tableHitRadius(t: { shape: { width: number } }) {
+	return Math.max(t.shape.width / 2, 22 / pxPerUnit.value)
+}
 
 /** Screen point → plan units. */
 function toPlan(ev: { clientX: number; clientY: number }) {
@@ -96,7 +110,7 @@ const tip = computed(() => {
 			@focus="hovered = i"
 			@blur="hovered = null"
 		>
-			<rect v-if="pickable" :x="-t.shape.width / 2 - 12" y="-30" :width="t.shape.width + 24" height="60" rx="14" fill="transparent" class="floor-hit" />
+			<circle v-if="pickable" cx="0" cy="0" :r="tableHitRadius(t)" fill="transparent" pointer-events="all" class="floor-hit" />
 			<rect v-if="pickable && (selected === `t:${i}` || chosen?.includes(i))" :x="-t.shape.width / 2 - 8" y="-22" :width="t.shape.width + 16" height="44" rx="12" fill="none" stroke="#e87a3a" stroke-width="2.5" vector-effect="non-scaling-stroke" class="floor-ring" pointer-events="none" />
 			<g class="floor-body">
 				<rect v-for="(c, j) in t.shape.chairs" :key="j" :x="c.x - 4.5" :y="c.y - 4" width="9" height="8" rx="3.5" fill="#1F4A6B" stroke="#F6F1E6" stroke-width=".9" />

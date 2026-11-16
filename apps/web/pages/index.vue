@@ -67,7 +67,7 @@ useHead({
       </ul>
     </main>
     <footer class="py-6 text-center text-sm text-muted">
-      <NuxtLink to="/privacy" class="hover:text-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent">Privacy</NuxtLink>
+      <NuxtLink to="/privacy" class="inline-flex min-h-11 items-center hover:text-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent">Privacy</NuxtLink>
     </footer>
   </div>
 </template>

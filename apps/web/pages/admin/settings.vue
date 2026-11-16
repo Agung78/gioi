@@ -410,11 +410,11 @@ definePageMeta({ middleware: ['auth', 'admin'] })
 			</section>
 			<section v-if="auth.isSuperAdmin && venueId" class="card mb-6">
 				<h2 class="font-display text-xl font-semibold text-ink">Floor plan drawing</h2>
-				<div class="mt-4 grid items-start gap-4 sm:grid-cols-[minmax(0,28rem)_1fr]">
-					<FloorPlanSvg v-if="floorPlan" :plan="floorPlan" label="Floor plan preview" />
-					<div class="flex flex-col items-start gap-2">
+				<div class="mt-4 min-w-0 max-w-full grid items-start gap-4 sm:grid-cols-[minmax(0,28rem)_1fr]">
+					<FloorPlanSvg v-if="floorPlan" :plan="floorPlan" label="Floor plan preview" class="w-full max-w-full" />
+					<div class="min-w-0 max-w-full flex flex-col items-start gap-2">
 						<label class="label" for="floorPlanFile">Upload drawing (SVG, PNG, JPEG or WebP, max 3 MB)</label>
-						<input id="floorPlanFile" type="file" accept="image/svg+xml,image/png,image/jpeg,image/webp" @change="saveImageFile($event.target as HTMLInputElement)" />
+						<input id="floorPlanFile" type="file" accept="image/svg+xml,image/png,image/jpeg,image/webp" @change="saveImageFile($event.target as HTMLInputElement)" class="w-full max-w-full" />
 						<p v-if="imageError" class="text-xs text-danger">{{ imageError }}</p>
 						<button v-if="floorPlan?.image" class="btn-ghost" type="button" @click="removeImage">Remove drawing</button>
 					</div>
@@ -446,15 +446,15 @@ definePageMeta({ middleware: ['auth', 'admin'] })
 							<label class="label">New password</label>
 							<input v-model="resetPasswords[u.id]" type="password" minlength="12" class="field" placeholder="leave blank to keep" autocomplete="new-password" />
 						</div>
-						<label class="flex items-center gap-2 text-sm">
-							<input type="checkbox" :checked="u.active" @change="updateUser(idx, { active: ($event.target as HTMLInputElement).checked })" />
+						<label class="flex min-h-11 items-center gap-2 text-sm">
+							<input type="checkbox" :checked="u.active" @change="updateUser(idx, { active: ($event.target as HTMLInputElement).checked })" class="h-5 w-5" />
 							Active
 						</label>
-						<button class="btn-ghost" type="button" @click="removeAccount(u)">Remove</button>
+						<button class="btn-secondary text-danger" type="button" @click="removeAccount(u)">Remove</button>
 					</div>
 				</div>
 				<div v-if="users.length" class="mt-4 flex justify-end">
-					<button class="btn-primary" type="button" @click="saveUsersApi">Save accounts</button>
+					<button class="btn-primary w-full sm:w-auto" type="button" @click="saveUsersApi">Save accounts</button>
 				</div>
 				<form class="mt-6 grid items-end gap-3 border-t border-line pt-4 sm:grid-cols-[2fr_1fr_1fr_1fr_auto]" @submit.prevent="addUser">
 					<div><label class="label">Name</label><input v-model="newUser.name" class="field" required /></div>

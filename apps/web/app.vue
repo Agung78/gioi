@@ -29,6 +29,7 @@
           <select v-if="auth.isSuperAdmin && venues.length" :value="auth.selectedVenueId" class="field min-h-10 !w-auto min-w-0 max-w-[14rem] truncate !py-1.5 text-sm" :aria-label="'Select venue'" @change="auth.setSelectedVenueId(($event.target as HTMLSelectElement).value)">
             <option v-for="v in venues" :key="v.id" :value="v.id">{{ venueLabel(v) }}</option>
           </select>
+          <ThemeToggle />
           <button v-if="auth.user" class="btn-secondary min-h-10 shrink-0" type="button" @click="signOut">Sign out</button>
         </div>
       </div>
@@ -48,30 +49,23 @@
     <main id="main" class="flex-1">
       <NuxtPage />
     </main>
-    <button
-      type="button"
-      :class="onBooking ? 'bottom-40 right-4 lg:bottom-6 lg:right-6' : 'bottom-6 right-6'"
-      class="fixed z-50 grid h-12 w-12 place-items-center rounded-full bg-raised text-ink shadow-soft ring-1 ring-line transition-all duration-200 hover:scale-110 active:scale-95 focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent"
-      :aria-label="isDark ? 'Switch to light mode' : 'Switch to dark mode'"
-      :title="isDark ? 'Switch to light mode' : 'Switch to dark mode'"
-      @click="toggleTheme"
-    >
-      <component :is="isDark ? PhSun : PhMoon" :size="22" class="transition-transform duration-300 hover:rotate-12" aria-hidden="true" />
-    </button>
+    <!-- Public pages have no app header: floating on desktop, end of page on mobile so it never covers content. -->
+    <div v-if="isPublic" class="flex justify-end px-4 pb-6 md:fixed md:bottom-6 md:right-6 md:z-50 md:p-0">
+      <ThemeToggle class="md:h-12 md:w-12 md:shadow-soft" />
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
 import { useRoute } from '#app'
-import { PhMoon, PhSun } from '@phosphor-icons/vue'
 import { useAuthStore } from '@/stores/auth'
 import { applyTheme, useTheme } from '@/composables/useTheme'
 import { fetchVenues } from '@/composables/useApi'
 
 const route = useRoute()
 const auth = useAuthStore()
-const { isDark, toggleTheme } = useTheme()
+const { isDark } = useTheme()
 if (import.meta.client) applyTheme(isDark)
 
 const venues = ref<{ id: string; slug: string; name: string }[]>([])
@@ -87,7 +81,6 @@ async function loadVenues() {
 }
 watch(() => auth.isSuperAdmin, (isSuper) => { if (isSuper && !venuesLoaded) loadVenues() }, { immediate: true })
 
-const onBooking = computed(() => route.path.endsWith('/book'))
 const { siteUrl, bookUrl } = useRuntimeConfig().public
 const logoHref = computed(() => {
   const v = route.params.venue

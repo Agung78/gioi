@@ -208,13 +208,13 @@ definePageMeta({ middleware: 'auth' })
 				<p class="text-sm text-muted">{{ todays.length }} bookings · {{ activeCount }} active</p>
 			</div>
 			<div class="flex flex-wrap items-center gap-2">
-				<div class="flex items-center gap-1">
-					<button class="btn-ghost min-h-12" type="button" @click="date = addDays(date, -1)">Previous</button>
-					<DatePicker v-model="date" aria-label="Service date" class="min-h-12 !w-auto py-1.5 text-sm" />
-					<button class="btn-ghost min-h-12" type="button" @click="date = addDays(date, 1)">Next</button>
-					<button class="btn-ghost min-h-12" type="button" :disabled="date === todayISO()" @click="date = todayISO()">Today</button>
+				<div class="flex flex-wrap items-center gap-2">
+					<button class="btn-secondary min-h-12" type="button" @click="date = addDays(date, -1)">Previous</button>
+					<DatePicker v-model="date" aria-label="Service date" class="min-h-12 !w-auto min-w-[11rem] py-1.5 text-sm" />
+					<button class="btn-secondary min-h-12" type="button" @click="date = addDays(date, 1)">Next</button>
+					<button class="btn-secondary min-h-12" type="button" :disabled="date === todayISO()" @click="date = todayISO()">Today</button>
 				</div>
-				<button class="btn-ghost min-h-12" type="button" :disabled="!venueId" @click="exportCsv">Export CSV</button>
+				<button class="btn-secondary min-h-12" type="button" :disabled="!venueId" @click="exportCsv">Export CSV</button>
 				<button class="btn-primary min-h-12" type="button" @click="showWalkIn = true">+ Walk-in</button>
 			</div>
 		</header>
@@ -321,13 +321,13 @@ definePageMeta({ middleware: 'auth' })
 
 							<div class="mt-4 flex flex-wrap items-center gap-3">
 								<StatusButtons :reservation="r" @change="(to) => changeStatus(r, to as ReservationStatus)" />
-								<button v-if="r.status === 'completed'" class="btn-ghost inline-flex items-center gap-2" type="button" @click="sendFeedback(r)">
+								<button v-if="r.status === 'completed'" class="btn-secondary inline-flex items-center gap-2" type="button" @click="sendFeedback(r)">
 									<PhWhatsappLogo :size="20" aria-hidden="true" /> Send feedback via WhatsApp
 								</button>
-								<button v-if="['pending', 'confirmed'].includes(r.status)" class="btn-ghost inline-flex items-center gap-2" type="button" @click="sendReminder(r)">
+								<button v-if="['pending', 'confirmed'].includes(r.status)" class="btn-secondary inline-flex items-center gap-2" type="button" @click="sendReminder(r)">
 									<PhWhatsappLogo :size="20" aria-hidden="true" /> Send reminder via WhatsApp
 								</button>
-								<button v-if="['pending', 'confirmed', 'arrived', 'seated'].includes(r.status)" class="btn-ghost" type="button" @click="changing = r">Change table</button>
+								<button v-if="['pending', 'confirmed', 'arrived', 'seated'].includes(r.status)" class="btn-secondary" type="button" @click="changing = r">Change table</button>
 							</div>
 						</article>
 					</div>
