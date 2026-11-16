@@ -295,7 +295,7 @@ export function registerStaffRoutes(app: FastifyInstance, prisma: PrismaClient):
 		{
 			schema: {
 				params: { type: 'object', properties: { id: { type: 'string' } }, required: ['id'] },
-				body: { type: 'object', properties: { tableIds: { type: 'array', minItems: 1, maxItems: 8, items: { type: 'string', format: 'uuid' } } } },
+				body: { type: 'object', properties: { partySize: { type: 'integer', minimum: 1, maximum: 100 }, tableIds: { type: 'array', minItems: 1, maxItems: 8, items: { type: 'string', format: 'uuid' } } } },
 			},
 		},
 		async (request: FastifyRequest<{ Params: { id: string }; Body: Record<string, unknown> }>) => {
