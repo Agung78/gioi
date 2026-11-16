@@ -92,6 +92,7 @@ export interface Settings {
   noticeEnabled?: boolean
   noticeDate?: string | null
   noticeText?: string
+  noticeTitle?: string
   noticeEventName?: string | null
   noticeEventTime?: string | null // "HH:MM"
   feedbackMessageTemplate: string

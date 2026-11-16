@@ -45,6 +45,7 @@ export function venueToSettings(
 		noticeEnabled: venue.noticeEnabled,
 		noticeDate: noticeDateOf(venue),
 		noticeText: venue.noticeText,
+		noticeTitle: venue.noticeTitle,
 		noticeEventName: venue.noticeEventName,
 		noticeEventTime: venue.noticeEventTime,
 		feedbackMessageTemplate: venue.feedbackMessageTemplate,
