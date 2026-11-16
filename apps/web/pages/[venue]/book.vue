@@ -39,6 +39,7 @@ const settings = computed(() => {
     noticeEnabled: v.noticeEnabled,
     noticeDate: v.noticeDate,
     noticeText: v.noticeText,
+    noticeTitle: v.noticeTitle,
     noticeEventName: v.noticeEventName,
     noticeEventTime: v.noticeEventTime,
   } as any
@@ -106,11 +107,7 @@ const summary = computed(() => {
 const error = ref<string | null>(null)
 const noticeActive = computed(() => !!settings.value?.noticeEnabled && !!settings.value.noticeDate && date.value === settings.value.noticeDate)
 const noticeUpcoming = computed(() => !!settings.value?.noticeEnabled && !!settings.value.noticeDate && settings.value.noticeDate >= today)
-// Admin text often opens with "*****HEADLINE*****"; lift it into the heading, keep the rest as body.
-const noticeParts = computed(() => {
-  const m = (settings.value?.noticeText ?? '').trim().match(/^\*+\s*(.+?)\s*\*+\s*([\s\S]*)$/)
-  return m ? { headline: m[1], body: m[2] } : { headline: '', body: (settings.value?.noticeText ?? '').trim() }
-})
+const noticeParts = computed(() => ({ headline: (settings.value?.noticeTitle ?? '').trim(), body: (settings.value?.noticeText ?? '').trim() }))
 watch(noticeUpcoming, (on) => { noticeOpen.value = on }, { immediate: true })
 watch(noticeActive, (on) => {
   noticeRead.value = noticeAccepted.value = false

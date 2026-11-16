@@ -137,7 +137,7 @@ function settingsBody() {
 	const keys = ['tagline', 'intro', 'address', 'phone', 'whatsapp', 'email', 'mapsUrl',
 		'bookingIntervalMinutes', 'partyMin', 'partyMax', 'diningMinutes', 'leadTimeMinutes',
 		'cutoffMinutes', 'graceMinutes', 'noShowTargetPercent', 'overCapacityAlertPercent', 'cancellationPolicy',
-		'noticeEnabled', 'noticeDate', 'noticeText', 'noticeEventName', 'noticeEventTime',
+		'noticeEnabled', 'noticeDate', 'noticeTitle', 'noticeText', 'noticeEventName', 'noticeEventTime',
 		'feedbackTitle', 'feedbackSubtitle', 'feedbackMessageTemplate'] as const
 	return Object.fromEntries(keys.map((k) => [k, d[k]]))
 }
@@ -301,9 +301,10 @@ definePageMeta({ middleware: ['auth', 'admin'] })
 								<label class="label" for="event-name">Event name</label>
 								<input id="event-name" v-model="draft!.noticeEventName" class="field" placeholder="e.g. NYE Dinner &amp; Party" />
 							</div>
-							<div>
-								<label class="label">Notice text</label>
-								<input v-model="draft!.noticeText" class="field" />
+							<div class="sm:col-span-2 space-y-2">
+								<label class="label" for="notice-title">Notice popup</label>
+								<input id="notice-title" v-model="draft!.noticeTitle" class="field font-semibold" placeholder="Headline, e.g. New Year's Eve 2026 special policy" />
+								<textarea v-model="draft!.noticeText" rows="5" class="field" aria-label="Notice message" placeholder="Message" />
 							</div>
 							<p v-if="!!draft!.noticeEventName?.trim() !== !!draft!.noticeEventTime" class="text-xs text-danger sm:col-span-2">Set both an event name and time, or the normal slots stay.</p>
 							<p v-else class="text-xs text-muted sm:col-span-2">With an event name and time, guests see only that one slot on the notice date. The notice text shows in the popup and under the slot.</p>

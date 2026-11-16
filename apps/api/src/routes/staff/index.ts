@@ -615,6 +615,7 @@ export function registerStaffRoutes(app: FastifyInstance, prisma: PrismaClient):
 				'overCapacityAlertPercent', 'cancellationPolicy', 'feedbackTitle',
 				'feedbackSubtitle', 'feedbackMessageTemplate', 'noticeEnabled', 'noticeText',
 				'noticeEventName', 'noticeEventTime',
+				'noticeTitle',
 			]
 			const changes: Record<string, { from: unknown; to: unknown }> = {}
 			const data: Record<string, unknown> = {}
