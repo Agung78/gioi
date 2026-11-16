@@ -2,7 +2,7 @@
 import { onBeforeUnmount, onMounted, ref } from 'vue'
 import { PhX } from '@phosphor-icons/vue'
 
-// One campaign, hardcoded. Bump `id` for the next promo so returning guests see it again.
+// One campaign, hardcoded. Seen-flag lives in sessionStorage: shown once per tab session, again on a later visit. Bump `id` to re-show within a session.
 const PROMO = { id: 'nye-2027', endsAt: '2027-01-01T00:00:00+08:00', href: 'https://book.gioigroup.com/bali/book?date=2026-12-31&party=2' }
 const KEY = `promo-seen:${PROMO.id}`
 
@@ -17,13 +17,13 @@ function close() {
 }
 const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape' && popup.value) close() }
 
-// Client-only: the page is prerendered, so localStorage must not influence SSR output.
+// Client-only: the page is prerendered, so sessionStorage must not influence SSR output.
 onMounted(() => {
 	if (!live) return
 	document.addEventListener('keydown', onKey)
 	try {
-		if (localStorage.getItem(KEY)) return
-		localStorage.setItem(KEY, '1')
+		if (sessionStorage.getItem(KEY)) return
+		sessionStorage.setItem(KEY, '1')
 	} catch { /* storage blocked: still show once per page load */ }
 	setTimeout(() => { popup.value = true; track('promo_popup_shown') }, 1200)
 })
