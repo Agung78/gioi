@@ -57,16 +57,15 @@ function reasonLabel(reason: SlotAvailability['reason'] | undefined): string {
     <div v-if="eventSlot" class="mb-2">
       <button
         type="button"
-        class="pill min-h-16 flex-col items-start px-4 py-2"
+        class="pill min-h-20 flex-col items-start justify-center !rounded-surface px-6 py-3"
         :class="[modelValue === eventSlot.time ? 'pill-on' : '', !eventSlot.open ? 'cursor-not-allowed opacity-40' : 'hover:border-accent']"
         :aria-disabled="!eventSlot.open"
         :disabled="!eventSlot.open"
         :aria-pressed="modelValue === eventSlot.time"
         @click="pick(eventSlot.time)"
       >
-        <span class="font-semibold">{{ eventSlot.label }}</span>
-        <span class="text-xs font-medium opacity-80">{{ eventSlot.time }}</span>
-        <span v-if="eventSlot.note" class="text-xs opacity-80 whitespace-pre-line">{{ eventSlot.note }}</span>
+        <span class="text-xl font-semibold leading-tight">{{ eventSlot.label }}</span>
+        <span class="text-base font-medium opacity-80">{{ eventSlot.time }}</span>
       </button>
     </div>
 

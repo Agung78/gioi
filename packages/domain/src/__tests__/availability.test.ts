@@ -303,7 +303,7 @@ describe('event slot (special notice)', () => {
 
   it('collapses the event date to one named slot', () => {
     const slots = getDayAvailability(ev, [], '2026-12-31', 2, { now })
-    expect(slots).toEqual([{ time: '18:00', open: true, remaining: expect.any(Number), label: 'NYE Dinner & Party', note: 'open gate start 18.00' }])
+    expect(slots).toEqual([{ time: '18:00', open: true, remaining: expect.any(Number), label: 'NYE Dinner & Party' }])
     expect(checkAvailability(ev, [], { date: '2026-12-31', time: '19:00', partySize: 2 }, { now }).reasons).toContain('outside_hours')
   })
 

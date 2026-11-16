@@ -46,7 +46,6 @@ export interface SlotAvailability {
   reason?: 'closed' | 'past' | 'lead_time' | 'cutoff' | 'full'
   remaining?: number
   label?: string
-  note?: string
 }
 
 export interface CreateReservationBody {
