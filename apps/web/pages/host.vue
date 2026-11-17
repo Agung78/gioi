@@ -73,7 +73,8 @@ watch(() => auth.selectedVenueId, (id) => {
 
 onMounted(() => {
 	load(date.value)
-	poll.value = setInterval(() => load(date.value), 4000)
+	// 15s and only while visible: each poll hits Neon, which bills per CU-hour awake.
+	poll.value = setInterval(() => { if (!document.hidden) load(date.value) }, 15000)
 })
 
 onBeforeUnmount(() => {

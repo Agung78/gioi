@@ -18,7 +18,7 @@ await app.register(fastifyCookie)
 registerErrorHandler(app)
 
 app.get('/health', async () => {
-	await prisma.$queryRaw`SELECT 1`
+	// No DB query: uptime pings must not keep Neon compute awake (billed per CU-hour).
 	return { status: 'ok' }
 })
 
