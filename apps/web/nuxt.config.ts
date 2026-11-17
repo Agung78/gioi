@@ -19,6 +19,8 @@ export default defineNuxtConfig({
 			routes: Object.keys(VENUE_SEO).map((s) => `/${s}`),
 		},
 	},
+	// Route changes run through document.startViewTransition; the ::view-transition rules live in style.css.
+	experimental: { viewTransition: true },
 	// Nuxt emits ~80KB of inline CSS; serve external cached CSS instead.
 	features: { inlineStyles: false },
 	routeRules: {
@@ -46,6 +48,7 @@ export default defineNuxtConfig({
 	},
 	app: {
 		head: {
+			title: 'GIOI',
 			htmlAttrs: { lang: 'en' },
 			link: [
 				{ rel: 'icon', type: 'image/vnd.microsoft.icon', href: '/favicon.ico', sizes: '48x48', key: 'favicon' },

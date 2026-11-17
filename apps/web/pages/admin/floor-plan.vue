@@ -4,12 +4,14 @@ import { FLOOR_TABLE_MAX_SEATS, type AdminFloorPlan, type FloorObject, type Floo
 import { useAuthStore } from '@/stores/auth'
 import FloorPlanSvg from '@/components/FloorPlanSvg.vue'
 import { fetchFloorPlan, saveFloorLayout } from '@/composables/useApi'
+import { useToast } from '@/composables/useToast'
 import { OBJECT_PRESETS, areaColor, clampToPlan } from '@/utils/floorPlan'
 
 // Venue-admin floor plan editor (docs/design/floor_plan_seating.md), ported from docs/design/gioi_bali_2d_floor_plan.html.
 // Seats per area become that area's bookable capacity on save (API side).
 
 const auth = useAuthStore()
+const { toast } = useToast()
 const venueId = computed(() => auth.adminVenueId)
 
 const loading = ref(true)
@@ -57,9 +59,10 @@ function load(p: AdminFloorPlan) {
 	dirty.value = false
 }
 
-async function reload() {
+// `silent` (Revert) refreshes in place; the loading card replaces the whole page and would reset the scroll position.
+async function reload(silent = false) {
 	if (!venueId.value) { loading.value = false; return }
-	loading.value = true
+	if (!silent) loading.value = true
 	error.value = null
 	try {
 		load(await fetchFloorPlan(venueId.value))
@@ -187,9 +190,10 @@ async function save() {
 			tables: tables.value.map((t) => ({ id: t.id, seatingAreaId: t.seatingAreaId, seats: t.seats, x: r1(t.x), y: r1(t.y), rotation: t.rotation })),
 			objects: objects.value.map((o) => ({ label: o.label, width: o.width, height: o.height, color: o.color, x: r1(o.x), y: r1(o.y), rotation: o.rotation })),
 		}))
+		toast('Layout saved')
 	} catch (e) {
 		const msg = (e as { data?: { message?: string } })?.data?.message
-		error.value = `Save failed${msg ? `: ${msg}` : '.'}`
+		toast(`Save failed${msg ? `: ${msg}` : '.'}`, 'error')
 	}
 }
 
@@ -205,7 +209,7 @@ onUnmounted(() => {
 	window.removeEventListener('keydown', onKeydown)
 	window.removeEventListener('beforeunload', guardUnload)
 })
-watch(venueId, reload)
+watch(venueId, () => reload())
 
 definePageMeta({ middleware: ['auth', 'admin', () => (useAuthStore().isSuperAdmin ? navigateTo('/admin/settings') : undefined)] })
 </script>
@@ -218,7 +222,7 @@ definePageMeta({ middleware: ['auth', 'admin', () => (useAuthStore().isSuperAdmi
 			</div>
 			<div v-if="canEdit" class="flex items-center gap-2">
 				<span v-if="dirty" class="text-sm text-muted" role="status">Unsaved changes</span>
-				<button class="btn-ghost" type="button" :disabled="!dirty" @click="reload">Revert</button>
+				<button class="btn-ghost" type="button" :disabled="!dirty" @click="reload(true)">Revert</button>
 				<button class="btn-primary" type="button" :disabled="!dirty" @click="save">Save layout</button>
 			</div>
 		</header>

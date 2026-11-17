@@ -9,17 +9,21 @@ import GuestSearch from '@/components/GuestSearch.vue'
 import DatePicker from '@/components/DatePicker.vue'
 import WalkInModal from '@/components/WalkInModal.vue'
 import ChangeTableModal from '@/components/ChangeTableModal.vue'
+import EditPhoneModal from '@/components/EditPhoneModal.vue'
+import { useToast } from '@/composables/useToast'
 import { useAuthStore } from '@/stores/auth'
 import {
 	fetchDay,
 	changeReservationStatus,
 	fetchDayExport,
+	updateGuestPhone,
 	type DayView,
 	type StaffReservation,
 } from '@/composables/useApi'
 
 const router = useRouter()
 const auth = useAuthStore()
+const { toast } = useToast()
 
 const date = ref(todayISO())
 const showWalkIn = ref(false)
@@ -145,21 +149,57 @@ function isRepeat(r: StaffReservation): boolean {
 	return r.isRepeat
 }
 
+function feedbackWaUrl(r: StaffReservation, rawPhone: string): string {
+	const venueInfo = venue.value!
+	const feedbackUrl = `${window.location.origin}/${venueInfo.slug}/feedback/${encodeURIComponent(r.bookingCode)}`
+	const message = venueInfo.feedbackMessageTemplate
+		.replaceAll('{{guestName}}', guestOf(r).fullName)
+		.replaceAll('{{restaurantName}}', venueInfo.name)
+		.replaceAll('{{feedbackUrl}}', feedbackUrl)
+	return `https://wa.me/${rawPhone.replace(/\D/g, '')}?text=${encodeURIComponent(message)}`
+}
+
 function sendFeedback(r: StaffReservation) {
-	const guest = guestOf(r)
-	if (!guest.phone) {
+	const phone = guestOf(r).phone
+	if (!phone || !venue.value) {
 		lastError.value = 'This guest does not have a valid phone number.'
 		return
 	}
-	const phone = guest.phone.replace(/\D/g, '')
-	if (!venue.value) return
-	const feedbackUrl = `${window.location.origin}/${venue.value.slug}/feedback/${encodeURIComponent(r.bookingCode)}`
-	const message = venue.value.feedbackMessageTemplate
-		.replaceAll('{{guestName}}', guest.fullName)
-		.replaceAll('{{restaurantName}}', venue.value.name)
-		.replaceAll('{{feedbackUrl}}', feedbackUrl)
-	window.open(`https://wa.me/${phone}?text=${encodeURIComponent(message)}`, '_blank', 'noopener,noreferrer')
+	window.open(feedbackWaUrl(r, phone), '_blank', 'noopener,noreferrer')
 	lastError.value = null
+}
+
+// Frontliner adds/edits the guest's number; on a completed reservation, also opens WhatsApp with the feedback link.
+const editingPhone = ref<StaffReservation | null>(null)
+const phoneSaving = ref(false)
+const phoneError = ref<string | null>(null)
+function askPhone(r: StaffReservation) {
+	editingPhone.value = r
+	phoneError.value = null
+}
+async function savePhone(phone: string) {
+	const r = editingPhone.value
+	if (!r) return
+	if (phone.replace(/\D/g, '').length < 6) {
+		phoneError.value = 'Enter a valid phone number.'
+		return
+	}
+	phoneSaving.value = true
+	phoneError.value = null
+	// Open the tab inside the click (Safari/iPad block popups opened after an await), point it at WhatsApp once saved.
+	const wa = r.status === 'completed' ? window.open('', '_blank') : null
+	try {
+		await updateGuestPhone(r.guestId, phone)
+		if (wa && venue.value) wa.location.href = feedbackWaUrl(r, phone)
+		editingPhone.value = null
+		toast(r.status === 'completed' ? 'Phone saved · opening WhatsApp' : 'Phone saved')
+		await load(date.value)
+	} catch (e: any) {
+		wa?.close()
+		phoneError.value = e.data?.message ?? (e.message || 'Could not save phone number.')
+	} finally {
+		phoneSaving.value = false
+	}
 }
 
 function sendReminder(r: StaffReservation) {
@@ -330,6 +370,9 @@ definePageMeta({ middleware: 'auth' })
 								<button v-if="r.status === 'completed' && guestOf(r).phone" class="btn-secondary inline-flex items-center gap-2" type="button" @click="sendFeedback(r)">
 									<PhWhatsappLogo :size="20" aria-hidden="true" /> Send feedback via WhatsApp
 								</button>
+								<button class="btn-secondary" type="button" @click="askPhone(r)">
+									{{ guestOf(r).phone ? 'Edit phone' : 'Add phone' }}
+								</button>
 								<button v-if="['pending', 'confirmed'].includes(r.status) && guestOf(r).phone" class="btn-secondary inline-flex items-center gap-2" type="button" @click="sendReminder(r)">
 									<PhWhatsappLogo :size="20" aria-hidden="true" /> Send reminder via WhatsApp
 								</button>
@@ -344,7 +387,8 @@ definePageMeta({ middleware: 'auth' })
 	</Transition>
 
 
-		<WalkInModal :open="showWalkIn" :areas="areas" :venue-id="venueId" :date="date" :floor-plan="floorPlan" @close="showWalkIn = false" @created="lastError = null" />
-		<ChangeTableModal :reservation="changing" :venue-id="venueId" :areas="areas" :floor-plan="floorPlan" @close="changing = null" @saved="changing = null; load(date)" />
+		<WalkInModal :open="showWalkIn" :areas="areas" :venue-id="venueId" :date="date" :floor-plan="floorPlan" @close="showWalkIn = false" @created="lastError = null; toast('Reservation created')" />
+		<ChangeTableModal :reservation="changing" :venue-id="venueId" :areas="areas" :floor-plan="floorPlan" @close="changing = null" @saved="changing = null; load(date); toast('Table changed')" />
+		<EditPhoneModal :reservation="editingPhone" :saving="phoneSaving" :error="phoneError" @close="editingPhone = null" @save="savePhone" />
 	</div>
 </template>

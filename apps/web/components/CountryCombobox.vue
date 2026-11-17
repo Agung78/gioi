@@ -2,7 +2,6 @@
 import { computed, ref } from 'vue'
 
 const model = defineModel<string>({ default: '' })
-const UNKNOWN = 'Unknown / prefer not to say'
 
 const props = defineProps<{ id: string; placeholder?: string; required?: boolean }>()
 
@@ -19,9 +18,9 @@ const active = ref(0)
 // Prefix matches first, then substring matches.
 const options = computed(() => {
 	const q = model.value.trim().toLowerCase()
-	if (!q) return [UNKNOWN, ...all]
+	if (!q) return all
 	const starts = all.filter((c) => c.toLowerCase().startsWith(q))
-	return [UNKNOWN, ...starts, ...all.filter((c) => !starts.includes(c) && c.toLowerCase().includes(q))]
+	return [...starts, ...all.filter((c) => !starts.includes(c) && c.toLowerCase().includes(q))]
 })
 
 function pick(c: string) {

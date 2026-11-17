@@ -542,6 +542,42 @@ export function registerStaffRoutes(app: FastifyInstance, prisma: PrismaClient):
 			}
 		},
 	)
+
+	// ---- Host: set guest phone (so a frontliner can send the feedback link) ---
+	app.patch(
+		'/staff/guests/:id',
+		{
+			schema: {
+				params: { type: 'object', properties: { id: { type: 'string' } }, required: ['id'] },
+				body: { type: 'object', required: ['phone'], properties: { phone: { type: 'string', minLength: 6, maxLength: 32, pattern: '^[+()\\d\\s-]+$' } } },
+			},
+		},
+		async (request: FastifyRequest<{ Params: { id: string }; Body: { phone: string } }>) => {
+			const session = await requireAuth(prisma, request.cookies as Record<string, string>)
+			const guest = await prisma.guest.findUnique({ where: { id: request.params.id } })
+			if (!guest) throw notFound('guest not found')
+			requireVenueAccess(session, guest.venueId)
+			const phone = request.body.phone.trim()
+			if (phone.replace(/\D/g, '').length < 6) throw unprocessable('invalid phone number')
+			// (venueId, phone) is unique: another guest already owns this number
+			if (await prisma.guest.findFirst({ where: { venueId: guest.venueId, phone, NOT: { id: guest.id } }, select: { id: true } })) throw conflict('phone already belongs to another guest')
+			await prisma.$transaction(async (tx) => {
+				await tx.guest.update({ where: { id: guest.id }, data: { phone } })
+				await tx.auditEvent.create({
+					data: {
+						venueId: guest.venueId,
+						actorType: 'user',
+						actorUserId: session.user.id,
+						action: 'guest.phone_updated',
+						entityType: 'guest',
+						entityId: guest.id,
+						changes: { phone: { from: guest.phone, to: phone } } as Prisma.InputJsonValue,
+					},
+				})
+			})
+			return { id: guest.id, phone }
+		},
+	)
 	// ---- Host: guest list (search) ------------------------------------------
 	app.get(
 		'/staff/guests',
