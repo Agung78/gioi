@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { useRoute } from '#app'
-import { fetchAuditLog, type AuditEvent } from '@/composables/useApi'
+import type { AuditEvent } from '@/composables/useApi'
 import { usePagination } from '@/composables/usePagination'
 import Pagination from '@/components/Pagination.vue'
 import { useAuthStore } from '@/stores/auth'

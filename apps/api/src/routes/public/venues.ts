@@ -1,8 +1,8 @@
 import type { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify'
-import type { PrismaClient, OpeningHours, ClosedDate, SeatingArea, Reservation } from '@prisma/client'
+import type { PrismaClient, Reservation } from '@prisma/client'
 import { notFound } from '../../lib/errors'
-import { venueToSettings, noticeDateOf } from '../../lib/settings'
-import { fromMinutes, getDayAvailability, localDate, localTime, toUtc, type TableAvailability } from '@gioi/domain'
+import { venueToSettings } from '../../lib/settings'
+import { getDayAvailability, localDate, localTime, toUtc, type TableAvailability } from '@gioi/domain'
 import { tableHolders } from '../../lib/tables'
 
 export function registerPublicVenueRoutes(app: FastifyInstance, prisma: PrismaClient): void {
@@ -25,48 +25,10 @@ export function registerPublicVenueRoutes(app: FastifyInstance, prisma: PrismaCl
 				},
 			})
 			if (!venue) throw notFound('venue not found')
-
-			const openingHours: Record<string, { open: string; close: string }> = {}
-			for (const oh of venue.openingHours as OpeningHours[]) {
-				openingHours[String(oh.weekday)] = { open: fromMinutes(oh.openMinute), close: fromMinutes(oh.closeMinute) }
-			}
-
 			return {
 				id: venue.id,
 				slug: venue.slug,
-				name: venue.name,
-				tagline: venue.tagline,
-				intro: venue.intro,
-				address: venue.address,
-				phone: venue.phone,
-				whatsapp: venue.whatsapp,
-				email: venue.email,
-				mapsUrl: venue.mapsUrl,
-				timeZone: venue.timeZone,
-				openingHours,
-				closedDates: venue.closedDates.map((cd: ClosedDate) => cd.date.toISOString().slice(0, 10)),
-				bookingIntervalMinutes: venue.bookingIntervalMinutes,
-				partySizeLimits: { min: venue.partyMin, max: venue.partyMax },
-				diningMinutes: venue.diningMinutes,
-				leadTimeMinutes: venue.leadTimeMinutes,
-				cutoffMinutes: venue.cutoffMinutes,
-				noShowTargetPercent: venue.noShowTargetPercent,
-				overCapacityAlertPercent: venue.overCapacityAlertPercent,
-				seatingAreas: venue.seatingAreas.map((a: SeatingArea) => ({
-					id: a.id,
-					name: a.name,
-					capacity: a.capacity,
-					bookable: a.bookable,
-					minParty: a.minParty ?? undefined,
-					maxParty: a.maxParty ?? undefined,
-				})),
-				cancellationPolicy: venue.cancellationPolicy,
-				noticeEnabled: venue.noticeEnabled,
-				noticeDate: noticeDateOf(venue),
-				noticeText: venue.noticeText,
-				noticeTitle: venue.noticeTitle,
-				noticeEventName: venue.noticeEventName,
-				noticeEventTime: venue.noticeEventTime,
+				...venueToSettings(venue),
 				feedbackTitle: venue.feedbackTitle,
 				feedbackSubtitle: venue.feedbackSubtitle,
 				feedbackTags: venue.feedbackTags,

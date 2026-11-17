@@ -3,8 +3,9 @@ import { useVenue } from '@/composables/useVenue'
 import { bookingSource } from '@/utils/bookingSource'
 import { VENUE_SEO, imageSrcset, type VenueSeo } from '@/utils/venueSeo'
 
-const dayName = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'] // API keys: 0 = Monday
-const dayAbbr = ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su']
+const dayName: Record<string, string> = { mon: 'Monday', tue: 'Tuesday', wed: 'Wednesday', thu: 'Thursday', fri: 'Friday', sat: 'Saturday', sun: 'Sunday' }
+const dayAbbr = (day: string) => day[0]!.toUpperCase() + day[1] // schema.org openingHours: Mo, Tu, …
+
 // '<' escaped so venue text like '</script>' cannot break out of the JSON-LD script tag.
 const ldJson = (o: unknown) => JSON.stringify(o).replace(/</g, '\\u003c')
 
@@ -28,13 +29,13 @@ export async function useVenueSeo(venue = (useRoute().params.venue as string)) {
   const src = bookingSource(route.query.src)
   const bookPath = `${bookBase}/${venue}/book` // relative in dev
   const bookHref = src === 'website' ? bookPath : `${bookPath}?src=${src}` // the booking host is another origin, so the link carries the source
-  const name = info?.name ?? 'GIOI'
+  const name = info?.restaurant.name ?? 'GIOI'
   const title = seo?.title ?? name
-  const description = seo?.description ?? info?.tagline ?? ''
+  const description = seo?.description ?? info?.restaurant.tagline ?? ''
   const og = seo.image.og ?? seo.image
   const image = siteUrl + og.url
-  const phoneE164 = info?.phone ? '+' + info.phone.replace(/^0/, '62').replace(/\D/g, '') : ''
-  const wa = info ? `https://wa.me/${info.whatsapp.replace(/^0/, '62').replace(/\D/g, '')}` : '#'
+  const phoneE164 = info?.restaurant.phone ? '+' + info.restaurant.phone.replace(/^0/, '62').replace(/\D/g, '') : ''
+  const wa = info ? `https://wa.me/${info.restaurant.whatsapp.replace(/^0/, '62').replace(/\D/g, '')}` : '#'
 
   nuxtApp.runWithContext(() => {
   useSeoMeta({
@@ -76,10 +77,10 @@ export async function useVenueSeo(venue = (useRoute().params.venue as string)) {
           ...(venue === 'bali' ? { containedInPlace: { '@type': 'ShoppingCenter', name: 'Discovery Mall Bali' } } : {}), // ponytail: move to VenueSeo when a second venue needs it
           parentOrganization: { '@type': 'Organization', name: 'GIOI Group', url: siteUrl, logo: `${siteUrl}/logo.jpg`, '@id': `${siteUrl}#organization` },
           ...(image ? { image: [...new Set([image, siteUrl + seo.image.url])] } : {}),
-          ...(info?.phone ? { telephone: phoneE164 } : {}),
+          ...(info?.restaurant.phone ? { telephone: phoneE164 } : {}),
           address: {
             '@type': 'PostalAddress',
-            ...(info?.address ? { streetAddress: info.address.trim() } : {}),
+            ...(info?.restaurant.address ? { streetAddress: info.restaurant.address.trim() } : {}),
             ...(seo ? { addressLocality: seo.city, addressRegion: seo.region } : {}),
             addressCountry: 'ID',
           },
@@ -91,7 +92,7 @@ export async function useVenueSeo(venue = (useRoute().params.venue as string)) {
                 ...(seo.menus ? { hasMenu: seo.menus.map((m) => siteUrl + m.path) } : {}),
               }
             : {}),
-          ...(info?.mapsUrl ? { hasMap: info.mapsUrl } : {}),
+          ...(info?.restaurant.mapsUrl ? { hasMap: info.restaurant.mapsUrl } : {}),
           acceptsReservations: bookUrl,
           potentialAction: {
             '@type': 'ReserveAction',
@@ -111,13 +112,13 @@ export async function useVenueSeo(venue = (useRoute().params.venue as string)) {
                   .filter(([, h]) => h != null)
                   .map(([day, h]) => ({
                     '@type': 'OpeningHoursSpecification',
-                    dayOfWeek: `https://schema.org/${dayName[Number(day)]}`,
+                    dayOfWeek: `https://schema.org/${dayName[day]}`,
                     opens: h.open,
                     closes: h.close,
                   })),
                 openingHours: Object.entries(hours)
                   .filter(([, h]) => h != null)
-                  .map(([day, h]) => `${dayAbbr[Number(day)]} ${h.open}-${h.close}`),
+                  .map(([day, h]) => `${dayAbbr(day)} ${h.open}-${h.close}`),
               }
             : {}),
         }),

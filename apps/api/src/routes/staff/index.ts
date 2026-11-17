@@ -4,7 +4,6 @@ import type { PrismaClient, Prisma, VenueRole } from '@prisma/client'
 import type { AuthedSession } from '../../lib/auth'
 import {
 	canTransition,
-	nextStatuses,
 	todayLivePanel,
 	upcomingDaysPanel,
 	actionCues,
@@ -17,12 +16,11 @@ import {
 	type StaffTableState,
 } from '@gioi/domain'
 import { notFound, conflict, forbidden, unprocessable, AppError } from '../../lib/errors'
-import { csvEscape } from '../../lib/csv'
 import { hash } from '@node-rs/argon2'
 import { channelAndReliability, guestMix, feedbackPage, feedbackSummary } from '../../lib/dashboardStats'
 import { venueToSettings, noticeDateOf } from '../../lib/settings'
 import { requireAuth, requireAdmin, requireVenueAccess } from '../../lib/middleware'
-import { assertAreaCapacity, claimTable, isLate, requestedTableArea, tableHolders, type TableHolder } from '../../lib/tables'
+import { assertAreaCapacity, claimTable, isLate, pickAreaForParty, requestedTableArea, tableHolders, type TableHolder } from '../../lib/tables'
 import {
 	localDate,
 	localTime,
@@ -46,10 +44,6 @@ function normalizeLogin(raw: string): string {
 	const login = raw.trim().toLowerCase()
 	if (!login || /\s/.test(login)) throw unprocessable('login must not contain spaces')
 	return login
-}
-
-function asJson(v: unknown): Prisma.InputJsonValue | null {
-	return v as unknown as Prisma.InputJsonValue | null
 }
 
 const reservationSelect = {
@@ -124,16 +118,13 @@ export function registerStaffRoutes(app: FastifyInstance, prisma: PrismaClient):
 				include: { guest: true, seatingArea: true, tables: true },
 				orderBy: [{ startsAt: 'asc' }],
 			})
-			const guestIds = [...new Set(reservations.map((r) => r.guestId).filter(Boolean))] as string[]
-			const priorCompleted = await prisma.reservation.findMany({
-				where: { guestId: { in: guestIds }, status: 'completed' },
-				select: { guestId: true, startsAt: true },
+			const priorCompleted = await prisma.reservation.groupBy({
+				by: ['guestId'],
+				where: { guestId: { in: [...new Set(reservations.map((r) => r.guestId))] }, status: 'completed' },
+				_min: { startsAt: true },
 			})
 			const earliestCompleted = new Map<string, Date>()
-			for (const pc of priorCompleted) {
-				const cur = earliestCompleted.get(pc.guestId)
-				if (!cur || pc.startsAt < cur) earliestCompleted.set(pc.guestId, pc.startsAt)
-			}
+			for (const pc of priorCompleted) earliestCompleted.set(pc.guestId, pc._min.startsAt as Date)
 			const areas = await prisma.seatingArea.findMany({
 				where: { venueId, bookable: true },
 				orderBy: { name: 'asc' },
@@ -227,47 +218,20 @@ export function registerStaffRoutes(app: FastifyInstance, prisma: PrismaClient):
 				const tableReq = Array.isArray(body.tableIds) ? body.tableIds.filter((t) => typeof t === 'string') as string[] : undefined
 				if (tableReq) areaId = await requestedTableArea(tx, venueId, tableReq, body.partySize as number, areaId)
 				if (!areaId) {
-					// Lock all bookable areas of the venue (id order, no deadlocks) before computing usage,
-					// so concurrent staff bookings serialize on the venue instead of racing on each area.
-					await tx.$queryRaw<{ id: string }[]>`
-						SELECT id FROM seating_areas
-						WHERE venue_id = ${venueId}::uuid AND bookable = true
-						ORDER BY id
-						FOR UPDATE`
 					const areas = await tx.seatingArea.findMany({
 						where: { venueId, bookable: true },
 						orderBy: { id: 'asc' },
 						select: { id: true, capacity: true },
 					})
-					const before = new Date(startsAt.getTime() - venue.diningMinutes * 60000)
-					const after = new Date(startsAt.getTime() + venue.diningMinutes * 60000)
-					const usedMap = new Map<string, number>()
-					for (const a of areas) {
-						const agg = await tx.reservation.aggregate({
-							where: {
-								seatingAreaId: a.id,
-								startsAt: { gte: before, lte: after },
-								status: { in: ['pending', 'confirmed', 'arrived', 'seated'] },
-							},
-							_sum: { partySize: true },
-						})
-						usedMap.set(a.id, Number(agg._sum.partySize ?? 0))
-					}
-					let best: { id: string; remaining: number } | null = null
-					for (const a of areas) {
-						const remaining = a.capacity - (usedMap.get(a.id) ?? 0)
-						if (remaining < (body.partySize as number)) continue
-						if (!best || remaining < best.remaining) best = { id: a.id, remaining }
-					}
-					if (!best) throw conflict('full')
-					areaId = best.id
-				} else {
-					const [area] = await tx.$queryRaw<{ id: string }[]>`
-						SELECT id FROM seating_areas
-						WHERE id = ${areaId}::uuid AND venue_id = ${venueId}::uuid AND bookable = true
-						FOR UPDATE`
-					if (!area) throw conflict('no_area')
+					const chosenArea = await pickAreaForParty(tx, venueId, startsAt, body.partySize as number, venue.diningMinutes, areas)
+					if (!chosenArea) throw conflict('full')
+					areaId = chosenArea
 				}
+				const [area] = await tx.$queryRaw<{ id: string }[]>`
+					SELECT id FROM seating_areas
+					WHERE id = ${areaId}::uuid AND venue_id = ${venueId}::uuid AND bookable = true
+					FOR UPDATE`
+				if (!area) throw conflict('no_area')
 
 				const chosen = await claimTable(tx, venueId, areaId, startsAt, venue.diningMinutes, body.partySize as number, tableReq, {
 					takeOver: body.takeOver === true ? { graceMinutes: venue.graceMinutes, actorUserId: session.user.id } : undefined,
@@ -369,14 +333,16 @@ export function registerStaffRoutes(app: FastifyInstance, prisma: PrismaClient):
 			const updated = await prisma.$transaction(async (tx) => {
 				// New tables, or a moved/resized booking that keeps its tables, must still fit: free, together big enough, one area.
 				const existingIds = (await tx.reservationTable.findMany({ where: { reservationId: reservation.id }, select: { tableId: true } })).map((r) => r.tableId)
+				const { diningMinutes } = await tx.venue.findUniqueOrThrow({ where: { id: reservation.venueId }, select: { diningMinutes: true } })
+				let lockedAreaId: string | undefined
 				if (newTables?.length || (existingIds.length > 0 && reslot)) {
-					const { diningMinutes } = await tx.venue.findUniqueOrThrow({ where: { id: reservation.venueId }, select: { diningMinutes: true } })
 					const startsAt = (updates.startsAt as Date | undefined) ?? reservation.startsAt
 					const partySize = (updates.partySize as number | undefined) ?? reservation.partySize
 					const ids = newTables?.length ? newTables : existingIds
 					const areaId = await requestedTableArea(tx, reservation.venueId, ids, partySize, (updates.seatingAreaId as string | undefined) ?? (newTables?.length ? undefined : reservation.seatingAreaId))
 					if (areaId !== reservation.seatingAreaId) updates.seatingAreaId = areaId
 					await tx.$queryRaw`SELECT id FROM seating_areas WHERE id = ${areaId}::uuid AND venue_id = ${reservation.venueId}::uuid FOR UPDATE` // same lock bookings take: two moves can't grab one table
+					lockedAreaId = areaId
 					await claimTable(tx, reservation.venueId, areaId, startsAt, diningMinutes, partySize, ids, { excludeReservationId: reservation.id })
 					if (newTables?.length) {
 						await tx.reservationTable.deleteMany({ where: { reservationId: reservation.id } })
@@ -388,10 +354,11 @@ export function registerStaffRoutes(app: FastifyInstance, prisma: PrismaClient):
 				const finalParty = (updates.partySize as number | undefined) ?? reservation.partySize
 				const moved = finalArea !== reservation.seatingAreaId || finalParty !== reservation.partySize || finalStart.getTime() !== reservation.startsAt.getTime()
 				if (moved) {
-					const [area] = await tx.$queryRaw<{ id: string }[]>`SELECT id FROM seating_areas WHERE id = ${finalArea}::uuid AND venue_id = ${reservation.venueId}::uuid FOR UPDATE`
-					if (!area) throw unprocessable('unknown seating area')
+					if (finalArea !== lockedAreaId) {
+						const [area] = await tx.$queryRaw<{ id: string }[]>`SELECT id FROM seating_areas WHERE id = ${finalArea}::uuid AND venue_id = ${reservation.venueId}::uuid FOR UPDATE`
+						if (!area) throw unprocessable('unknown seating area')
+					}
 					if (['pending', 'confirmed', 'arrived', 'seated'].includes(reservation.status)) {
-						const { diningMinutes } = await tx.venue.findUniqueOrThrow({ where: { id: reservation.venueId }, select: { diningMinutes: true } })
 						await assertAreaCapacity(tx, finalArea, finalStart, diningMinutes, finalParty, reservation.id)
 					}
 				}
@@ -415,7 +382,7 @@ export function registerStaffRoutes(app: FastifyInstance, prisma: PrismaClient):
 					action: 'reservation.updated',
 					entityType: 'reservation',
 					entityId: reservation.id,
-					changes: asJson(changed) as Prisma.InputJsonValue,
+					changes: changed as Prisma.InputJsonValue,
 				},
 			})
 
@@ -491,7 +458,7 @@ export function registerStaffRoutes(app: FastifyInstance, prisma: PrismaClient):
 				throw new AppError(409, 'cannot transition status', 'ERR_INVALID_TRANSITION')
 			}
 
-			const updated = await prisma.$transaction(async (tx) => {
+			await prisma.$transaction(async (tx) => {
 				const rows = await tx.$executeRaw`
 					UPDATE reservations
 					SET status = ${to}::reservation_status, updated_at = now()
@@ -517,26 +484,12 @@ export function registerStaffRoutes(app: FastifyInstance, prisma: PrismaClient):
 						action: 'reservation.status_changed',
 						entityType: 'reservation_status',
 						entityId: reservation.id,
-						changes: asJson({ status: { from: reservation.status, to } }) as Prisma.InputJsonValue,
+						changes: { status: { from: reservation.status, to } } as Prisma.InputJsonValue,
 					},
 				})
-
-				return tx.reservation.update({ where: { id: reservation.id }, data: {} })
 			})
 
-			return { bookingCode: updated.bookingCode, status: updated.status }
-		},
-	)
-
-	// ---- Host: next statuses for UI -----------------------------------------
-	app.get(
-		'/staff/reservations/:id/next-statuses',
-		async (request: FastifyRequest<{ Params: { id: string } }>) => {
-			const session = await requireAuth(prisma, request.cookies as Record<string, string>)
-			const reservation = await prisma.reservation.findUnique({ where: { id: request.params.id } })
-			if (!reservation) throw notFound('reservation not found')
-			requireVenueAccess(session, reservation.venueId)
-			return { next: nextStatuses(reservation.status as ReservationStatus) }
+			return { bookingCode: reservation.bookingCode, status: to }
 		},
 	)
 
@@ -545,7 +498,7 @@ export function registerStaffRoutes(app: FastifyInstance, prisma: PrismaClient):
 		'/staff/guests/:id',
 		async (request: FastifyRequest<{ Params: { id: string } }>) => {
 			const session = await requireAuth(prisma, request.cookies as Record<string, string>)
-			const guest = await prisma.guest.findUnique({ where: { id: request.params.id } })
+			const guest = await prisma.guest.findUnique({ where: { id: request.params.id }, include: { venue: { select: { timeZone: true } } } })
 			if (!guest) throw notFound('guest not found')
 			requireVenueAccess(session, guest.venueId)
 
@@ -554,7 +507,6 @@ export function registerStaffRoutes(app: FastifyInstance, prisma: PrismaClient):
 				include: { seatingArea: true, feedback: true },
 				orderBy: { startsAt: 'desc' },
 			})
-			const venue = await prisma.venue.findUniqueOrThrow({ where: { id: guest.venueId }, select: { timeZone: true } })
 
 			return {
 				id: guest.id,
@@ -571,8 +523,8 @@ export function registerStaffRoutes(app: FastifyInstance, prisma: PrismaClient):
 				reservations: reservations.map((r) => ({
 					id: r.id,
 					bookingCode: r.bookingCode,
-					date: localDate(r.startsAt, venue.timeZone),
-					time: localTime(r.startsAt, venue.timeZone),
+					date: localDate(r.startsAt, guest.venue.timeZone),
+					time: localTime(r.startsAt, guest.venue.timeZone),
 					partySize: r.partySize,
 					seatingArea: r.seatingArea.name,
 					status: r.status,
@@ -595,8 +547,7 @@ export function registerStaffRoutes(app: FastifyInstance, prisma: PrismaClient):
 		'/staff/guests',
 		async (request: FastifyRequest<{ Querystring: { q?: string; venueId?: string } }>) => {
 			const session = await requireAuth(prisma, request.cookies as Record<string, string>)
-			const venueId = request.query.venueId ?? session.user.venueIds[0]
-			if (!venueId) throw forbidden('no venue associated with this user')
+			const venueId = staffVenue(session, request.query.venueId)
 			requireVenueAccess(session, venueId)
 			const q = (request.query.q ?? '').trim().toLowerCase()
 			const guests = await prisma.guest.findMany({
@@ -651,9 +602,7 @@ export function registerStaffRoutes(app: FastifyInstance, prisma: PrismaClient):
 		async (request: FastifyRequest<{ Params: { id: string }; Body: Record<string, unknown> }>) => {
 			const session = await requireAuth(prisma, request.cookies as Record<string, string>)
 			requireVenueAccess(session, request.params.id)
-			if (!session.user.isSuperAdmin && session.user.venueRoles[request.params.id] !== 'admin') {
-				throw forbidden('insufficient role')
-			}
+			requireAdmin(session, request.params.id)
 			const venue = await prisma.venue.findUnique({ where: { id: request.params.id } })
 			if (!venue) throw notFound('venue not found')
 
@@ -712,7 +661,7 @@ export function registerStaffRoutes(app: FastifyInstance, prisma: PrismaClient):
 					action: 'settings.updated',
 					entityType: 'settings',
 					entityId: request.params.id,
-					changes: asJson(changes) as Prisma.InputJsonValue,
+					changes: changes as Prisma.InputJsonValue,
 				},
 			})
 
@@ -741,9 +690,7 @@ export function registerStaffRoutes(app: FastifyInstance, prisma: PrismaClient):
 		) => {
 			const session = await requireAuth(prisma, request.cookies as Record<string, string>)
 			requireVenueAccess(session, request.params.id)
-			if (!session.user.isSuperAdmin && session.user.venueRoles[request.params.id] !== 'admin') {
-				throw forbidden('insufficient role')
-			}
+			requireAdmin(session, request.params.id)
 
 			await prisma.$transaction(async (tx) => {
 				for (const row of request.body) {
@@ -809,17 +756,13 @@ export function registerStaffRoutes(app: FastifyInstance, prisma: PrismaClient):
 		) => {
 			const session = await requireAuth(prisma, request.cookies as Record<string, string>)
 			requireVenueAccess(session, request.params.id)
-			if (!session.user.isSuperAdmin && session.user.venueRoles[request.params.id] !== 'admin') {
-				throw forbidden('insufficient role')
-			}
+			requireAdmin(session, request.params.id)
 
 			await prisma.$transaction(async (tx) => {
 				await tx.closedDate.deleteMany({ where: { venueId: request.params.id } })
-				for (const row of request.body) {
-					await tx.closedDate.create({
-						data: { venueId: request.params.id, date: new Date(row.date), reason: row.reason ?? null },
-					})
-				}
+				await tx.closedDate.createMany({
+					data: request.body.map((row) => ({ venueId: request.params.id, date: new Date(row.date), reason: row.reason ?? null })),
+				})
 				await tx.auditEvent.create({
 					data: {
 						venueId: request.params.id,
@@ -1061,11 +1004,9 @@ export function registerStaffRoutes(app: FastifyInstance, prisma: PrismaClient):
 					type: 'object',
 					properties: {
 						venueId: { type: 'string' },
-						from: { type: 'string' },
-						to: { type: 'string' },
-						status: { type: 'string' },
+						from: { type: 'string', pattern: '^\\d{4}-\\d{2}-\\d{2}$' },
+						to: { type: 'string', pattern: '^\\d{4}-\\d{2}-\\d{2}$' },
 						source: { type: 'string' },
-						seatingAreaId: { type: 'string' },
 						occasion: { type: 'string' },
 					},
 				},
@@ -1076,20 +1017,15 @@ export function registerStaffRoutes(app: FastifyInstance, prisma: PrismaClient):
 				venueId?: string
 				from?: string
 				to?: string
-				status?: string
 				source?: string
-				seatingAreaId?: string
 				occasion?: string
 			}
 		}>) => {
 			const session = await requireAuth(prisma, request.cookies as Record<string, string>)
-			const venueId = request.query.venueId ?? session.user.venueIds[0]
-			if (!venueId) throw forbidden('no venue associated with this user')
+			const venueId = staffVenue(session, request.query.venueId)
 			requireVenueAccess(session, venueId)
 			requireAdmin(session, venueId)
 			const { from, to } = request.query
-			const dateRe = /^\d{4}-\d{2}-\d{2}$/
-			if ((from !== undefined && !dateRe.test(from)) || (to !== undefined && !dateRe.test(to))) throw new AppError(400, 'dates must be YYYY-MM-DD', 'ERR_BAD_REQUEST')
 			if (from && to) {
 				if (daysBetween(from, to) < 0) throw new AppError(400, 'from must be on or before to', 'ERR_BAD_REQUEST')
 				if (daysBetween(from, to) > 366) throw new AppError(400, 'range must not exceed 366 days', 'ERR_BAD_REQUEST')
@@ -1138,12 +1074,8 @@ export function registerStaffRoutes(app: FastifyInstance, prisma: PrismaClient):
 			const feedbackScope = { venueId, timeZone: settings.timeZone, fromUtc: feedbackFrom, toUtc: feedbackTo }
 			const [feedbackFirst, summary] = await Promise.all([feedbackPage(prisma, feedbackScope), feedbackSummary(prisma, feedbackScope)])
 
-			const filters: DashboardFilters = {
-				rangeStart,
-				rangeEnd,
-				status: (request.query.status ?? 'all') as DashboardFilters['status'],
+			const filters = {
 				source: (request.query.source ?? 'all') as DashboardFilters['source'],
-				seatingAreaId: request.query.seatingAreaId ?? 'all',
 				occasion: request.query.occasion ?? 'all',
 			}
 
@@ -1159,8 +1091,8 @@ export function registerStaffRoutes(app: FastifyInstance, prisma: PrismaClient):
 					reservation: { select: { seatingAreaId: true, venueId: true } },
 				},
 			})
-			const areaMap = venue.seatingAreas.map((a) => ({ id: a.id, name: a.name, capacity: a.capacity, bookable: a.bookable, minParty: a.minParty ?? undefined, maxParty: a.maxParty ?? undefined }))
-			const turnTime = turnTimePanel(statusEvents, areaMap, venue.diningMinutes)
+			const areas = settings.seatingAreas
+			const turnTime = turnTimePanel(statusEvents, areas, venue.diningMinutes)
 			const periodScope = {
 				venueId,
 				timeZone: settings.timeZone,
@@ -1198,7 +1130,7 @@ export function registerStaffRoutes(app: FastifyInstance, prisma: PrismaClient):
 				timeZone: settings.timeZone,
 				fromUtc: startOfLocalDay(prevStart, settings.timeZone),
 				toUtc: startOfNextLocalDay(prevEnd, settings.timeZone),
-				filters: { source: filters.source, occasion: filters.occasion, seatingAreaId: 'all' },
+				filters: { source: filters.source, occasion: filters.occasion },
 			})
 			const previous = {
 				channel: { totalBookings: prevStats.channel.totalBookings, totalCovers: prevStats.channel.totalCovers },
@@ -1208,7 +1140,8 @@ export function registerStaffRoutes(app: FastifyInstance, prisma: PrismaClient):
 				venueId,
 				today,
 				timeZone: settings.timeZone,
-				settings,
+				noShowTargetPercent: settings.noShowTargetPercent,
+				areas,
 				feedback: feedbackFirst!.items,
 				feedbackNextCursor: feedbackFirst!.nextCursor,
 				feedbackSummary: summary,
@@ -1227,7 +1160,7 @@ export function registerStaffRoutes(app: FastifyInstance, prisma: PrismaClient):
 				querystring: {
 					type: 'object',
 					required: ['from', 'to'],
-					properties: { venueId: { type: 'string' }, from: { type: 'string' }, to: { type: 'string' }, cursor: { type: 'string' } },
+					properties: { venueId: { type: 'string' }, from: { type: 'string', pattern: '^\\d{4}-\\d{2}-\\d{2}$' }, to: { type: 'string', pattern: '^\\d{4}-\\d{2}-\\d{2}$' }, cursor: { type: 'string' } },
 				},
 			},
 		},
@@ -1237,8 +1170,7 @@ export function registerStaffRoutes(app: FastifyInstance, prisma: PrismaClient):
 			requireVenueAccess(session, venueId)
 			requireAdmin(session, venueId)
 			const { from, to, cursor } = request.query
-			const dateRe = /^\d{4}-\d{2}-\d{2}$/
-			if (!dateRe.test(from) || !dateRe.test(to) || daysBetween(from, to) < 0 || daysBetween(from, to) > 366) throw new AppError(400, 'invalid date range', 'ERR_BAD_REQUEST')
+			if (daysBetween(from, to) < 0 || daysBetween(from, to) > 366) throw new AppError(400, 'invalid date range', 'ERR_BAD_REQUEST')
 			const venue = await prisma.venue.findUnique({ where: { id: venueId }, select: { timeZone: true } })
 			if (!venue) throw notFound('venue not found')
 			const page = await feedbackPage(
@@ -1261,8 +1193,8 @@ export function registerStaffRoutes(app: FastifyInstance, prisma: PrismaClient):
 					required: ['from', 'to'],
 					properties: {
 						venueId: { type: 'string' },
-						from: { type: 'string' },
-						to: { type: 'string' },
+						from: { type: 'string', pattern: '^\\d{4}-\\d{2}-\\d{2}$' },
+						to: { type: 'string', pattern: '^\\d{4}-\\d{2}-\\d{2}$' },
 						status: { type: 'string', enum: ['all', 'pending', 'confirmed', 'arrived', 'seated', 'completed', 'cancelled', 'no_show'] },
 						source: { type: 'string', enum: ['all', 'website', 'instagram', 'google', 'whatsapp', 'walk_in', 'phone', 'host', 'chope_import'] },
 						occasion: { type: 'string' },
@@ -1277,13 +1209,10 @@ export function registerStaffRoutes(app: FastifyInstance, prisma: PrismaClient):
 			Querystring: { venueId?: string; from: string; to: string; status?: string; source?: string; occasion?: string; q?: string; limit: number; offset: number }
 		}>) => {
 			const session = await requireAuth(prisma, request.cookies as Record<string, string>)
-			const venueId = request.query.venueId ?? session.user.venueIds[0]
-			if (!venueId) throw forbidden('no venue associated with this user')
+			const venueId = staffVenue(session, request.query.venueId)
 			requireVenueAccess(session, venueId)
 			requireAdmin(session, venueId)
 			const { from, to, status, source, occasion, q, limit, offset } = request.query
-			const dateRe = /^\d{4}-\d{2}-\d{2}$/
-			if (!dateRe.test(from) || !dateRe.test(to)) throw new AppError(400, 'dates must be YYYY-MM-DD', 'ERR_BAD_REQUEST')
 			if (daysBetween(from, to) < 0) throw new AppError(400, 'from must be on or before to', 'ERR_BAD_REQUEST')
 			if (daysBetween(from, to) > 366) throw new AppError(400, 'range must not exceed 366 days', 'ERR_BAD_REQUEST')
 			const venue = await prisma.venue.findUnique({ where: { id: venueId }, select: { timeZone: true } })
@@ -1316,10 +1245,10 @@ export function registerStaffRoutes(app: FastifyInstance, prisma: PrismaClient):
 		},
 	)
 
-	// ---- Admin: CSV export --------------------------------------------------
+	// ---- Admin: export ------------------------------------------------------
 	app.get(
-		'/admin/venues/:id/export.csv',
-		async (request: FastifyRequest<{ Params: { id: string } }>, reply) => {
+		'/admin/venues/:id/export',
+		async (request: FastifyRequest<{ Params: { id: string } }>) => {
 			const session = await requireAuth(prisma, request.cookies as Record<string, string>)
 			requireVenueAccess(session, request.params.id)
 			requireAdmin(session, request.params.id)
@@ -1330,34 +1259,29 @@ export function registerStaffRoutes(app: FastifyInstance, prisma: PrismaClient):
 				include: { guest: true },
 			})
 
-			let csv = 'id,booking_code,guest_name,phone,email,party_size,date,time,status,allergies,accessibility,nationality\n'
-			for (const r of reservations) {
-				csv +=
-					[
-						r.id,
-						r.bookingCode,
-						r.guest.fullName,
-						r.guest.phone ?? '',
-						r.guest.email ?? '',
-						r.partySize,
-						localDate(r.startsAt, venue.timeZone),
-						localTime(r.startsAt, venue.timeZone),
-						r.status,
-						(r.guest.allergies ?? []).join(';'),
-						r.guest.accessibility ?? '',
-						r.guest.country ?? '',
-					].map(csvEscape).join(',') + '\n'
+			return {
+				columns: ['id', 'booking_code', 'guest_name', 'phone', 'email', 'party_size', 'date', 'time', 'status', 'allergies', 'accessibility', 'nationality'],
+				rows: reservations.map((r) => [
+					r.id,
+					r.bookingCode,
+					r.guest.fullName,
+					r.guest.phone ?? '',
+					r.guest.email ?? '',
+					r.partySize,
+					localDate(r.startsAt, venue.timeZone),
+					localTime(r.startsAt, venue.timeZone),
+					r.status,
+					(r.guest.allergies ?? []).join(';'),
+					r.guest.accessibility ?? '',
+					r.guest.country ?? '',
+				]),
 			}
-
-			reply.header('Content-Type', 'text/csv')
-			reply.header('Content-Disposition', `attachment; filename=gioi-export-${request.params.id}.csv`)
-			return csv
 		},
 	)
 
-	// ---- Host/admin: CSV export of one day ----------------------------------
+	// ---- Host/admin: export of one day --------------------------------------
 	app.get(
-		'/staff/venues/:venueId/export.csv',
+		'/staff/venues/:venueId/export',
 		{
 			schema: {
 				querystring: {
@@ -1367,7 +1291,7 @@ export function registerStaffRoutes(app: FastifyInstance, prisma: PrismaClient):
 				},
 			},
 		},
-		async (request: FastifyRequest<{ Params: { venueId: string }; Querystring: { date: string } }>, reply) => {
+		async (request: FastifyRequest<{ Params: { venueId: string }; Querystring: { date: string } }>) => {
 			const session = await requireAuth(prisma, request.cookies as Record<string, string>)
 			const { venueId } = request.params
 			const { date } = request.query
@@ -1381,27 +1305,22 @@ export function registerStaffRoutes(app: FastifyInstance, prisma: PrismaClient):
 				orderBy: { startsAt: 'asc' },
 			})
 
-			let csv = 'booking_code,guest_name,phone,email,party_size,date,time,status,allergies,accessibility,nationality\n'
-			for (const r of reservations) {
-				csv +=
-					[
-						r.bookingCode,
-						r.guest.fullName,
-						r.guest.phone ?? '',
-						r.guest.email ?? '',
-						r.partySize,
-						localDate(r.startsAt, venue.timeZone),
-						localTime(r.startsAt, venue.timeZone),
-						r.status,
-						(r.guest.allergies ?? []).join(';'),
-						r.guest.accessibility ?? '',
-						r.guest.country ?? '',
-					].map(csvEscape).join(',') + '\n'
+			return {
+				columns: ['booking_code', 'guest_name', 'phone', 'email', 'party_size', 'date', 'time', 'status', 'allergies', 'accessibility', 'nationality'],
+				rows: reservations.map((r) => [
+					r.bookingCode,
+					r.guest.fullName,
+					r.guest.phone ?? '',
+					r.guest.email ?? '',
+					r.partySize,
+					localDate(r.startsAt, venue.timeZone),
+					localTime(r.startsAt, venue.timeZone),
+					r.status,
+					(r.guest.allergies ?? []).join(';'),
+					r.guest.accessibility ?? '',
+					r.guest.country ?? '',
+				]),
 			}
-
-			reply.header('Content-Type', 'text/csv')
-			reply.header('Content-Disposition', `attachment; filename=gioi-reservations-${date}.csv`)
-			return csv
 		},
 	)
 }

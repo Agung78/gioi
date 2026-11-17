@@ -11,7 +11,7 @@ export interface PeriodScope {
 	timeZone: string
 	fromUtc: Date // inclusive start of first local day
 	toUtc: Date // exclusive start of day after last local day
-	filters: Pick<DashboardFilters, 'source' | 'seatingAreaId' | 'occasion'>
+	filters: Pick<DashboardFilters, 'source' | 'occasion'>
 }
 
 const OCCASION = Prisma.sql`COALESCE(NULLIF(BTRIM(occasion, E' \t\r\n'), ''), 'No occasion')`
@@ -20,7 +20,6 @@ function where(s: PeriodScope) {
 	const f = s.filters
 	return Prisma.sql`venue_id = ${s.venueId}::uuid AND starts_at >= ${s.fromUtc} AND starts_at < ${s.toUtc}
 		${f.source !== 'all' ? Prisma.sql`AND source = ${f.source}::reservation_channel` : Prisma.empty}
-		${f.seatingAreaId !== 'all' ? Prisma.sql`AND seating_area_id = ${f.seatingAreaId}::uuid` : Prisma.empty}
 		${f.occasion !== 'all' ? Prisma.sql`AND ${OCCASION} = ${f.occasion}` : Prisma.empty}`
 }
 

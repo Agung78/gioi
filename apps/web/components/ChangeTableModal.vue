@@ -7,8 +7,8 @@ import { fetchStaffTableAvailability, updateReservation, type StaffReservation }
 const props = defineProps<{
 	reservation: StaffReservation | null
 	venueId: string
-	venueSlug?: string
 	areas: Array<{ id: string; name: string }>
+	floorPlan: PublicFloorPlan | null
 }>()
 
 const emit = defineEmits<{
@@ -20,7 +20,7 @@ const closeOnEsc = (e: KeyboardEvent) => { if (e.key === 'Escape' && props.reser
 onMounted(() => document.addEventListener('keydown', closeOnEsc))
 onBeforeUnmount(() => document.removeEventListener('keydown', closeOnEsc))
 
-const floorPlan = ref<PublicFloorPlan | null>(null)
+const floorPlan = computed(() => props.floorPlan)
 const states = ref<StaffTableState[]>([])
 const chosen = ref<number[]>([])
 const error = ref<string | null>(null)
@@ -70,13 +70,8 @@ async function loadStates() {
 watch(() => props.reservation?.id, async (id) => {
 	error.value = null
 	if (!id) return
-	floorPlan.value = null
 	chosen.value = []
-	const [plan] = await Promise.all([
-		props.venueSlug ? $fetch<PublicFloorPlan>(`/api/public/venues/${props.venueSlug}/floor-plan`).catch(() => null) : null,
-		loadStates(),
-	])
-	floorPlan.value = plan
+	await loadStates()
 	selectCurrent()
 })
 

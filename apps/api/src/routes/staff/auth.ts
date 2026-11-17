@@ -30,8 +30,7 @@ export function registerStaffAuthRoutes(app: FastifyInstance, prisma: PrismaClie
 			}
 			clearLoginFailures(limitKey)
 
-			const venues = await prisma.userVenue.findMany({ where: { userId: user.id } })
-			const token = await createSession(prisma, user.id, venues.map((v: { venueId: string }) => v.venueId))
+			const token = await createSession(prisma, user.id)
 
 			await prisma.user.update({
 				where: { id: user.id },

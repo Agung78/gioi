@@ -12,7 +12,7 @@ const route = useRoute()
 const venueSlug = String(route.params.venue)
 const venueHome = useVenueHome(venueSlug)
 const { venue } = await useVenue()
-const venueName = computed(() => venue.value?.name || 'GIOI Ocean Gourmet')
+const venueName = computed(() => venue.value?.restaurant.name || 'GIOI Ocean Gourmet')
 const reviewUrl = VENUE_SEO[venueSlug]?.reviewUrl
 useHead({ title: computed(() => `Feedback | ${venueName.value}`) })
 const code = String(route.params.code)

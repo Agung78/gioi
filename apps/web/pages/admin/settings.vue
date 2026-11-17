@@ -12,10 +12,9 @@ import {
 	fetchOpeningHours, saveOpeningHours,
 	fetchClosedDates, saveClosedDates,
 	fetchUsers, saveUsers, createUser, removeUser, createVenue, fetchMe,
-	downloadExportCSV, fetchFloorPlan, saveFloorImage,
+	fetchVenueExport, fetchFloorPlan, saveFloorImage,
 	type VenueSettings, type OpeningHoursRow, type ClosedDateRow, type StaffUserRow,
 } from '@/composables/useApi'
-import { parseCsv } from '@/utils/csv'
 
 const DAYS_OF_WEEK: DayOfWeek[] = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun']
 
@@ -224,10 +223,7 @@ const exportFilename = computed(() => `gioi-export-${venueId}.csv`)
 
 async function exportReservations() {
 	try {
-		const csv = await downloadExportCSV(venueId)
-		const parsed = parseCsv(csv)
-		const columns = parsed[0]
-		const rows = parsed.slice(1)
+		const { columns, rows } = await fetchVenueExport(venueId)
 		exportColumns.value = columns
 		exportRows.value = rows
 		showExport.value = true

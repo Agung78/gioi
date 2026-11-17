@@ -13,11 +13,10 @@ import { useAuthStore } from '@/stores/auth'
 import {
 	fetchDay,
 	changeReservationStatus,
-	exportDayCSV,
+	fetchDayExport,
 	type DayView,
 	type StaffReservation,
 } from '@/composables/useApi'
-import { parseCsv } from '@/utils/csv'
 
 const router = useRouter()
 const auth = useAuthStore()
@@ -57,10 +56,9 @@ const exportFilename = ref('')
 
 async function exportCsv() {
 	try {
-		const text = await (await exportDayCSV(venueId.value, date.value)).text()
-		const parsed = parseCsv(text)
-		exportColumns.value = parsed[0]
-		exportRows.value = parsed.slice(1)
+		const { columns, rows } = await fetchDayExport(venueId.value, date.value)
+		exportColumns.value = columns
+		exportRows.value = rows
 		exportFilename.value = `gioi-reservations-${date.value}.csv`
 		showExport.value = true
 	} catch (e: any) {
@@ -346,7 +344,7 @@ definePageMeta({ middleware: 'auth' })
 	</Transition>
 
 
-		<WalkInModal :open="showWalkIn" :areas="areas" :venue-slug="venue?.slug" :venue-id="venueId" :date="date" @close="showWalkIn = false" @created="lastError = null" />
-		<ChangeTableModal :reservation="changing" :venue-id="venueId" :venue-slug="venue?.slug" :areas="areas" @close="changing = null" @saved="changing = null; load(date)" />
+		<WalkInModal :open="showWalkIn" :areas="areas" :venue-id="venueId" :date="date" :floor-plan="floorPlan" @close="showWalkIn = false" @created="lastError = null" />
+		<ChangeTableModal :reservation="changing" :venue-id="venueId" :areas="areas" :floor-plan="floorPlan" @close="changing = null" @saved="changing = null; load(date)" />
 	</div>
 </template>

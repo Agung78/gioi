@@ -22,7 +22,6 @@ export interface AuthedSession {
 export async function createSession(
 	prisma: PrismaClient,
 	userId: string,
-	venueIds: string[],
 ): Promise<string> {
 	const token = crypto.randomUUID().replace(/-/g, '')
 	const expiresAt = new Date(Date.now() + SESSION_TTL_MS)

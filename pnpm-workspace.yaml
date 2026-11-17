@@ -7,3 +7,6 @@ onlyBuiltDependencies:
   - "@prisma/client"
   - esbuild
   - "@node-rs/argon2"
+blockExoticSubdeps: true
+minimumReleaseAge: 1440
+trustPolicy: no-downgrade
