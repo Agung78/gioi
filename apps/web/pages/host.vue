@@ -327,10 +327,10 @@ definePageMeta({ middleware: 'auth' })
 
 							<div class="mt-4 flex flex-wrap items-center gap-3">
 								<StatusButtons :reservation="r" @change="(to) => changeStatus(r, to as ReservationStatus)" />
-								<button v-if="r.status === 'completed'" class="btn-secondary inline-flex items-center gap-2" type="button" @click="sendFeedback(r)">
+								<button v-if="r.status === 'completed' && guestOf(r).phone" class="btn-secondary inline-flex items-center gap-2" type="button" @click="sendFeedback(r)">
 									<PhWhatsappLogo :size="20" aria-hidden="true" /> Send feedback via WhatsApp
 								</button>
-								<button v-if="['pending', 'confirmed'].includes(r.status)" class="btn-secondary inline-flex items-center gap-2" type="button" @click="sendReminder(r)">
+								<button v-if="['pending', 'confirmed'].includes(r.status) && guestOf(r).phone" class="btn-secondary inline-flex items-center gap-2" type="button" @click="sendReminder(r)">
 									<PhWhatsappLogo :size="20" aria-hidden="true" /> Send reminder via WhatsApp
 								</button>
 								<button v-if="['pending', 'confirmed', 'arrived', 'seated'].includes(r.status)" class="btn-secondary" type="button" @click="changing = r">Change table</button>
