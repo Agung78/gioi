@@ -1,0 +1,1352 @@
+{
+  "version": "2.1.0",
+  "$schema": "https://json.schemastore.org/sarif-2.1.0.json",
+  "runs": [
+    {
+      "tool": {
+        "driver": {
+          "name": "Strix",
+          "informationUri": "https://strix.ai",
+          "rules": [
+            {
+              "id": "strix-coverage/authentication-venue-level-authorization-and-idor",
+              "name": "Authentication, venue-level authorization, and IDOR",
+              "shortDescription": {
+                "text": "Coverage: Authentication, venue-level authorization, and IDOR"
+              },
+              "fullDescription": {
+                "text": "Coverage of Authentication, venue-level authorization, and IDOR across the assessed attack surface."
+              },
+              "defaultConfiguration": {
+                "level": "none"
+              },
+              "help": {
+                "text": "Coverage of Authentication, venue-level authorization, and IDOR across the assessed attack surface.",
+                "markdown": "Coverage of Authentication, venue-level authorization, and IDOR across the assessed attack surface."
+              },
+              "properties": {
+                "tags": [
+                  "coverage"
+                ]
+              }
+            },
+            {
+              "id": "strix-coverage/sql-nosql-query-injection",
+              "name": "SQL/NoSQL/query injection",
+              "shortDescription": {
+                "text": "Coverage: SQL/NoSQL/query injection"
+              },
+              "fullDescription": {
+                "text": "Coverage of SQL/NoSQL/query injection across the assessed attack surface."
+              },
+              "defaultConfiguration": {
+                "level": "none"
+              },
+              "help": {
+                "text": "Coverage of SQL/NoSQL/query injection across the assessed attack surface.",
+                "markdown": "Coverage of SQL/NoSQL/query injection across the assessed attack surface."
+              },
+              "properties": {
+                "tags": [
+                  "coverage"
+                ]
+              }
+            },
+            {
+              "id": "strix-coverage/sql-injection-and-unsafe-input-handling",
+              "name": "SQL injection and unsafe input handling",
+              "shortDescription": {
+                "text": "Coverage: SQL injection and unsafe input handling"
+              },
+              "fullDescription": {
+                "text": "Coverage of SQL injection and unsafe input handling across the assessed attack surface."
+              },
+              "defaultConfiguration": {
+                "level": "none"
+              },
+              "help": {
+                "text": "Coverage of SQL injection and unsafe input handling across the assessed attack surface.",
+                "markdown": "Coverage of SQL injection and unsafe input handling across the assessed attack surface."
+              },
+              "properties": {
+                "tags": [
+                  "coverage"
+                ]
+              }
+            },
+            {
+              "id": "strix-coverage/csrf-session-validation-and-cors-policy",
+              "name": "CSRF, session validation, and CORS policy",
+              "shortDescription": {
+                "text": "Coverage: CSRF, session validation, and CORS policy"
+              },
+              "fullDescription": {
+                "text": "Coverage of CSRF, session validation, and CORS policy across the assessed attack surface."
+              },
+              "defaultConfiguration": {
+                "level": "none"
+              },
+              "help": {
+                "text": "Coverage of CSRF, session validation, and CORS policy across the assessed attack surface.",
+                "markdown": "Coverage of CSRF, session validation, and CORS policy across the assessed attack surface."
+              },
+              "properties": {
+                "tags": [
+                  "coverage"
+                ]
+              }
+            },
+            {
+              "id": "strix-coverage/ssrf-xxe-path-traversal-rce",
+              "name": "SSRF / XXE / path traversal / RCE",
+              "shortDescription": {
+                "text": "Coverage: SSRF / XXE / path traversal / RCE"
+              },
+              "fullDescription": {
+                "text": "Coverage of SSRF / XXE / path traversal / RCE across the assessed attack surface."
+              },
+              "defaultConfiguration": {
+                "level": "none"
+              },
+              "help": {
+                "text": "Coverage of SSRF / XXE / path traversal / RCE across the assessed attack surface.",
+                "markdown": "Coverage of SSRF / XXE / path traversal / RCE across the assessed attack surface."
+              },
+              "properties": {
+                "tags": [
+                  "coverage"
+                ]
+              }
+            },
+            {
+              "id": "strix-coverage/sql-injection",
+              "name": "SQL injection",
+              "shortDescription": {
+                "text": "Coverage: SQL injection"
+              },
+              "fullDescription": {
+                "text": "Coverage of SQL injection across the assessed attack surface."
+              },
+              "defaultConfiguration": {
+                "level": "none"
+              },
+              "help": {
+                "text": "Coverage of SQL injection across the assessed attack surface.",
+                "markdown": "Coverage of SQL injection across the assessed attack surface."
+              },
+              "properties": {
+                "tags": [
+                  "coverage"
+                ]
+              }
+            },
+            {
+              "id": "strix-coverage/xss-unsafe-rendering-open-redirect",
+              "name": "XSS / unsafe rendering / open redirect",
+              "shortDescription": {
+                "text": "Coverage: XSS / unsafe rendering / open redirect"
+              },
+              "fullDescription": {
+                "text": "Coverage of XSS / unsafe rendering / open redirect across the assessed attack surface."
+              },
+              "defaultConfiguration": {
+                "level": "none"
+              },
+              "help": {
+                "text": "Coverage of XSS / unsafe rendering / open redirect across the assessed attack surface.",
+                "markdown": "Coverage of XSS / unsafe rendering / open redirect across the assessed attack surface."
+              },
+              "properties": {
+                "tags": [
+                  "coverage"
+                ]
+              }
+            },
+            {
+              "id": "strix-coverage/xss-unsafe-url-scheme-open-redirect",
+              "name": "XSS / unsafe URL scheme / open redirect",
+              "shortDescription": {
+                "text": "Coverage: XSS / unsafe URL scheme / open redirect"
+              },
+              "fullDescription": {
+                "text": "Coverage of XSS / unsafe URL scheme / open redirect across the assessed attack surface."
+              },
+              "defaultConfiguration": {
+                "level": "none"
+              },
+              "help": {
+                "text": "Coverage of XSS / unsafe URL scheme / open redirect across the assessed attack surface.",
+                "markdown": "Coverage of XSS / unsafe URL scheme / open redirect across the assessed attack surface."
+              },
+              "properties": {
+                "tags": [
+                  "coverage"
+                ]
+              }
+            },
+            {
+              "id": "strix-coverage/xss-dom-sinks-csrf-ssrf-open-redirect",
+              "name": "XSS / DOM sinks / CSRF / SSRF / open redirect",
+              "shortDescription": {
+                "text": "Coverage: XSS / DOM sinks / CSRF / SSRF / open redirect"
+              },
+              "fullDescription": {
+                "text": "Coverage of XSS / DOM sinks / CSRF / SSRF / open redirect across the assessed attack surface."
+              },
+              "defaultConfiguration": {
+                "level": "none"
+              },
+              "help": {
+                "text": "Coverage of XSS / DOM sinks / CSRF / SSRF / open redirect across the assessed attack surface.",
+                "markdown": "Coverage of XSS / DOM sinks / CSRF / SSRF / open redirect across the assessed attack surface."
+              },
+              "properties": {
+                "tags": [
+                  "coverage"
+                ]
+              }
+            },
+            {
+              "id": "strix-coverage/known-dependency-cves-introduced-by-pr",
+              "name": "Known dependency CVEs introduced by PR",
+              "shortDescription": {
+                "text": "Coverage: Known dependency CVEs introduced by PR"
+              },
+              "fullDescription": {
+                "text": "Coverage of Known dependency CVEs introduced by PR across the assessed attack surface."
+              },
+              "defaultConfiguration": {
+                "level": "none"
+              },
+              "help": {
+                "text": "Coverage of Known dependency CVEs introduced by PR across the assessed attack surface.",
+                "markdown": "Coverage of Known dependency CVEs introduced by PR across the assessed attack surface."
+              },
+              "properties": {
+                "tags": [
+                  "coverage"
+                ]
+              }
+            },
+            {
+              "id": "strix-coverage/newly-introduced-secrets-or-unsafe-deployment-configuration",
+              "name": "Newly introduced secrets or unsafe deployment configuration",
+              "shortDescription": {
+                "text": "Coverage: Newly introduced secrets or unsafe deployment configuration"
+              },
+              "fullDescription": {
+                "text": "Coverage of Newly introduced secrets or unsafe deployment configuration across the assessed attack surface."
+              },
+              "defaultConfiguration": {
+                "level": "none"
+              },
+              "help": {
+                "text": "Coverage of Newly introduced secrets or unsafe deployment configuration across the assessed attack surface.",
+                "markdown": "Coverage of Newly introduced secrets or unsafe deployment configuration across the assessed attack surface."
+              },
+              "properties": {
+                "tags": [
+                  "coverage"
+                ]
+              }
+            },
+            {
+              "id": "strix-coverage/authentication-session-exposure-and-open-redirect",
+              "name": "Authentication/session exposure and open redirect",
+              "shortDescription": {
+                "text": "Coverage: Authentication/session exposure and open redirect"
+              },
+              "fullDescription": {
+                "text": "Coverage of Authentication/session exposure and open redirect across the assessed attack surface."
+              },
+              "defaultConfiguration": {
+                "level": "none"
+              },
+              "help": {
+                "text": "Coverage of Authentication/session exposure and open redirect across the assessed attack surface.",
+                "markdown": "Coverage of Authentication/session exposure and open redirect across the assessed attack surface."
+              },
+              "properties": {
+                "tags": [
+                  "coverage"
+                ]
+              }
+            },
+            {
+              "id": "strix-coverage/frontend-authorization-idor-via-selected-venue-and-route-query-parameters",
+              "name": "Frontend authorization/IDOR via selected venue and route/query parameters",
+              "shortDescription": {
+                "text": "Coverage: Frontend authorization/IDOR via selected venue and route/query parameters"
+              },
+              "fullDescription": {
+                "text": "Coverage of Frontend authorization/IDOR via selected venue and route/query parameters across the assessed attack surface."
+              },
+              "defaultConfiguration": {
+                "level": "none"
+              },
+              "help": {
+                "text": "Coverage of Frontend authorization/IDOR via selected venue and route/query parameters across the assessed attack surface.",
+                "markdown": "Coverage of Frontend authorization/IDOR via selected venue and route/query parameters across the assessed attack surface."
+              },
+              "properties": {
+                "tags": [
+                  "coverage"
+                ]
+              }
+            },
+            {
+              "id": "strix-coverage/bfla-client-side-role-enforcement",
+              "name": "BFLA / client-side role enforcement",
+              "shortDescription": {
+                "text": "Coverage: BFLA / client-side role enforcement"
+              },
+              "fullDescription": {
+                "text": "Coverage of BFLA / client-side role enforcement across the assessed attack surface."
+              },
+              "defaultConfiguration": {
+                "level": "none"
+              },
+              "help": {
+                "text": "Coverage of BFLA / client-side role enforcement across the assessed attack surface.",
+                "markdown": "Coverage of BFLA / client-side role enforcement across the assessed attack surface."
+              },
+              "properties": {
+                "tags": [
+                  "coverage"
+                ]
+              }
+            },
+            {
+              "id": "strix-coverage/idor-cross-venue-guest-data-exposure",
+              "name": "IDOR / cross-venue guest data exposure",
+              "shortDescription": {
+                "text": "Coverage: IDOR / cross-venue guest data exposure"
+              },
+              "fullDescription": {
+                "text": "Coverage of IDOR / cross-venue guest data exposure across the assessed attack surface."
+              },
+              "defaultConfiguration": {
+                "level": "none"
+              },
+              "help": {
+                "text": "Coverage of IDOR / cross-venue guest data exposure across the assessed attack surface.",
+                "markdown": "Coverage of IDOR / cross-venue guest data exposure across the assessed attack surface."
+              },
+              "properties": {
+                "tags": [
+                  "coverage"
+                ]
+              }
+            },
+            {
+              "id": "strix-coverage/open-redirect",
+              "name": "Open redirect",
+              "shortDescription": {
+                "text": "Coverage: Open redirect"
+              },
+              "fullDescription": {
+                "text": "Coverage of Open redirect across the assessed attack surface."
+              },
+              "defaultConfiguration": {
+                "level": "none"
+              },
+              "help": {
+                "text": "Coverage of Open redirect across the assessed attack surface.",
+                "markdown": "Coverage of Open redirect across the assessed attack surface."
+              },
+              "properties": {
+                "tags": [
+                  "coverage"
+                ]
+              }
+            },
+            {
+              "id": "strix-coverage/token-session-exposure",
+              "name": "Token/session exposure",
+              "shortDescription": {
+                "text": "Coverage: Token/session exposure"
+              },
+              "fullDescription": {
+                "text": "Coverage of Token/session exposure across the assessed attack surface."
+              },
+              "defaultConfiguration": {
+                "level": "none"
+              },
+              "help": {
+                "text": "Coverage of Token/session exposure across the assessed attack surface.",
+                "markdown": "Coverage of Token/session exposure across the assessed attack surface."
+              },
+              "properties": {
+                "tags": [
+                  "coverage"
+                ]
+              }
+            },
+            {
+              "id": "strix-coverage/idor-object-level-authorization",
+              "name": "IDOR / object-level authorization",
+              "shortDescription": {
+                "text": "Coverage: IDOR / object-level authorization"
+              },
+              "fullDescription": {
+                "text": "Coverage of IDOR / object-level authorization across the assessed attack surface."
+              },
+              "defaultConfiguration": {
+                "level": "none"
+              },
+              "help": {
+                "text": "Coverage of IDOR / object-level authorization across the assessed attack surface.",
+                "markdown": "Coverage of IDOR / object-level authorization across the assessed attack surface."
+              },
+              "properties": {
+                "tags": [
+                  "coverage"
+                ]
+              }
+            },
+            {
+              "id": "strix-coverage/bfla-cross-venue-authorization",
+              "name": "BFLA / cross-venue authorization",
+              "shortDescription": {
+                "text": "Coverage: BFLA / cross-venue authorization"
+              },
+              "fullDescription": {
+                "text": "Coverage of BFLA / cross-venue authorization across the assessed attack surface."
+              },
+              "defaultConfiguration": {
+                "level": "none"
+              },
+              "help": {
+                "text": "Coverage of BFLA / cross-venue authorization across the assessed attack surface.",
+                "markdown": "Coverage of BFLA / cross-venue authorization across the assessed attack surface."
+              },
+              "properties": {
+                "tags": [
+                  "coverage"
+                ]
+              }
+            },
+            {
+              "id": "strix-coverage/idor-unauthenticated-booking-code-disclosure",
+              "name": "IDOR / unauthenticated booking-code disclosure",
+              "shortDescription": {
+                "text": "Coverage: IDOR / unauthenticated booking-code disclosure"
+              },
+              "fullDescription": {
+                "text": "Coverage of IDOR / unauthenticated booking-code disclosure across the assessed attack surface."
+              },
+              "defaultConfiguration": {
+                "level": "none"
+              },
+              "help": {
+                "text": "Coverage of IDOR / unauthenticated booking-code disclosure across the assessed attack surface.",
+                "markdown": "Coverage of IDOR / unauthenticated booking-code disclosure across the assessed attack surface."
+              },
+              "properties": {
+                "tags": [
+                  "coverage"
+                ]
+              }
+            },
+            {
+              "id": "strix-coverage/unauthenticated-disclosure-of-reservation-identifiers-booking-codes-enabling-guest-cancellation-or-feedback",
+              "name": "Unauthenticated disclosure of reservation identifiers/booking codes enabling guest cancellation or feedback",
+              "shortDescription": {
+                "text": "Coverage: Unauthenticated disclosure of reservation identifiers/booking codes enabling guest cancellation or feedback"
+              },
+              "fullDescription": {
+                "text": "Coverage of Unauthenticated disclosure of reservation identifiers/booking codes enabling guest cancellation or feedback across the assessed attack surface."
+              },
+              "defaultConfiguration": {
+                "level": "none"
+              },
+              "help": {
+                "text": "Coverage of Unauthenticated disclosure of reservation identifiers/booking codes enabling guest cancellation or feedback across the assessed attack surface.",
+                "markdown": "Coverage of Unauthenticated disclosure of reservation identifiers/booking codes enabling guest cancellation or feedback across the assessed attack surface."
+              },
+              "properties": {
+                "tags": [
+                  "coverage"
+                ]
+              }
+            },
+            {
+              "id": "strix-coverage/bfla-vertical-authorization",
+              "name": "BFLA / vertical authorization",
+              "shortDescription": {
+                "text": "Coverage: BFLA / vertical authorization"
+              },
+              "fullDescription": {
+                "text": "Coverage of BFLA / vertical authorization across the assessed attack surface."
+              },
+              "defaultConfiguration": {
+                "level": "none"
+              },
+              "help": {
+                "text": "Coverage of BFLA / vertical authorization across the assessed attack surface.",
+                "markdown": "Coverage of BFLA / vertical authorization across the assessed attack surface."
+              },
+              "properties": {
+                "tags": [
+                  "coverage"
+                ]
+              }
+            },
+            {
+              "id": "strix-coverage/bfla-cross-venue-floor-plan-mutation",
+              "name": "BFLA / cross-venue floor-plan mutation",
+              "shortDescription": {
+                "text": "Coverage: BFLA / cross-venue floor-plan mutation"
+              },
+              "fullDescription": {
+                "text": "Coverage of BFLA / cross-venue floor-plan mutation across the assessed attack surface."
+              },
+              "defaultConfiguration": {
+                "level": "none"
+              },
+              "help": {
+                "text": "Coverage of BFLA / cross-venue floor-plan mutation across the assessed attack surface.",
+                "markdown": "Coverage of BFLA / cross-venue floor-plan mutation across the assessed attack surface."
+              },
+              "properties": {
+                "tags": [
+                  "coverage"
+                ]
+              }
+            },
+            {
+              "id": "strix-coverage/authentication-session-bypass",
+              "name": "Authentication/session bypass",
+              "shortDescription": {
+                "text": "Coverage: Authentication/session bypass"
+              },
+              "fullDescription": {
+                "text": "Coverage of Authentication/session bypass across the assessed attack surface."
+              },
+              "defaultConfiguration": {
+                "level": "none"
+              },
+              "help": {
+                "text": "Coverage of Authentication/session bypass across the assessed attack surface.",
+                "markdown": "Coverage of Authentication/session bypass across the assessed attack surface."
+              },
+              "properties": {
+                "tags": [
+                  "coverage"
+                ]
+              }
+            },
+            {
+              "id": "strix-coverage/idor-booking-token-leakage",
+              "name": "IDOR / booking token leakage",
+              "shortDescription": {
+                "text": "Coverage: IDOR / booking token leakage"
+              },
+              "fullDescription": {
+                "text": "Coverage of IDOR / booking token leakage across the assessed attack surface."
+              },
+              "defaultConfiguration": {
+                "level": "none"
+              },
+              "help": {
+                "text": "Coverage of IDOR / booking token leakage across the assessed attack surface.",
+                "markdown": "Coverage of IDOR / booking token leakage across the assessed attack surface."
+              },
+              "properties": {
+                "tags": [
+                  "coverage"
+                ]
+              }
+            },
+            {
+              "id": "strix-coverage/bfla-cross-venue-data-access",
+              "name": "BFLA / cross-venue data access",
+              "shortDescription": {
+                "text": "Coverage: BFLA / cross-venue data access"
+              },
+              "fullDescription": {
+                "text": "Coverage of BFLA / cross-venue data access across the assessed attack surface."
+              },
+              "defaultConfiguration": {
+                "level": "none"
+              },
+              "help": {
+                "text": "Coverage of BFLA / cross-venue data access across the assessed attack surface.",
+                "markdown": "Coverage of BFLA / cross-venue data access across the assessed attack surface."
+              },
+              "properties": {
+                "tags": [
+                  "coverage"
+                ]
+              }
+            }
+          ],
+          "version": "1.7.1"
+        }
+      },
+      "results": [
+        {
+          "ruleId": "strix-coverage/authentication-venue-level-authorization-and-idor",
+          "ruleIndex": 0,
+          "kind": "pass",
+          "level": "none",
+          "message": {
+            "text": "Authentication, venue-level authorization, and IDOR — No issue identified: API staff routes (reservation, guest, settings, admin user operations)\n\nReviewed the route handlers and middleware: authenticated handlers call requireVenueAccess against the resource venue before returning or mutating data; admin and super-admin mutations additionally enforce requireAdmin or an explicit super-admin check."
+          },
+          "locations": [
+            {
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "API staff routes (reservation, guest, settings, admin user operations)"
+                }
+              ]
+            }
+          ],
+          "properties": {
+            "strix": {
+              "coverage_outcome": "no_issue_found",
+              "risk_area": "Authentication, venue-level authorization, and IDOR",
+              "surface": "API staff routes (reservation, guest, settings, admin user operations)",
+              "recorded_by": "API Diff Mapper",
+              "source": "agent_reported"
+            }
+          }
+        },
+        {
+          "ruleId": "strix-coverage/sql-nosql-query-injection",
+          "ruleIndex": 1,
+          "kind": "pass",
+          "level": "none",
+          "message": {
+            "text": "SQL/NoSQL/query injection — No issue identified: API public reservation routes\n\nReviewed reservation creation, lookup, cancel, and feedback handlers. All database access uses Prisma model methods or tagged `$queryRaw`/`$executeRaw` templates with interpolated values parameter-bound; no unsafe raw-query API or dynamic query syntax found."
+          },
+          "locations": [
+            {
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "API public reservation routes"
+                }
+              ]
+            }
+          ],
+          "properties": {
+            "strix": {
+              "coverage_outcome": "no_issue_found",
+              "risk_area": "SQL/NoSQL/query injection",
+              "surface": "API public reservation routes",
+              "recorded_by": "API Injection Specialist",
+              "source": "agent_reported"
+            }
+          }
+        },
+        {
+          "ruleId": "strix-coverage/sql-injection-and-unsafe-input-handling",
+          "ruleIndex": 2,
+          "kind": "pass",
+          "level": "none",
+          "message": {
+            "text": "SQL injection and unsafe input handling — No issue identified: API public reservation and venue endpoints\n\nPublic route inputs are handled through Prisma filters or parameterized tagged raw SQL; request schemas constrain key identifiers and booking fields, and custom table-selection validation checks venue membership before mutation."
+          },
+          "locations": [
+            {
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "API public reservation and venue endpoints"
+                }
+              ]
+            }
+          ],
+          "properties": {
+            "strix": {
+              "coverage_outcome": "no_issue_found",
+              "risk_area": "SQL injection and unsafe input handling",
+              "surface": "API public reservation and venue endpoints",
+              "recorded_by": "API Diff Mapper",
+              "source": "agent_reported"
+            }
+          }
+        },
+        {
+          "ruleId": "strix-coverage/sql-nosql-query-injection",
+          "ruleIndex": 1,
+          "kind": "pass",
+          "level": "none",
+          "message": {
+            "text": "SQL/NoSQL/query injection — No issue identified: API public venue routes\n\nReviewed public venue, availability, and table-availability handlers; they use Prisma `findUnique`/`findMany` with structured filters. Date/time and integer inputs feed domain conversion and parameterized ORM fields, not SQL syntax."
+          },
+          "locations": [
+            {
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "API public venue routes"
+                }
+              ]
+            }
+          ],
+          "properties": {
+            "strix": {
+              "coverage_outcome": "no_issue_found",
+              "risk_area": "SQL/NoSQL/query injection",
+              "surface": "API public venue routes",
+              "recorded_by": "API Injection Specialist",
+              "source": "agent_reported"
+            }
+          }
+        },
+        {
+          "ruleId": "strix-coverage/csrf-session-validation-and-cors-policy",
+          "ruleIndex": 3,
+          "kind": "open",
+          "level": "none",
+          "message": {
+            "text": "CSRF, session validation, and CORS policy — Requires further review: API CORS and session authentication\n\nStatic review found HTTP-only Secure SameSite=Lax session cookies and configured-origin CORS checks for unsafe methods, but cannot establish whether deployed origin configuration includes attacker-controlled sibling origins or validate browser behavior without deployment config/runtime."
+          },
+          "locations": [
+            {
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "API CORS and session authentication"
+                }
+              ]
+            }
+          ],
+          "properties": {
+            "strix": {
+              "coverage_outcome": "needs_follow_up",
+              "risk_area": "CSRF, session validation, and CORS policy",
+              "surface": "API CORS and session authentication",
+              "recorded_by": "API Diff Mapper",
+              "source": "agent_reported"
+            }
+          }
+        },
+        {
+          "ruleId": "strix-coverage/ssrf-xxe-path-traversal-rce",
+          "ruleIndex": 4,
+          "kind": "notApplicable",
+          "level": "none",
+          "message": {
+            "text": "SSRF / XXE / path traversal / RCE — Not applicable: API public reservation and venue handlers\n\nThese handlers perform database CRUD and domain date/time calculations only. No outbound URL fetch, XML parser, filesystem path operation, template evaluator, or command execution sink is present in the reviewed routes."
+          },
+          "locations": [
+            {
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "API public reservation and venue handlers"
+                }
+              ]
+            }
+          ],
+          "properties": {
+            "strix": {
+              "coverage_outcome": "not_applicable",
+              "risk_area": "SSRF / XXE / path traversal / RCE",
+              "surface": "API public reservation and venue handlers",
+              "recorded_by": "API Injection Specialist",
+              "source": "agent_reported"
+            }
+          }
+        },
+        {
+          "ruleId": "strix-coverage/sql-injection",
+          "ruleIndex": 5,
+          "kind": "pass",
+          "level": "none",
+          "message": {
+            "text": "SQL injection — No issue identified: API table/capacity helper changes\n\n`requestedTableArea`, `claimTable`, `assertAreaCapacity`, and `pickAreaForParty` use Prisma structured filters or tagged `$queryRaw` templates; all values (venue, area, date bounds) remain bound parameters and no raw-unsafe calls are present."
+          },
+          "locations": [
+            {
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "API table/capacity helper changes"
+                }
+              ]
+            }
+          ],
+          "properties": {
+            "strix": {
+              "coverage_outcome": "no_issue_found",
+              "risk_area": "SQL injection",
+              "surface": "API table/capacity helper changes",
+              "recorded_by": "API Injection Specialist",
+              "source": "agent_reported"
+            }
+          }
+        },
+        {
+          "ruleId": "strix-coverage/xss-unsafe-rendering-open-redirect",
+          "ruleIndex": 6,
+          "kind": "pass",
+          "level": "none",
+          "message": {
+            "text": "XSS / unsafe rendering / open redirect — Ruled out: apps/web/pages/[venue]/ index and server sitemap/llms, useVenueSeo\n\nChanged JSON-LD paths serialize application/API values with '<' escaped in useVenueSeo before script insertion; homepage JSON-LD only uses static VENUE_SEO literals. sitemap and llms outputs use static configured URLs and slugs; booking navigation uses fixed configured path and URLSearchParams, not attacker-supplied destination."
+          },
+          "locations": [
+            {
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "apps/web/pages/[venue]/ index and server sitemap/llms, useVenueSeo"
+                }
+              ]
+            }
+          ],
+          "properties": {
+            "strix": {
+              "coverage_outcome": "ruled_out",
+              "risk_area": "XSS / unsafe rendering / open redirect",
+              "surface": "apps/web/pages/[venue]/ index and server sitemap/llms, useVenueSeo",
+              "recorded_by": "Web Client Injection Specialist",
+              "source": "agent_reported"
+            }
+          }
+        },
+        {
+          "ruleId": "strix-coverage/xss-unsafe-url-scheme-open-redirect",
+          "ruleIndex": 7,
+          "kind": "pass",
+          "level": "none",
+          "message": {
+            "text": "XSS / unsafe URL scheme / open redirect — Ruled out: apps/web/pages/[venue]/confirmation/[code].vue and feedback/[code].vue\n\nReservation fields render via Vue interpolation; calendar link is constructed from API fields as encoded data:text/calendar URL, and venue links come from fixed routing. Feedback review URL is static VENUE_SEO config; external links use noopener."
+          },
+          "locations": [
+            {
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "apps/web/pages/[venue]/confirmation/[code].vue and feedback/[code].vue"
+                }
+              ]
+            }
+          ],
+          "properties": {
+            "strix": {
+              "coverage_outcome": "ruled_out",
+              "risk_area": "XSS / unsafe URL scheme / open redirect",
+              "surface": "apps/web/pages/[venue]/confirmation/[code].vue and feedback/[code].vue",
+              "recorded_by": "Web Client Injection Specialist",
+              "source": "agent_reported"
+            }
+          }
+        },
+        {
+          "ruleId": "strix-coverage/xss-dom-sinks-csrf-ssrf-open-redirect",
+          "ruleIndex": 8,
+          "kind": "pass",
+          "level": "none",
+          "message": {
+            "text": "XSS / DOM sinks / CSRF / SSRF / open redirect — No issue identified: apps/web changed UI components, booking/host/admin pages and composables\n\nReviewed changed UI templates and searched runtime sources for v-html, innerHTML, document.write, window.open, navigation and dynamic href sinks. No attacker-controlled HTML sink or arbitrary destination was identified; dynamic values use Vue interpolation, external navigation destinations are configured/static, WhatsApp phone values are digit-filtered."
+          },
+          "locations": [
+            {
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "apps/web changed UI components, booking/host/admin pages and composables"
+                }
+              ]
+            }
+          ],
+          "properties": {
+            "strix": {
+              "coverage_outcome": "no_issue_found",
+              "risk_area": "XSS / DOM sinks / CSRF / SSRF / open redirect",
+              "surface": "apps/web changed UI components, booking/host/admin pages and composables",
+              "recorded_by": "Web Client Injection Specialist",
+              "source": "agent_reported"
+            }
+          }
+        },
+        {
+          "ruleId": "strix-coverage/known-dependency-cves-introduced-by-pr",
+          "ruleIndex": 9,
+          "kind": "open",
+          "level": "none",
+          "message": {
+            "text": "Known dependency CVEs introduced by PR — Requires further review: pnpm-lock.yaml / root dependency graph\n\nThe inherited diff scope lists a modified root pnpm-lock.yaml, but the mounted workspace contains only /workspace/api and /workspace/web and no root checkout or lockfile; Trivy therefore found zero language-specific manifests in either mounted subtree, so changed dependency versions cannot be verified."
+          },
+          "locations": [
+            {
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "pnpm-lock.yaml / root dependency graph"
+                }
+              ]
+            }
+          ],
+          "properties": {
+            "strix": {
+              "coverage_outcome": "needs_follow_up",
+              "risk_area": "Known dependency CVEs introduced by PR",
+              "surface": "pnpm-lock.yaml / root dependency graph",
+              "recorded_by": "Dependency and Secrets Reviewer",
+              "source": "agent_reported"
+            }
+          }
+        },
+        {
+          "ruleId": "strix-coverage/newly-introduced-secrets-or-unsafe-deployment-configuration",
+          "ruleIndex": 10,
+          "kind": "pass",
+          "level": "none",
+          "message": {
+            "text": "Newly introduced secrets or unsafe deployment configuration — No issue identified: Changed docs, configuration, report artifacts and committed secret-bearing files (api/web)\n\nReviewed mounted API/web .gitignore and existing gitleaks/trufflehog artifacts; no verified credential material is present in those reports. Local .env files exist but are excluded by .gitignore and diff membership could not be checked because the git checkout is not mounted."
+          },
+          "locations": [
+            {
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "Changed docs, configuration, report artifacts and committed secret-bearing files (api/web)"
+                }
+              ]
+            }
+          ],
+          "properties": {
+            "strix": {
+              "coverage_outcome": "no_issue_found",
+              "risk_area": "Newly introduced secrets or unsafe deployment configuration",
+              "surface": "Changed docs, configuration, report artifacts and committed secret-bearing files (api/web)",
+              "recorded_by": "Dependency and Secrets Reviewer",
+              "source": "agent_reported"
+            }
+          }
+        },
+        {
+          "ruleId": "strix-coverage/authentication-session-exposure-and-open-redirect",
+          "ruleIndex": 11,
+          "kind": "pass",
+          "level": "none",
+          "message": {
+            "text": "Authentication/session exposure and open redirect — No issue identified: apps/web auth store, API composables, login and host-route middleware\n\nReviewed cookie-based API requests and login redirect handling. `pages/login.vue` accepts `next` only when it starts with one slash and not `//` or backslash, preventing external/protocol-relative redirects; `useApi.ts` uses credentials include without exposing bearer tokens to browser storage."
+          },
+          "locations": [
+            {
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "apps/web auth store, API composables, login and host-route middleware"
+                }
+              ]
+            }
+          ],
+          "properties": {
+            "strix": {
+              "coverage_outcome": "no_issue_found",
+              "risk_area": "Authentication/session exposure and open redirect",
+              "surface": "apps/web auth store, API composables, login and host-route middleware",
+              "recorded_by": "Web Auth Store Validator",
+              "source": "agent_reported"
+            }
+          }
+        },
+        {
+          "ruleId": "strix-coverage/frontend-authorization-idor-via-selected-venue-and-route-query-parameters",
+          "ruleIndex": 12,
+          "kind": "pass",
+          "level": "none",
+          "message": {
+            "text": "Frontend authorization/IDOR via selected venue and route/query parameters — No issue identified: apps/web/pages/host.vue and admin/guest pages\n\nFollow-up API review confirmed the corresponding staff handlers independently enforce requireAuth, requireVenueAccess, and role checks; frontend-selected venue IDs cannot bypass server authorization."
+          },
+          "locations": [
+            {
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "apps/web/pages/host.vue and admin/guest pages"
+                }
+              ]
+            }
+          ],
+          "properties": {
+            "strix": {
+              "coverage_outcome": "no_issue_found",
+              "risk_area": "Frontend authorization/IDOR via selected venue and route/query parameters",
+              "surface": "apps/web/pages/host.vue and admin/guest pages",
+              "recorded_by": "Root Agent",
+              "source": "agent_reported"
+            }
+          }
+        },
+        {
+          "ruleId": "strix-coverage/bfla-client-side-role-enforcement",
+          "ruleIndex": 13,
+          "kind": "pass",
+          "level": "none",
+          "message": {
+            "text": "BFLA / client-side role enforcement — Ruled out: Nuxt admin and host page role middleware\n\nChanged pages apply auth middleware and admin middleware; backend staff handlers independently call requireAuth/requireVenueAccess/requireAdmin (e.g. /staff/day, /admin/analytics), so client routing isn't the sole authorization control."
+          },
+          "locations": [
+            {
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "Nuxt admin and host page role middleware"
+                }
+              ]
+            }
+          ],
+          "properties": {
+            "strix": {
+              "coverage_outcome": "ruled_out",
+              "risk_area": "BFLA / client-side role enforcement",
+              "surface": "Nuxt admin and host page role middleware",
+              "recorded_by": "Web Authz Specialist",
+              "source": "agent_reported"
+            }
+          }
+        },
+        {
+          "ruleId": "strix-coverage/idor-cross-venue-guest-data-exposure",
+          "ruleIndex": 14,
+          "kind": "pass",
+          "level": "none",
+          "message": {
+            "text": "IDOR / cross-venue guest data exposure — Ruled out: Guest profile page /guests/{id}\n\nPage uses cookie-authenticated /api/staff/guests/{id}; corresponding API fetches guest then calls requireVenueAccess(session, guest.venueId) before returning guest profile/reservations."
+          },
+          "locations": [
+            {
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "Guest profile page /guests/{id}"
+                }
+              ]
+            }
+          ],
+          "properties": {
+            "strix": {
+              "coverage_outcome": "ruled_out",
+              "risk_area": "IDOR / cross-venue guest data exposure",
+              "surface": "Guest profile page /guests/{id}",
+              "recorded_by": "Web Authz Specialist",
+              "source": "agent_reported"
+            }
+          }
+        },
+        {
+          "ruleId": "strix-coverage/open-redirect",
+          "ruleIndex": 15,
+          "kind": "pass",
+          "level": "none",
+          "message": {
+            "text": "Open redirect — Ruled out: Login redirect destination (`/login?next=`)\n\nThe destination accepts only strings beginning with a single `/` and explicitly rejects slash/backslash as the second character; navigation uses router.push, preventing absolute and protocol-relative external destinations."
+          },
+          "locations": [
+            {
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "Login redirect destination (`/login?next=`)"
+                }
+              ]
+            }
+          ],
+          "properties": {
+            "strix": {
+              "coverage_outcome": "ruled_out",
+              "risk_area": "Open redirect",
+              "surface": "Login redirect destination (`/login?next=`)",
+              "recorded_by": "Web Authz Specialist",
+              "source": "agent_reported"
+            }
+          }
+        },
+        {
+          "ruleId": "strix-coverage/token-session-exposure",
+          "ruleIndex": 16,
+          "kind": "pass",
+          "level": "none",
+          "message": {
+            "text": "Token/session exposure — No issue identified: Auth store and API composable session handling\n\nSession is sent as an HttpOnly cookie via credentials:include; frontend stores user profile and selected venue ID only, not session credentials."
+          },
+          "locations": [
+            {
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "Auth store and API composable session handling"
+                }
+              ]
+            }
+          ],
+          "properties": {
+            "strix": {
+              "coverage_outcome": "no_issue_found",
+              "risk_area": "Token/session exposure",
+              "surface": "Auth store and API composable session handling",
+              "recorded_by": "Web Authz Specialist",
+              "source": "agent_reported"
+            }
+          }
+        },
+        {
+          "ruleId": "strix-coverage/idor-object-level-authorization",
+          "ruleIndex": 17,
+          "kind": "pass",
+          "level": "none",
+          "message": {
+            "text": "IDOR / object-level authorization — Ruled out: web pages/guests/[id].vue -> /staff/guests/:id\n\nAPI handler requires authenticated session and requireVenueAccess(session, guest.venueId) before loading reservations; frontend route itself cannot bypass this server-side check."
+          },
+          "locations": [
+            {
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "web pages/guests/[id].vue -> /staff/guests/:id"
+                }
+              ]
+            }
+          ],
+          "properties": {
+            "strix": {
+              "coverage_outcome": "ruled_out",
+              "risk_area": "IDOR / object-level authorization",
+              "surface": "web pages/guests/[id].vue -> /staff/guests/:id",
+              "recorded_by": "Web Guest/Admin IDOR Validator",
+              "source": "agent_reported"
+            }
+          }
+        },
+        {
+          "ruleId": "strix-coverage/bfla-cross-venue-authorization",
+          "ruleIndex": 18,
+          "kind": "pass",
+          "level": "none",
+          "message": {
+            "text": "BFLA / cross-venue authorization — Ruled out: web admin pages -> /admin/analytics, /admin/feedback, /admin/reservations\n\nEach API handler calls requireAuth, resolves venueId, requireVenueAccess, then requireAdmin; client selectedVenueId is therefore not trusted for access."
+          },
+          "locations": [
+            {
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "web admin pages -> /admin/analytics, /admin/feedback, /admin/reservations"
+                }
+              ]
+            }
+          ],
+          "properties": {
+            "strix": {
+              "coverage_outcome": "ruled_out",
+              "risk_area": "BFLA / cross-venue authorization",
+              "surface": "web admin pages -> /admin/analytics, /admin/feedback, /admin/reservations",
+              "recorded_by": "Web Guest/Admin IDOR Validator",
+              "source": "agent_reported"
+            }
+          }
+        },
+        {
+          "ruleId": "strix-coverage/idor-unauthenticated-booking-code-disclosure",
+          "ruleIndex": 19,
+          "kind": "pass",
+          "level": "none",
+          "message": {
+            "text": "IDOR / unauthenticated booking-code disclosure — Ruled out: GET /public/venues/:slug/availability\n\nAlthough the handler maps reservation bookingCode/id/guestId internally, response returns only `{date,timeZone,slots}`; getDayAvailability consumes the internal rows and does not include identifiers. No booking code reaches the public response or cancellation/feedback routes."
+          },
+          "locations": [
+            {
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "GET /public/venues/:slug/availability"
+                }
+              ]
+            }
+          ],
+          "properties": {
+            "strix": {
+              "coverage_outcome": "ruled_out",
+              "risk_area": "IDOR / unauthenticated booking-code disclosure",
+              "surface": "GET /public/venues/:slug/availability",
+              "recorded_by": "API Authz Specialist",
+              "source": "agent_reported"
+            }
+          }
+        },
+        {
+          "ruleId": "strix-coverage/unauthenticated-disclosure-of-reservation-identifiers-booking-codes-enabling-guest-cancellation-or-feedback",
+          "ruleIndex": 20,
+          "kind": "pass",
+          "level": "none",
+          "message": {
+            "text": "Unauthenticated disclosure of reservation identifiers/booking codes enabling guest cancellation or feedback — Ruled out: GET /public/venues/:slug/availability\n\nThe route maps database rows to objects containing bookingCode/id/guestId locally, but passes these only to getDayAvailability; that helper returns per-time availability slots and never exposes reservation objects or those fields. Response is explicitly `{ date, timeZone, slots }`. Thus no leaked bookingCode can reach the public cancel/feedback endpoints."
+          },
+          "locations": [
+            {
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "GET /public/venues/:slug/availability"
+                }
+              ]
+            }
+          ],
+          "properties": {
+            "strix": {
+              "coverage_outcome": "ruled_out",
+              "risk_area": "Unauthenticated disclosure of reservation identifiers/booking codes enabling guest cancellation or feedback",
+              "surface": "GET /public/venues/:slug/availability",
+              "recorded_by": "Public Availability Validator",
+              "source": "agent_reported"
+            }
+          }
+        },
+        {
+          "ruleId": "strix-coverage/idor-object-level-authorization",
+          "ruleIndex": 17,
+          "kind": "pass",
+          "level": "none",
+          "message": {
+            "text": "IDOR / object-level authorization — No issue identified: Staff reservation and guest routes (`/staff/day`, `/staff/reservations/*`, `/staff/guests/*`, staff exports)\n\nEach object lookup derives its venueId from the persisted reservation/guest before `requireVenueAccess`; venue-scoped list/export routes call `staffVenue` then `requireVenueAccess` and constrain Prisma queries by that venue."
+          },
+          "locations": [
+            {
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "Staff reservation and guest routes (`/staff/day`, `/staff/reservations/*`, `/staff/guests/*`, staff exports)"
+                }
+              ]
+            }
+          ],
+          "properties": {
+            "strix": {
+              "coverage_outcome": "no_issue_found",
+              "risk_area": "IDOR / object-level authorization",
+              "surface": "Staff reservation and guest routes (`/staff/day`, `/staff/reservations/*`, `/staff/guests/*`, staff exports)",
+              "recorded_by": "API Authz Specialist",
+              "source": "agent_reported"
+            }
+          }
+        },
+        {
+          "ruleId": "strix-coverage/bfla-vertical-authorization",
+          "ruleIndex": 21,
+          "kind": "pass",
+          "level": "none",
+          "message": {
+            "text": "BFLA / vertical authorization — No issue identified: Admin venue settings, opening hours, closed dates, analytics, feedback, reservations, exports\n\nAll venue-admin handlers call `requireAuth`, `requireVenueAccess`, and `requireAdmin`; super-admin-only global handlers (`/admin/venues`, `/admin/users`, `/admin/audit-log`) explicitly require `session.user.isSuperAdmin`."
+          },
+          "locations": [
+            {
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "Admin venue settings, opening hours, closed dates, analytics, feedback, reservations, exports"
+                }
+              ]
+            }
+          ],
+          "properties": {
+            "strix": {
+              "coverage_outcome": "no_issue_found",
+              "risk_area": "BFLA / vertical authorization",
+              "surface": "Admin venue settings, opening hours, closed dates, analytics, feedback, reservations, exports",
+              "recorded_by": "API Authz Specialist",
+              "source": "agent_reported"
+            }
+          }
+        },
+        {
+          "ruleId": "strix-coverage/bfla-cross-venue-floor-plan-mutation",
+          "ruleIndex": 22,
+          "kind": "pass",
+          "level": "none",
+          "message": {
+            "text": "BFLA / cross-venue floor-plan mutation — No issue identified: Floor-plan routes (`/admin/venues/:id/floor-plan`, layout/image mutations, public floor-plan read)\n\nLayout mutation requires venue access plus venue role `admin`; image mutation is restricted to super-admin; all Prisma reads/writes are constrained by the requested venueId, with cross-venue area IDs rejected."
+          },
+          "locations": [
+            {
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "Floor-plan routes (`/admin/venues/:id/floor-plan`, layout/image mutations, public floor-plan read)"
+                }
+              ]
+            }
+          ],
+          "properties": {
+            "strix": {
+              "coverage_outcome": "no_issue_found",
+              "risk_area": "BFLA / cross-venue floor-plan mutation",
+              "surface": "Floor-plan routes (`/admin/venues/:id/floor-plan`, layout/image mutations, public floor-plan read)",
+              "recorded_by": "API Authz Specialist",
+              "source": "agent_reported"
+            }
+          }
+        },
+        {
+          "ruleId": "strix-coverage/authentication-session-bypass",
+          "ruleIndex": 23,
+          "kind": "pass",
+          "level": "none",
+          "message": {
+            "text": "Authentication/session bypass — No issue identified: Staff authentication (`/staff/login`, `/staff/logout`, `/staff/me`) and session validation\n\nLogin requires active user and Argon2 password verification, creates cryptographically random session token stored only as SHA-256 hash, and validation checks expiry and active status; logout deletes the hashed token."
+          },
+          "locations": [
+            {
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "Staff authentication (`/staff/login`, `/staff/logout`, `/staff/me`) and session validation"
+                }
+              ]
+            }
+          ],
+          "properties": {
+            "strix": {
+              "coverage_outcome": "no_issue_found",
+              "risk_area": "Authentication/session bypass",
+              "surface": "Staff authentication (`/staff/login`, `/staff/logout`, `/staff/me`) and session validation",
+              "recorded_by": "API Authz Specialist",
+              "source": "agent_reported"
+            }
+          }
+        },
+        {
+          "ruleId": "strix-coverage/idor-booking-token-leakage",
+          "ruleIndex": 24,
+          "kind": "pass",
+          "level": "none",
+          "message": {
+            "text": "IDOR / booking token leakage — No issue identified: web pages/[venue]/confirmation/[code].vue and feedback/[code].vue\n\nPages expose only booking details returned by public API using high-entropy booking code as bearer link; no client-side cross-user identifier is accepted. External links use rel=noopener; route code is not rendered as raw HTML."
+          },
+          "locations": [
+            {
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "web pages/[venue]/confirmation/[code].vue and feedback/[code].vue"
+                }
+              ]
+            }
+          ],
+          "properties": {
+            "strix": {
+              "coverage_outcome": "no_issue_found",
+              "risk_area": "IDOR / booking token leakage",
+              "surface": "web pages/[venue]/confirmation/[code].vue and feedback/[code].vue",
+              "recorded_by": "Web Guest/Admin IDOR Validator",
+              "source": "agent_reported"
+            }
+          }
+        },
+        {
+          "ruleId": "strix-coverage/bfla-cross-venue-data-access",
+          "ruleIndex": 25,
+          "kind": "pass",
+          "level": "none",
+          "message": {
+            "text": "BFLA / cross-venue data access — Ruled out: web pages/host.vue\n\nHost UI sends selected venue/date and reservation IDs, while API /staff/day, status changes, and exports require authenticated session and venue access; selectedVenueId is not an authorization control."
+          },
+          "locations": [
+            {
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "web pages/host.vue"
+                }
+              ]
+            }
+          ],
+          "properties": {
+            "strix": {
+              "coverage_outcome": "ruled_out",
+              "risk_area": "BFLA / cross-venue data access",
+              "surface": "web pages/host.vue",
+              "recorded_by": "Web Guest/Admin IDOR Validator",
+              "source": "agent_reported"
+            }
+          }
+        }
+      ],
+      "invocations": [
+        {
+          "executionSuccessful": true
+        }
+      ]
+    }
+  ]
+}
