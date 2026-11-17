@@ -202,16 +202,16 @@ Strix run `api_b46b` (2026-11-17, status `completed`, 200 LLM requests, ~17M tok
 
 ## 7. Prioritized Remediation Plan
 
-All actionable findings ranked by practical risk:
+Status after remediation (SEO-safety checked: no change to HTML, robots, canonical, sitemap, JSON-LD, or `X-Robots-Tag` rules; only response headers, dev tooling and CI config touched):
 
-| Priority | Area | Action | Remediation Details | Effort |
-|---|---|---|---|---|
-| **P1** | Frontend Security Headers | Add security response headers in `apps/web/nuxt.config.ts` | Configure `routeRules` with: `Content-Security-Policy`, `X-Frame-Options: SAMEORIGIN`, `X-Content-Type-Options: nosniff`, `Referrer-Policy: strict-origin-when-cross-origin`, and `Permissions-Policy`. | Low |
-| **P2** | Information Disclosure | Disable `x-powered-by` header in Nuxt | Set `nitro: { hidePoweredBy: true }` in `apps/web/nuxt.config.ts`. | Low |
-| **P3** | Dependency Hardening | Upgrade `packages/domain` Vitest | Update `packages/domain/package.json` to `"vitest": "^4.1.12"`, eliminating dev CVE-2026-47429. | Low |
-| **P4** | Monorepo Supply Chain | Add pnpm security policies | Add `blockExoticSubdeps: true`, `trustPolicy: no-downgrade`, and `minimumReleaseAge: 1440m` to `pnpm-workspace.yaml`. | Low |
-| **P5** | CI/CD Pipeline | Pin GitHub Actions to commit SHAs | Replace mutable `@v4` tags in `ci.yml` and `backup.yml` with immutable SHAs. | Low |
-| **P6** | Framework Upgrade | Migrate `apps/web` to Nuxt 4 | Resolve `@pinia/nuxt` compatibility and update to Nuxt ≥ 4.6.0 to close all 5 open framework CVEs. | Medium |
+| Priority | Area | Action | Remediation Details | Effort | Status |
+|---|---|---|---|---|---|
+| **P1** | Frontend Security Headers | Add security response headers | Already set for production in `apps/web/vercel.json` (CSP, X-Frame-Options, nosniff, Referrer-Policy, Permissions-Policy, HSTS, COOP). The ZAP gaps came from scanning the local dev server, which does not apply `vercel.json`. No `nuxt.config.ts` duplicate added: a second CSP risks breaking inline theme/JSON-LD/hydration scripts and Googlebot rendering. | Low | **Already in place (prod)** |
+| **P2** | Information Disclosure | Remove `x-powered-by` | `nitro.hidePoweredBy` does not exist; Nuxt hardcodes the header. Added `apps/web/server/plugins/hide-powered-by.ts` stripping it on `render:response`. Verified on `nuxt dev`: 200 without `x-powered-by`. Production build not verified here: `pnpm build` fails at prerender of `/bali` (500, venue fetch) with or without this change. | Low | **Done (dev-verified)** |
+| **P3** | Dependency Hardening | Upgrade `packages/domain` Vitest | `packages/domain/package.json` now `"vitest": "^4.1.12"`; lockfile refreshed (`pnpm install --lockfile-only`). Run `pnpm --filter @gioi/domain test` to confirm. | Low | **Done** |
+| **P4** | Monorepo Supply Chain | Add pnpm security policies | Added `blockExoticSubdeps: true`, `trustPolicy: no-downgrade`, `minimumReleaseAge: 1440` (minutes) to `pnpm-workspace.yaml`. | Low | **Done** |
+| **P5** | CI/CD Pipeline | Pin GitHub Actions to commit SHAs | `ci.yml` and `backup.yml` pinned to the SHAs of the current `v4` tags (checkout, pnpm/action-setup, setup-node) with `# v4` comments. | Low | **Done** |
+| **P6** | Framework Upgrade | Migrate `apps/web` to Nuxt 4 | Not done: major migration, separate change with SEO regression check (prerender, routeRules, head/JSON-LD). `apps/web/package.json` declares `nuxt ^3.21.11` while `@nuxt/schema` is `^4.6.4`; align during migration. | Medium | **Deferred** |
 
 ---
 
