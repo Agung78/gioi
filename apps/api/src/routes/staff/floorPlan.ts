@@ -249,9 +249,11 @@ export function registerFloorPlanRoutes(app: FastifyInstance, prisma: PrismaClie
 	)
 
 	// ---- Public: read-only map for the booking page ----------------------------
-	app.get('/public/venues/:slug/floor-plan', async (request: FastifyRequest<{ Params: { slug: string } }>) => {
+	app.get('/public/venues/:slug/floor-plan', async (request: FastifyRequest<{ Params: { slug: string } }>, reply) => {
 		const venue = await prisma.venue.findUnique({ where: { slug: request.params.slug }, select: { id: true } })
 		if (!venue) throw notFound('venue not found')
+		// Image only changes on a super-admin upload; let the edge absorb repeat booking-page views.
+		reply.header('cache-control', 'public, s-maxage=60, stale-while-revalidate=300')
 		return loadPlan(venue.id)
 	})
 }
