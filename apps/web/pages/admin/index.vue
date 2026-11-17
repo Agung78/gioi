@@ -41,11 +41,49 @@ function exportCsv() {
 	showExport.value = true
 }
 const today = todayISO()
-const preset = ref<DateRangePreset>('last30')
-const filters = ref(defaultDashboardFilters(today))
+const route = useRoute()
+const router = useRouter()
 const auth = useAuthStore()
 
-const { data: analytics, error: analyticsError, refresh } = await useFetch<AdminAnalytics>(() => {
+const statusOptions: ReservationStatus[] = ['pending', 'confirmed', 'arrived', 'seated', 'completed', 'cancelled', 'no_show']
+const SOURCES = ['website', 'instagram', 'google', 'whatsapp', 'walk_in', 'phone', 'host'] as const
+const isValidPreset = (v: unknown): v is DateRangePreset => ['today', 'last7', 'last30', 'custom'].includes(v as DateRangePreset)
+const isValidStatus = (v: unknown): v is ReservationStatus => statusOptions.includes(v as ReservationStatus)
+const isValidSource = (v: unknown): v is (typeof SOURCES)[number] => SOURCES.includes(v as (typeof SOURCES)[number])
+
+const queryPreset = isValidPreset(route.query.preset) ? (route.query.preset as DateRangePreset) : 'last30'
+const preset = ref<DateRangePreset>(queryPreset)
+const filters = ref(defaultDashboardFilters(today))
+{
+	const isDay = (v: unknown): v is string => typeof v === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(v)
+	const base = defaultDashboardFilters(today)
+	const range = resolveDateRange(queryPreset, today, isDay(route.query.from) ? route.query.from : base.rangeStart, isDay(route.query.to) ? route.query.to : base.rangeEnd)
+	filters.value = { ...base, rangeStart: range.start, rangeEnd: range.end }
+}
+filters.value.status = isValidStatus(route.query.status) ? (route.query.status as ReservationStatus) : 'all'
+filters.value.source = isValidSource(route.query.source) ? (route.query.source as (typeof SOURCES)[number]) : 'all'
+filters.value.occasion = typeof route.query.occasion === 'string' ? route.query.occasion : 'all'
+
+let refreshTimer: ReturnType<typeof setTimeout> | null = null
+function requestRefresh() {
+	if (refreshTimer) clearTimeout(refreshTimer)
+	refreshTimer = setTimeout(() => { refreshTimer = null; refresh() }, 250)
+}
+function syncQuery() {
+	const f = filters.value
+	router.replace({
+		query: {
+			preset: preset.value,
+			from: f.rangeStart,
+			to: f.rangeEnd,
+			status: f.status,
+			source: f.source,
+			occasion: f.occasion,
+		},
+	})
+}
+
+const { data: analytics, error: analyticsError, refresh, pending } = await useFetch<AdminAnalytics>(() => {
 	const params = new URLSearchParams()
 	params.set('from', filters.value.rangeStart)
 	params.set('to', filters.value.rangeEnd)
@@ -57,12 +95,46 @@ const { data: analytics, error: analyticsError, refresh } = await useFetch<Admin
 }, {
 	server: true,
 	credentials: 'include',
+	watch: false,
 })
 
 watch(() => auth.selectedVenueId, () => {
 	if (auth.isSuperAdmin && auth.selectedVenueId) refresh()
 })
 
+watch([preset, filters], () => {
+	requestRefresh()
+	syncQuery()
+}, { deep: true })
+
+const previous = computed(() => analytics.value?.previous ?? null)
+const deltaBookings = computed(() => previous.value ? deltaFor(dashboard.value?.channel.totalBookings ?? 0, previous.value.channel.totalBookings, 'count') : null)
+const deltaCovers = computed(() => previous.value ? deltaFor(dashboard.value?.channel.totalCovers ?? 0, previous.value.channel.totalCovers, 'count') : null)
+const deltaNoShow = computed(() => previous.value ? deltaFor(dashboard.value?.reliability.noShowRate ?? 0, previous.value.reliability.noShowRate, 'rate') : null)
+const deltaCancel = computed(() => previous.value ? deltaFor(dashboard.value?.reliability.cancellationRate ?? 0, previous.value.reliability.cancellationRate, 'rate') : null)
+const defaults = defaultDashboardFilters(today)
+function isFiltersDirty() {
+	return preset.value !== 'last30' || filters.value.status !== 'all' || filters.value.source !== 'all' || filters.value.occasion !== 'all'
+}
+function resetFilters() {
+	preset.value = 'last30'
+	filters.value = { ...defaults }
+	search.value = ''
+}
+
+type Delta = { text: string; cls: string } | null
+function deltaFor(current: number, previousValue: number | null, kind: 'count' | 'rate'): Delta {
+	if (previousValue === null || previousValue === undefined) return null
+	const diff = current - previousValue
+	if (diff === 0) return null
+	const sign = diff > 0 ? '+' : diff < 0 ? '−' : ''
+	if (kind === 'rate') {
+		const cls = diff > 0 ? 'text-danger' : diff < 0 ? 'text-accent' : 'text-muted'
+		return { text: `${sign}${Math.abs(diff).toFixed(1)} pts vs prev period`, cls }
+	}
+	const pct = previousValue ? ((diff / previousValue) * 100) : 0
+	return { text: `${sign}${Math.abs(diff)} (${Math.abs(pct).toFixed(0)}%) vs prev period`, cls: 'text-muted' }
+}
 const dashboard = computed(() => analytics.value?.dashboard ?? null)
 const analyticsErrorMessage = computed(() => (analyticsError.value?.data as { message?: string } | null)?.message ?? analyticsError.value?.message)
 const settings = computed(() => analytics.value?.settings)
@@ -75,8 +147,16 @@ function setPreset(next: DateRangePreset) {
 	filters.value = { ...filters.value, rangeStart: range.start, rangeEnd: range.end }
 }
 
-const statusOptions: ReservationStatus[] = ['pending', 'confirmed', 'arrived', 'seated', 'completed', 'cancelled', 'no_show']
-const occasions = computed(() => [...new Set((dashboard.value?.filtered ?? []).map((r) => r.occasion?.trim() || 'No occasion'))].sort())
+const occasions = computed(() => {
+	const opts = analytics.value?.occasionOptions
+	if (opts) {
+		const selected = filters.value.occasion
+		return [...new Set([...opts, selected].filter(Boolean))].sort()
+	}
+	const selected = filters.value.occasion
+	const base = [...new Set((dashboard.value?.filtered ?? []).map((r) => r.occasion?.trim() || 'No occasion'))]
+	return [...new Set([...base, selected].filter(Boolean))].sort()
+})
 const areas = computed(() => (settings.value as any)?.seatingAreas ?? [])
 const areaName = (id: string) => areas.value.find((a: { id: string; name: string }) => a.id === id)?.name ?? id
 const rangeLabel = computed(() => `${filters.value.rangeStart} → ${filters.value.rangeEnd}`)
@@ -144,7 +224,7 @@ definePageMeta({ middleware: ['auth', 'admin'] })
 			<p class="text-sm text-muted">Live as of {{ asOf }}</p>
 		</header>
 
-		<section class="card mb-6 grid gap-3 md:grid-cols-3 lg:grid-cols-6">
+		<section class="card mb-6 grid gap-3 md:grid-cols-3 lg:grid-cols-6" :class="{ 'opacity-60': pending }">
 			<label class="label">Range
 				<select v-model="preset" class="field mt-1 !py-1.5 !px-3 text-sm" @change="setPreset(preset)">
 					<option value="today">Today</option>
@@ -159,7 +239,7 @@ definePageMeta({ middleware: ['auth', 'admin'] })
 			<label v-if="preset === 'custom'" class="label">To
 				<DatePicker v-model="filters.rangeEnd" class="mt-1 !py-1.5 !px-3 text-sm" />
 			</label>
-			<label class="label">Status
+			<label class="label">Status <span class="ml-1 text-xs text-muted font-normal">table only</span>
 				<select v-model="filters.status" class="field mt-1 !py-1.5 !px-3 text-sm">
 					<option value="all">All statuses</option>
 					<option v-for="status in statusOptions" :key="status" :value="status">{{ statusLabel(status) }}</option>
@@ -177,9 +257,10 @@ definePageMeta({ middleware: ['auth', 'admin'] })
 					<option v-for="occasion in occasions" :key="occasion" :value="occasion">{{ occasion }}</option>
 				</select>
 			</label>
+			<button v-if="isFiltersDirty()" type="button" class="btn-ghost self-end !min-h-9 !px-4 !py-1.5 text-sm" @click="resetFilters">Reset filters</button>
 			<p v-if="analyticsError" class="text-sm text-red-500 md:col-span-3 lg:col-span-6" role="alert">{{ analyticsErrorMessage }}</p>
 			<p class="text-xs text-muted md:col-span-3 lg:col-span-6">
-				Filters apply to period analytics ({{ periodLabel }}: guest mix, channels, reliability) and the reservations table. Status only narrows the table. Today live, Next 7 days and Next 30 days are always live.
+				Filters apply to period analytics ({{ periodLabel }}: guest mix, channels, reliability) and the reservations table. Turn time and Guest feedback follow the Range only. Status only narrows the table. Today live, Next 7 days and Next 30 days are always live.
 			</p>
 		</section>
 
@@ -278,7 +359,7 @@ definePageMeta({ middleware: ['auth', 'admin'] })
 				<h3 class="font-display text-lg font-semibold text-ink">Channel performance <span class="ml-1 text-xs font-normal text-muted">{{ periodLabel }}</span></h3>
 				<BarChart v-if="dashboard" :rows="channelRows" />
 				<p v-if="dashboard" class="mt-3 text-xs text-muted">
-					{{ dashboard.channel.totalBookings }} bookings · {{ dashboard.channel.totalCovers }} covers
+					{{ dashboard.channel.totalBookings }} bookings <span v-if="deltaBookings" class="ml-1" :class="deltaBookings.cls">{{ deltaBookings.text }}</span> · {{ dashboard.channel.totalCovers }} covers <span v-if="deltaCovers" class="ml-1" :class="deltaCovers.cls">{{ deltaCovers.text }}</span>
 				</p>
 			</section>
 
@@ -287,14 +368,12 @@ definePageMeta({ middleware: ['auth', 'admin'] })
 				<dl class="mt-4 grid grid-cols-2 gap-3 text-sm" v-if="dashboard">
 					<div>
 						<dt class="text-muted">No-show rate</dt>
-						<dd :class="['text-2xl font-semibold', dashboard.reliability.noShowRate > (settings as any)?.noShowTargetPercent ? 'text-danger' : 'text-ink']">
-							{{ dashboard.reliability.noShowRate }}%
-						</dd>
+						<dd :class="['text-2xl font-semibold', dashboard.reliability.noShowRate > (settings as any)?.noShowTargetPercent ? 'text-danger' : 'text-ink']">{{ dashboard.reliability.noShowRate }}%<span v-if="deltaNoShow" class="block text-xs font-normal" :class="deltaNoShow.cls">{{ deltaNoShow.text }}</span></dd>
 						<p class="text-xs text-muted">Target ≤ {{ (settings as any)?.noShowTargetPercent }}%</p>
 					</div>
 					<div>
 						<dt class="text-muted">Cancellation rate</dt>
-						<dd class="text-2xl font-semibold text-ink">{{ dashboard.reliability.cancellationRate }}%</dd>
+						<dd class="text-2xl font-semibold text-ink">{{ dashboard.reliability.cancellationRate }}%<span v-if="deltaCancel" class="block text-xs font-normal" :class="deltaCancel.cls">{{ deltaCancel.text }}</span></dd>
 					</div>
 					<div>
 						<dt class="text-muted">Avg lead time</dt>
@@ -309,7 +388,7 @@ definePageMeta({ middleware: ['auth', 'admin'] })
 				<Sparkline v-if="dashboard" :values="reliabilityValues" :height="80" color="rgb(var(--brand-sun))" fill="rgb(var(--brand-sun) / 0.12)" />
 			</section>
 			<section class="card lg:col-span-3">
-				<h3 class="font-display text-lg font-semibold text-ink">Turn time <span class="ml-1 text-xs font-normal text-muted">{{ periodLabel }}</span></h3>
+				<h3 class="font-display text-lg font-semibold text-ink">Turn time <span class="ml-1 text-xs font-normal text-muted">range only</span></h3>
 				<dl v-if="turnTime?.byArea.some((a) => a.sampleCount)" class="mt-4 grid gap-x-8 gap-y-4 sm:grid-cols-2 lg:grid-cols-4">
 					<div v-for="area in turnTime.byArea.filter((a) => a.sampleCount)" :key="area.areaId">
 						<dt class="text-sm text-muted">{{ area.areaName }}</dt>
@@ -323,7 +402,7 @@ definePageMeta({ middleware: ['auth', 'admin'] })
 		</div>
 		<section class="card mt-4">
 			<div class="flex flex-wrap items-baseline justify-between gap-2">
-				<h3 class="font-display text-lg font-semibold text-ink">Guest feedback</h3>
+				<h3 class="font-display text-lg font-semibold text-ink">Guest feedback <span class="ml-1 text-xs font-normal text-muted">range only</span></h3>
 				<span class="text-sm text-muted">{{ feedback.length }} responses · {{ feedbackAverage }}/5 average</span>
 			</div>
 			<div v-if="feedback.length" class="mt-4 grid gap-4 md:grid-cols-2">
@@ -443,7 +522,8 @@ definePageMeta({ middleware: ['auth', 'admin'] })
 				<h3 class="font-display text-lg font-semibold text-ink">Filtered reservations</h3>
 				<div class="flex flex-wrap items-center gap-2">
 					<input v-model="search" type="search" class="field !w-56 !py-1.5 !px-3 text-sm" placeholder="Search name, code, phone" aria-label="Search reservations">
-					<span class="text-sm text-muted">{{ searchedReservations.length }} matching</span>
+					<span class="text-sm text-muted">{{ searchedReservations.length }} reservations</span>
+					<p v-if="filterSummary !== `${fmtDate(filters.rangeStart)} - ${fmtDate(filters.rangeEnd)} · no other filters`" class="text-sm text-muted">{{ filterSummary }}</p>
 					<button type="button" class="btn-secondary !min-h-9 !px-4" :disabled="!searchedReservations.length" @click="exportCsv">Export CSV</button>
 					<ExportViewer v-if="showExport" :columns="exportColumns" :rows="exportRows" :filter-summary="filterSummary" :filename="exportFilename" @close="showExport = false" />
 				</div>

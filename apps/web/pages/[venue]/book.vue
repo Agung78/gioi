@@ -1,4 +1,5 @@
 <script setup lang="ts">
+definePageMeta({ public: true, bottomBar: true })
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter, useHead } from '#app'
 import { addDays, localDate, isOpenOn, hoursFor, checkAvailability } from '@gioi/domain'

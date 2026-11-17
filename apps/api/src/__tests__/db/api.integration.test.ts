@@ -10,7 +10,7 @@ import { registerPublicReservationRoutes } from '../../routes/public/reservation
 import { registerStaffAuthRoutes } from '../../routes/staff/auth'
 import { registerStaffRoutes } from '../../routes/staff'
 import { registerFloorPlanRoutes } from '../../routes/staff/floorPlan'
-import { localDate, localTime } from '@gioi/domain'
+import { localDate, localTime, addDays, type Channel, type ReservationStatus } from '@gioi/domain'
 
 const DATABASE_URL = process.env.TEST_DATABASE_URL || 'postgresql://gioi_app:password@localhost:5432/gioi_test'
 const ADMIN_URL = process.env.TEST_ADMIN_DATABASE_URL || 'postgresql://postgres:postgres@localhost:5432/gioi_test?sslmode=disable'
@@ -688,5 +688,69 @@ describe('API integration', () => {
 		// Notice enabled without a date -> 422.
 		expect((await send('PATCH', `/admin/venues/${venue.id}`, { noticeEnabled: true, noticeDate: null })).status).toBe(422)
 		expect((await send('PATCH', `/admin/venues/${venue.id}`, { noticeEnabled: true, noticeDate: DATE })).status).toBe(200)
+	})
+	it('GET /admin/analytics returns previous and occasionOptions', async () => {
+		const venue = (await prisma.venue.findUnique({ where: { slug: 'bali' } }))!
+		const mainHall = (await prisma.seatingArea.findFirst({ where: { venueId: venue.id, name: 'Main Hall' } }))!
+
+		await prisma.user.create({
+			data: {
+				name: 'Admin',
+				login: 'analyticsadmin',
+				passwordHash: await hash('pw-12345'),
+				active: true,
+				venues: { create: { venueId: venue.id, role: 'admin' } },
+			},
+		})
+		const login = await fetch(`${baseUrl}/staff/login`, {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify({ login: 'analyticsadmin', password: 'pw-12345' }),
+		})
+		expect(login.status).toBe(200)
+		const cookie = login.headers.get('set-cookie')!.split(';')[0]
+
+		const today = DATE
+		const to = today
+		const from = addDays(today, -6)
+		const prevEnd = addDays(from, -1)
+		const prevStart = addDays(prevEnd, -6)
+
+		const book = async (date: string, time: string, source: Channel, occasion: string | null, status: ReservationStatus) =>
+			prisma.reservation.create({
+				data: {
+					venueId: venue.id,
+					bookingCode: `AN${date.replace(/-/g, '')}${time.replace(':', '')}`,
+					guestId: (await prisma.guest.create({ data: { venueId: venue.id, fullName: 'G', phone: '+62 811 000 000' } })).id,
+					seatingAreaId: mainHall.id,
+					startsAt: new Date(`${date}T${time}:00Z`),
+					partySize: 2,
+					source,
+					occasion,
+					status,
+				},
+			})
+
+		// current window: 2 website bookings w/ occasion 'Birthday', 1 instagram w/ 'Dinner'
+		await book(from, '10:00', 'website', 'Birthday', 'completed')
+		await book(addDays(from, 1), '11:00', 'website', 'Birthday', 'completed')
+		await book(addDays(from, 2), '12:00', 'instagram', 'Dinner', 'completed')
+		// previous window: 1 website 'Birthday', 1 walk_in 'Dinner'
+		await book(prevStart, '10:00', 'website', 'Birthday', 'completed')
+		await book(addDays(prevStart, 1), '11:00', 'walk_in', 'Dinner', 'completed')
+
+		const res = await fetch(`${baseUrl}/admin/analytics?from=${from}&to=${to}&source=website&occasion=Birthday`, {
+			headers: { cookie },
+		})
+		expect(res.status).toBe(200)
+		const body = await res.json()
+		expect(Array.isArray(body.occasionOptions)).toBe(true)
+		expect(body.occasionOptions).toContain('Birthday')
+		expect(body.occasionOptions).toContain('Dinner')
+		expect(body.previous).toEqual({
+			guestMix: { totalGuests: expect.any(Number), retentionShare: expect.any(Number) },
+			channel: { totalBookings: 1, totalCovers: 2 },
+			reliability: { noShowRate: 0, cancellationRate: 0 },
+		})
 	})
 })

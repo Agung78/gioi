@@ -301,6 +301,11 @@ export interface AdminAnalytics {
 			diningMinutes: number
 		}>
 	}
+	occasionOptions?: string[]
+	previous?: {
+		channel: { totalBookings: number; totalCovers: number }
+		reliability: { noShowRate: number; cancellationRate: number }
+	}
 }
 
 export async function fetchAdminAnalytics(filters: {
