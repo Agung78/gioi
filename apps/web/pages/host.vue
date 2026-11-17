@@ -17,6 +17,7 @@ import {
 	type DayView,
 	type StaffReservation,
 } from '@/composables/useApi'
+import { parseCsv } from '@/utils/csv'
 
 const router = useRouter()
 const auth = useAuthStore()
@@ -49,14 +50,19 @@ async function load(day?: string) {
 }
 
 
+const showExport = ref(false)
+const exportColumns = ref<string[]>([])
+const exportRows = ref<unknown[][]>([])
+const exportFilename = ref('')
+
 async function exportCsv() {
 	try {
-		const url = URL.createObjectURL(await exportDayCSV(venueId.value, date.value))
-		const a = document.createElement('a')
-		a.href = url
-		a.download = `gioi-reservations-${date.value}.csv`
-		a.click()
-		URL.revokeObjectURL(url)
+		const text = await (await exportDayCSV(venueId.value, date.value)).text()
+		const parsed = parseCsv(text)
+		exportColumns.value = parsed[0]
+		exportRows.value = parsed.slice(1)
+		exportFilename.value = `gioi-reservations-${date.value}.csv`
+		showExport.value = true
 	} catch (e: any) {
 		lastError.value = e.message ?? 'Export failed.'
 	}
@@ -216,6 +222,7 @@ definePageMeta({ middleware: 'auth' })
 					<button class="btn-secondary min-h-12" type="button" :disabled="date === todayISO()" @click="date = todayISO()">Today</button>
 				</div>
 				<button class="btn-secondary min-h-12" type="button" :disabled="!venueId" @click="exportCsv">Export CSV</button>
+				<ExportViewer v-if="showExport" :columns="exportColumns" :rows="exportRows" :filter-summary="`Date: ${date}`" :filename="exportFilename" @close="showExport = false" />
 				<button class="btn-primary min-h-12" type="button" @click="showWalkIn = true">+ Walk-in</button>
 			</div>
 		</header>

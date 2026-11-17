@@ -15,6 +15,7 @@ import {
 	downloadExportCSV, fetchFloorPlan, saveFloorImage,
 	type VenueSettings, type OpeningHoursRow, type ClosedDateRow, type StaffUserRow,
 } from '@/composables/useApi'
+import { parseCsv } from '@/utils/csv'
 
 const DAYS_OF_WEEK: DayOfWeek[] = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun']
 
@@ -216,16 +217,23 @@ function updateUser(idx: number, patch: Partial<User>) {
 	users.value = next
 }
 
-function exportReservations() {
-	downloadExportCSV(venueId).then((csv) => {
-		const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
-		const url = URL.createObjectURL(blob)
-		const a = document.createElement('a')
-		a.href = url
-		a.download = `gioi-reservations-${new Date().toISOString().slice(0, 10)}.csv`
-		a.click()
-		setTimeout(() => URL.revokeObjectURL(url), 1000)
-	}).catch(() => { saved.value = 'Export failed.' })
+const showExport = ref(false)
+const exportColumns = ref<string[]>([])
+const exportRows = ref<unknown[][]>([])
+const exportFilename = computed(() => `gioi-export-${venueId}.csv`)
+
+async function exportReservations() {
+	try {
+		const csv = await downloadExportCSV(venueId)
+		const parsed = parseCsv(csv)
+		const columns = parsed[0]
+		const rows = parsed.slice(1)
+		exportColumns.value = columns
+		exportRows.value = rows
+		showExport.value = true
+	} catch {
+		saved.value = 'Export failed.'
+	}
 }
 
 definePageMeta({ middleware: ['auth', 'admin'] })
@@ -474,6 +482,7 @@ definePageMeta({ middleware: ['auth', 'admin'] })
 				<h2 class="font-display text-xl font-semibold text-ink">Data export</h2>
 				<p class="mt-1 text-sm text-muted">Download every reservation as CSV. The file includes guest contact details and allergy/accessibility notes — handle accordingly.</p>
 				<button class="btn-primary mt-4" type="button" @click="exportReservations">Download reservations CSV</button>
+				<ExportViewer v-if="showExport" :columns="exportColumns" :rows="exportRows" :filter-summary="'No filters (all reservations)'" :filename="exportFilename" @close="showExport = false" />
 			</section>
 		</div>
 	</div>

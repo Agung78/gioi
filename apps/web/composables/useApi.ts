@@ -282,6 +282,7 @@ export interface AdminAnalytics {
 			guestEmail?: string | null
 			guestAllergies?: string[]
 			guestAccessibility?: string | null
+			guestCountry?: string | null
 			date: string
 			time: string
 			partySize: number

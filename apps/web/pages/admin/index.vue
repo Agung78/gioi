@@ -19,30 +19,26 @@ import { usePagination } from '@/composables/usePagination'
 import { useAuthStore } from '@/stores/auth'
 import type { AdminAnalytics } from '@/composables/useApi'
 
-const exportMsg = ref('')
-// Same escaping as apps/api/src/lib/csv.ts (formula-injection prefix, then quote).
-const csvEscape = (v: unknown) => {
-	let s = String(v ?? '')
-	if (/^\s*[=+\-@]/.test(s) || /^[\t\r]/.test(s)) s = `'${s}`
-	if (s.includes(',') || s.includes('"') || s.includes('\n') || s.includes('\r')) return `"${s.replace(/"/g, '""')}"`
-	return s
+const showExport = ref(false)
+
+function fmtDate(d: string) {
+	return new Date(d + 'T00:00:00').toLocaleDateString(undefined, { month: 'short', day: 'numeric' })
 }
-// Exports exactly the rows the table shows (range/status/source/occasion filters + search).
+const filterSummary = computed(() => {
+	const f = filters.value
+	const parts = [`${fmtDate(f.rangeStart)} - ${fmtDate(f.rangeEnd)}`]
+	if (f.status !== 'all') parts.push(`status: ${f.status}`)
+	if (f.source !== 'all') parts.push(`source: ${f.source}`)
+	if (f.occasion !== 'all') parts.push(`occasion: ${f.occasion}`)
+	if (search.value.trim()) parts.push(`search: ${search.value.trim()}`)
+	if (parts.length === 1) return `${parts[0]} · no other filters`
+	return parts.join(' · ')
+})
+const exportColumns = computed(() => ['booking_code', 'guest_name', 'phone', 'email', 'nationality', 'party_size', 'date', 'time', 'area', 'source', 'status', 'allergies', 'accessibility'])
+const exportRows = computed(() => searchedReservations.value.map((r) => [r.bookingCode, r.guestName ?? '', r.guestPhone ?? '', r.guestEmail ?? '', r.guestCountry ?? '', r.partySize, r.date, r.time, areaName(r.seatingAreaId), r.source, r.status, (r.guestAllergies ?? []).join('; '), r.guestAccessibility ?? '']))
+const exportFilename = computed(() => `gioi-reservations-${filters.value.rangeStart}_${filters.value.rangeEnd}.csv`)
 function exportCsv() {
-	try {
-		const header = ['booking_code', 'guest_name', 'phone', 'email', 'party_size', 'date', 'time', 'area', 'source', 'status', 'allergies', 'accessibility']
-		const rows = searchedReservations.value.map((r) => [r.bookingCode, r.guestName ?? '', r.guestPhone ?? '', r.guestEmail ?? '', r.partySize, r.date, r.time, areaName(r.seatingAreaId), r.source, r.status, (r.guestAllergies ?? []).join('; '), r.guestAccessibility ?? ''])
-		const csv = [header, ...rows].map((row) => row.map(csvEscape).join(',')).join('\n')
-		const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8;' }))
-		const a = document.createElement('a')
-		a.href = url
-		a.download = `gioi-reservations-${filters.value.rangeStart}_${filters.value.rangeEnd}.csv`
-		a.click()
-		setTimeout(() => URL.revokeObjectURL(url), 1000)
-		exportMsg.value = ''
-	} catch {
-		exportMsg.value = 'Export failed.'
-	}
+	showExport.value = true
 }
 const today = todayISO()
 const preset = ref<DateRangePreset>('last30')
@@ -449,7 +445,7 @@ definePageMeta({ middleware: ['auth', 'admin'] })
 					<input v-model="search" type="search" class="field !w-56 !py-1.5 !px-3 text-sm" placeholder="Search name, code, phone" aria-label="Search reservations">
 					<span class="text-sm text-muted">{{ searchedReservations.length }} matching</span>
 					<button type="button" class="btn-secondary !min-h-9 !px-4" :disabled="!searchedReservations.length" @click="exportCsv">Export CSV</button>
-					<span v-if="exportMsg" class="text-sm text-red-600" role="alert">{{ exportMsg }}</span>
+					<ExportViewer v-if="showExport" :columns="exportColumns" :rows="exportRows" :filter-summary="filterSummary" :filename="exportFilename" @close="showExport = false" />
 				</div>
 			</div>
 			<div v-if="searchedReservations.length" class="mt-4 overflow-x-auto relative">

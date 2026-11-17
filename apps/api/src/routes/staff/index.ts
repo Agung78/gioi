@@ -1067,7 +1067,7 @@ export function registerStaffRoutes(app: FastifyInstance, prisma: PrismaClient):
 					id: true,
 					bookingCode: true,
 					guestId: true,
-				guest: { select: { fullName: true, phone: true, email: true, allergies: true, accessibility: true } },
+				guest: { select: { fullName: true, phone: true, email: true, country: true, allergies: true, accessibility: true } },
 					seatingAreaId: true,
 					startsAt: true,
 					partySize: true,
@@ -1092,6 +1092,7 @@ export function registerStaffRoutes(app: FastifyInstance, prisma: PrismaClient):
 				guestEmail: r.guest?.email ?? null,
 				guestAllergies: r.guest?.allergies ?? [],
 				guestAccessibility: r.guest?.accessibility ?? null,
+				guestCountry: r.guest?.country ?? null,
 				date: localDate(r.startsAt, settings.timeZone),
 				time: localTime(r.startsAt, settings.timeZone),
 				partySize: r.partySize,
@@ -1244,7 +1245,7 @@ export function registerStaffRoutes(app: FastifyInstance, prisma: PrismaClient):
 				include: { guest: true },
 			})
 
-			let csv = 'id,booking_code,guest_name,phone,email,party_size,date,time,status,allergies,accessibility\n'
+			let csv = 'id,booking_code,guest_name,phone,email,party_size,date,time,status,allergies,accessibility,nationality\n'
 			for (const r of reservations) {
 				csv +=
 					[
@@ -1259,6 +1260,7 @@ export function registerStaffRoutes(app: FastifyInstance, prisma: PrismaClient):
 						r.status,
 						(r.guest.allergies ?? []).join(';'),
 						r.guest.accessibility ?? '',
+						r.guest.country ?? '',
 					].map(csvEscape).join(',') + '\n'
 			}
 
@@ -1294,7 +1296,7 @@ export function registerStaffRoutes(app: FastifyInstance, prisma: PrismaClient):
 				orderBy: { startsAt: 'asc' },
 			})
 
-			let csv = 'booking_code,guest_name,phone,email,party_size,date,time,status,allergies,accessibility\n'
+			let csv = 'booking_code,guest_name,phone,email,party_size,date,time,status,allergies,accessibility,nationality\n'
 			for (const r of reservations) {
 				csv +=
 					[
@@ -1308,6 +1310,7 @@ export function registerStaffRoutes(app: FastifyInstance, prisma: PrismaClient):
 						r.status,
 						(r.guest.allergies ?? []).join(';'),
 						r.guest.accessibility ?? '',
+						r.guest.country ?? '',
 					].map(csvEscape).join(',') + '\n'
 			}
 
