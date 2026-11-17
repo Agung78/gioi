@@ -3,7 +3,7 @@ import type { PrismaClient } from '@prisma/client'
 import { randomUUID } from 'node:crypto'
 import { notFound, conflict, unprocessable } from '../../lib/errors'
 import { randomBookingCode } from '../../lib/crypto'
-import { claimTable, requestedTableArea } from '../../lib/tables'
+import { claimTable, assertAreaCapacity, pickAreaForParty, requestedTableArea } from '../../lib/tables'
 import { track } from '../../lib/analytics'
 import { addDays, canTransition, dayOfWeek, localDate, localTime, toMinutes, toUtc } from '@gioi/domain'
 
@@ -110,42 +110,27 @@ export function registerPublicReservationRoutes(app: FastifyInstance, prisma: Pr
 				// Lock the chosen (or candidate) seating area(s) to serialize capacity checks.
 				let areaId = body.seatingAreaId
 				if (body.tableId) areaId = await requestedTableArea(tx, venue.id, [body.tableId], body.partySize, areaId)
-				const venueAreas = await tx.seatingArea.findMany({
-					where: { venueId: venue.id, bookable: true },
-					orderBy: { id: 'asc' },
-					select: { id: true, capacity: true, minParty: true, maxParty: true },
-				})
 				if (!areaId) {
-					const candidate = await pickAreaForParty(tx as unknown as PrismaClient, venue.id, startsAt, body.partySize, venue.diningMinutes, venueAreas)
+					const venueAreas = await tx.seatingArea.findMany({
+						where: { venueId: venue.id, bookable: true },
+						orderBy: { id: 'asc' },
+						select: { id: true, capacity: true, minParty: true, maxParty: true },
+					})
+					const candidate = await pickAreaForParty(tx, venue.id, startsAt, body.partySize, venue.diningMinutes, venueAreas)
 					if (!candidate) throw conflict('full')
 					areaId = candidate
-				} else {
-					const [area] = await tx.$queryRaw<{ id: string; min_party: number | null; max_party: number | null }[]>`
-						SELECT id, min_party, max_party FROM seating_areas
-						WHERE id = ${areaId}::uuid AND venue_id = ${venue.id}::uuid AND bookable = true
-						FOR UPDATE`
-					if (!area) throw conflict('no_area')
-					if ((area.min_party != null && body.partySize < area.min_party) || (area.max_party != null && body.partySize > area.max_party)) {
-						throw unprocessable('party size not allowed in this area')
-					}
+				}
+				const [area] = await tx.$queryRaw<{ id: string; min_party: number | null; max_party: number | null }[]>`
+					SELECT id, min_party, max_party FROM seating_areas
+					WHERE id = ${areaId}::uuid AND venue_id = ${venue.id}::uuid AND bookable = true
+					FOR UPDATE`
+				if (!area) throw conflict('no_area')
+				if ((area.min_party != null && body.partySize < area.min_party) || (area.max_party != null && body.partySize > area.max_party)) {
+					throw unprocessable('party size not allowed in this area')
 				}
 				const chosen = await claimTable(tx, venue.id, areaId, startsAt, venue.diningMinutes, body.partySize, body.tableId ? [body.tableId] : undefined)
 
-
-				const before = new Date(startsAt.getTime() - venue.diningMinutes * 60000)
-				const after = new Date(startsAt.getTime() + venue.diningMinutes * 60000)
-				const agg = await tx.reservation.aggregate({
-					where: {
-						seatingAreaId: areaId,
-						startsAt: { gt: before, lt: after },
-						status: { in: ['pending', 'confirmed', 'arrived', 'seated'] },
-					},
-					_sum: { partySize: true },
-				})
-				const usedSum = Number(agg._sum.partySize ?? 0)
-
-				const capacity = venueAreas.find((a) => a.id === areaId)!.capacity
-				if (usedSum + body.partySize > capacity) throw conflict('full')
+				await assertAreaCapacity(tx, areaId, startsAt, venue.diningMinutes, body.partySize)
 				const existing = await tx.guest.findUnique({ where: { venueId_phone: { venueId: venue.id, phone: body.phone } }, select: { allergies: true } })
 				const guest = await tx.guest.upsert({
 					where: { venueId_phone: { venueId: venue.id, phone: body.phone } },
@@ -242,15 +227,13 @@ export function registerPublicReservationRoutes(app: FastifyInstance, prisma: Pr
 			const { code } = request.params
 			const reservation = await prisma.reservation.findUnique({
 				where: { bookingCode: code },
-				include: { guest: true, seatingArea: true },
+				include: { seatingArea: true, venue: { select: { timeZone: true } } },
 			})
 			if (!reservation) throw notFound('reservation not found')
-
-			const venue = await prisma.venue.findUnique({ where: { id: reservation.venueId } })
 			return {
 				bookingCode: reservation.bookingCode,
-				date: venue ? localDate(reservation.startsAt, venue.timeZone) : reservation.startsAt.toISOString().slice(0, 10),
-				time: venue ? localTime(reservation.startsAt, venue.timeZone) : reservation.startsAt.toISOString().slice(11, 16),
+				date: localDate(reservation.startsAt, reservation.venue.timeZone),
+				time: localTime(reservation.startsAt, reservation.venue.timeZone),
 				partySize: reservation.partySize,
 				seatingArea: reservation.seatingArea.name,
 				status: reservation.status,
@@ -274,16 +257,15 @@ export function registerPublicReservationRoutes(app: FastifyInstance, prisma: Pr
 				return reply.status(409).send({ error: 'ERR_CANNOT_CANCEL', message: 'reservation cannot be cancelled' })
 			}
 
-			const updated = await prisma.$transaction(async (tx) => {
+			await prisma.$transaction(async (tx) => {
 				const rows = await tx.$executeRaw`
 					UPDATE reservations
 					SET status = 'cancelled', updated_at = now()
 					WHERE id = ${reservation.id}::uuid AND status = ${reservation.status}::reservation_status`
 				if (rows === 0) throw conflict('concurrent update')
-				const u = await tx.reservation.update({ where: { id: reservation.id }, data: {} })
 				await tx.reservationStatusEvent.create({
 					data: {
-						reservationId: u.id,
+						reservationId: reservation.id,
 						fromStatus: reservation.status,
 						toStatus: 'cancelled',
 						actorType: 'guest',
@@ -293,15 +275,14 @@ export function registerPublicReservationRoutes(app: FastifyInstance, prisma: Pr
 				})
 				await tx.auditEvent.create({
 					data: {
-						venueId: u.venueId,
+						venueId: reservation.venueId,
 						actorType: 'guest',
 						action: 'reservation.status_changed',
 						entityType: 'reservation_status',
-						entityId: u.id,
+						entityId: reservation.id,
 						changes: { status: { from: reservation.status, to: 'cancelled' } },
 					},
 				})
-				return u
 			})
 			await track(
 				'reservation cancelled',
@@ -312,7 +293,7 @@ export function registerPublicReservationRoutes(app: FastifyInstance, prisma: Pr
 					actor_type: 'guest',
 				},
 			)
-			return { bookingCode: updated.bookingCode, status: updated.status }
+			return { bookingCode: reservation.bookingCode, status: 'cancelled' }
 		},
 	)
 
@@ -375,48 +356,10 @@ export function registerPublicReservationRoutes(app: FastifyInstance, prisma: Pr
 		},
 	)
 }
+
 function distinctIdOf(request: FastifyRequest, fallback: string): string {
 	const raw = request.headers['x-posthog-distinct-id']
 	if (typeof raw !== 'string') return fallback
 	const trimmed = raw.trim().slice(0, 200)
 	return trimmed || fallback
 }
-
-async function pickAreaForParty(
-	tx: PrismaClient,
-	venueId: string,
-	startsAt: Date,
-	partySize: number,
-	diningMinutes: number,
-	areas: Array<{ id: string; capacity: number; minParty?: number | null; maxParty?: number | null }>,
-): Promise<string | null> {
-	const before = new Date(startsAt.getTime() - diningMinutes * 60000)
-	const after = new Date(startsAt.getTime() + diningMinutes * 60000)
-	// Lock areas in id order to avoid deadlocks.
-	const locked = await tx.$queryRaw<{ id: string }[]>`
-		SELECT id FROM seating_areas
-		WHERE venue_id = ${venueId}::uuid AND bookable = true
-		ORDER BY id
-		FOR UPDATE`
-		const usedByArea = await tx.$queryRaw<{ area_id: string; used: string }[]>`
-		SELECT seating_area_id AS area_id, coalesce(sum(party_size), 0)::text AS used
-		FROM reservations
-		WHERE venue_id = ${venueId}::uuid
-		  AND starts_at > ${before}
-		  AND starts_at < ${after}
-		  AND status IN ('pending', 'confirmed', 'arrived', 'seated')
-		GROUP BY seating_area_id`
-	const usedMap = new Map(usedByArea.map((r) => [r.area_id, Number(r.used)]))
-	let best: { id: string; remaining: number } | null = null
-	for (const area of locked) {
-		const a = areas.find((x) => x.id === area.id)!
-		if (a.minParty != null && partySize < a.minParty) continue
-		if (a.maxParty != null && partySize > a.maxParty) continue
-		const remaining = a.capacity - (usedMap.get(area.id) ?? 0)
-		if (remaining < partySize) continue
-		if (!best || remaining < best.remaining) best = { id: area.id, remaining }
-	}
-	return best ? best.id : null
-}
-
-

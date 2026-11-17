@@ -19,32 +19,7 @@ const venueHome = useVenueHome(venue)
 
 const { data: venueData, pending, error: venueError } = await useFetch<any>(`/api/public/venues/${venue}`, { server: true })
 
-const settings = computed(() => {
-  const v = venueData.value
-  if (!v) return null
-  const oh: Record<string, { open: string; close: string }> = {}
-  for (const [k, h] of Object.entries(v.openingHours as Record<string, { open: string; close: string }>)) {
-    const day = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'][Number(k)]
-    if (day) oh[day] = h as { open: string; close: string }
-  }
-  return {
-    restaurant: v,
-    openingHours: oh,
-    closedDates: v.closedDates,
-    bookingIntervalMinutes: v.bookingIntervalMinutes,
-    partySizeLimits: v.partySizeLimits,
-    leadTimeMinutes: v.leadTimeMinutes,
-    cutoffMinutes: v.cutoffMinutes,
-    seatingAreas: v.seatingAreas,
-    cancellationPolicy: v.cancellationPolicy,
-    noticeEnabled: v.noticeEnabled,
-    noticeDate: v.noticeDate,
-    noticeText: v.noticeText,
-    noticeTitle: v.noticeTitle,
-    noticeEventName: v.noticeEventName,
-    noticeEventTime: v.noticeEventTime,
-  } as any
-})
+const settings = computed(() => venueData.value ?? null)
 
 const venueTz: string = venueData.value?.timeZone ?? 'Asia/Makassar'
 const today = localDate(new Date(), venueTz) // venue (WITA) date, not the guest's

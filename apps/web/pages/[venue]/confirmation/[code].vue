@@ -42,7 +42,7 @@ const icsHref = computed(() => {
   const tz = info.value?.timeZone ?? 'Asia/Makassar'
   const stamp = `${start}Z` // deterministic (SSR-safe); clients ignore DTSTAMP value
   const ics = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//GIOI//booking//EN', 'BEGIN:VEVENT', `UID:${r.bookingCode}@gioi`, `DTSTAMP:${stamp}`, `DTSTART;TZID=${tz}:${start}`, `DTEND;TZID=${tz}:${end}`,
-    `SUMMARY:${info.value?.name ?? 'GIOI'}`, `LOCATION:${info.value?.address ?? ''}`, 'END:VEVENT', 'END:VCALENDAR'].join('\r\n')
+    `SUMMARY:${info.value?.restaurant.name ?? 'GIOI'}`, `LOCATION:${info.value?.restaurant.address ?? ''}`, 'END:VEVENT', 'END:VCALENDAR'].join('\r\n')
   return `data:text/calendar;charset=utf-8,${encodeURIComponent(ics)}`
 })
 </script>
@@ -81,8 +81,8 @@ const icsHref = computed(() => {
 
       <div class="mt-6 flex flex-wrap gap-3">
         <a :href="icsHref" :download="`gioi-${reservation.bookingCode}.ics`" class="btn-primary"><PhCalendarPlus :size="20" aria-hidden="true" /> Add to calendar</a>
-        <a :href="info?.mapsUrl" target="_blank" rel="noopener" class="btn-secondary"><PhMapPin :size="20" aria-hidden="true" /> Get directions</a>
-        <a :href="`https://wa.me/${info?.whatsapp.replace(/\D/g, '')}`" class="btn-secondary"><PhWhatsappLogo :size="20" aria-hidden="true" /> Message us</a>
+        <a :href="info?.restaurant.mapsUrl" target="_blank" rel="noopener" class="btn-secondary"><PhMapPin :size="20" aria-hidden="true" /> Get directions</a>
+        <a :href="`https://wa.me/${info?.restaurant.whatsapp.replace(/\D/g, '')}`" class="btn-secondary"><PhWhatsappLogo :size="20" aria-hidden="true" /> Message us</a>
       </div>
       <NuxtLink :to="venueHome" class="mt-8 inline-block text-sm font-medium text-accent underline underline-offset-4">Back to home</NuxtLink>
     </div>

@@ -1,16 +1,18 @@
 export interface Venue {
   id: string
   slug: string
-  name: string
-  tagline: string
-  intro: string
-  address: string
-  phone: string
-  whatsapp: string
-  email: string
-  mapsUrl: string
+  restaurant: {
+    name: string
+    tagline: string
+    intro: string
+    address: string
+    phone: string
+    whatsapp: string
+    email: string
+    mapsUrl: string
+  }
   timeZone: string
-  openingHours: Record<string, { open: string; close: string }>
+  openingHours: Record<'mon' | 'tue' | 'wed' | 'thu' | 'fri' | 'sat' | 'sun', { open: string; close: string }>
   closedDates: string[]
   bookingIntervalMinutes: number
   partySizeLimits: { min: number; max: number }
@@ -34,10 +36,10 @@ export interface Venue {
   noticeTitle: string
   noticeEventName?: string | null
   noticeEventTime?: string | null
+  feedbackMessageTemplate: string
   feedbackTitle?: string
   feedbackSubtitle?: string
   feedbackTags?: string[]
-  feedbackMessageTemplate: string
 }
 
 export interface SlotAvailability {

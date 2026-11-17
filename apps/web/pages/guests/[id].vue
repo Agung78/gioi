@@ -21,10 +21,7 @@ const { data: guest, pending, error } = await useFetch<StaffGuest>(`/api/staff/g
 	credentials: 'include',
 })
 
-const visits = computed(() => {
-	if (!guest.value) return []
-	return [...guest.value.reservations].sort((a, b) => (b.date + b.time).localeCompare(a.date + a.time))
-})
+const visits = computed(() => guest.value?.reservations ?? [])
 const { page, pageCount, paged } = usePagination(visits, 10)
 const completedCount = computed(() =>
 	visits.value.filter((r) => ['completed', 'arrived', 'seated'].includes(r.status)).length,

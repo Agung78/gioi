@@ -95,7 +95,6 @@ const { data: analytics, error: analyticsError, refresh, pending } = await useFe
 	const params = new URLSearchParams()
 	params.set('from', filters.value.rangeStart)
 	params.set('to', filters.value.rangeEnd)
-	if (filters.value.status !== 'all') params.set('status', filters.value.status)
 	if (filters.value.source !== 'all') params.set('source', filters.value.source)
 	if (filters.value.occasion !== 'all') params.set('occasion', filters.value.occasion)
 	if (auth.isSuperAdmin && auth.selectedVenueId) params.set('venueId', auth.selectedVenueId)
@@ -142,9 +141,15 @@ watch(() => auth.selectedVenueId, () => {
 	if (auth.isSuperAdmin && auth.selectedVenueId) reloadAll()
 })
 
+// Analytics ignores status: a status-only change reloads just the table.
+const analyticsKey = () => JSON.stringify([preset.value, { ...filters.value, status: undefined }])
+let lastAnalyticsKey = analyticsKey()
 watch([preset, filters], () => {
-	requestRefresh()
 	syncQuery()
+	const k = analyticsKey()
+	if (k === lastAnalyticsKey) return reloadTable()
+	lastAnalyticsKey = k
+	requestRefresh()
 }, { deep: true })
 
 const previous = computed(() => analytics.value?.previous ?? null)
@@ -177,7 +182,6 @@ function deltaFor(current: number, previousValue: number | null, kind: 'count' |
 }
 const dashboard = computed(() => analytics.value?.dashboard ?? null)
 const analyticsErrorMessage = computed(() => (analyticsError.value?.data as { message?: string } | null)?.message ?? analyticsError.value?.message)
-const settings = computed(() => analytics.value?.settings)
 const feedback = ref<AdminAnalytics['feedback']>([])
 const feedbackCursor = ref<string | null>(null)
 const feedbackLoading = ref(false)
@@ -206,7 +210,7 @@ function setPreset(next: DateRangePreset) {
 }
 
 const occasions = computed(() => [...new Set([...(analytics.value?.occasionOptions ?? []), filters.value.occasion].filter((o) => o && o !== 'all'))].sort())
-const areas = computed(() => (settings.value as any)?.seatingAreas ?? [])
+const areas = computed(() => analytics.value?.areas ?? [])
 const areaName = (id: string) => areas.value.find((a: { id: string; name: string }) => a.id === id)?.name ?? id
 const rangeLabel = computed(() => `${filters.value.rangeStart} → ${filters.value.rangeEnd}`)
 const periodLabel = computed(() => ({ today: 'today', last7: 'last 7 days', last30: 'last 30 days', custom: rangeLabel.value })[preset.value])
@@ -404,8 +408,8 @@ definePageMeta({ middleware: ['auth', 'admin'] })
 				<dl class="mt-4 grid grid-cols-2 gap-3 text-sm" v-if="dashboard">
 					<div>
 						<dt class="text-muted">No-show rate</dt>
-						<dd :class="['text-2xl font-semibold', dashboard.reliability.noShowRate > (settings as any)?.noShowTargetPercent ? 'text-danger' : 'text-ink']">{{ dashboard.reliability.noShowRate }}%<span v-if="deltaNoShow" class="block text-xs font-normal" :class="deltaNoShow.cls">{{ deltaNoShow.text }}</span></dd>
-						<p class="text-xs text-muted">Target ≤ {{ (settings as any)?.noShowTargetPercent }}%</p>
+						<dd :class="['text-2xl font-semibold', dashboard.reliability.noShowRate > (analytics?.noShowTargetPercent ?? 0) ? 'text-danger' : 'text-ink']">{{ dashboard.reliability.noShowRate }}%<span v-if="deltaNoShow" class="block text-xs font-normal" :class="deltaNoShow.cls">{{ deltaNoShow.text }}</span></dd>
+						<p class="text-xs text-muted">Target ≤ {{ analytics?.noShowTargetPercent ?? '—' }}%</p>
 					</div>
 					<div>
 						<dt class="text-muted">Cancellation rate</dt>

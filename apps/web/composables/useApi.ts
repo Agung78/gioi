@@ -132,14 +132,6 @@ export async function changeReservationStatus(
 	return apiFetch(`/staff/reservations/${id}/status`, { method: 'POST', body })
 }
 
-export interface NextStatuses {
-	next: ReservationStatus[]
-}
-
-export async function fetchNextStatuses(id: string): Promise<NextStatuses> {
-	return apiFetch<NextStatuses>(`/staff/reservations/${id}/next-statuses`)
-}
-
 export interface StaffGuest {
 	id: string
 	fullName: string
@@ -171,10 +163,6 @@ export async function fetchGuests(q?: string, venueId?: string): Promise<StaffGu
 	return apiFetch<StaffGuest[]>('/staff/guests', { query: q || venueId ? { ...(q ? { q } : {}), ...(venueId ? { venueId } : {}) } : undefined })
 }
 
-export async function fetchGuest(id: string): Promise<StaffGuest> {
-	return apiFetch<StaffGuest>(`/staff/guests/${id}`)
-}
-
 export interface AuditEvent {
 	id: string
 	at: string
@@ -185,15 +173,18 @@ export interface AuditEvent {
 	changes: Record<string, { from: unknown; to: unknown }> | null
 	note: string | null
 }
-
-export async function fetchAuditLog(venueId?: string): Promise<AuditEvent[]> {
-	return apiFetch<AuditEvent[]>('/admin/audit-log', { query: venueId ? { venueId } : undefined })
-}
 export interface AdminAnalytics {
 	venueId: string
 	today: string
-	timeZone: string
-	settings: unknown
+	noShowTargetPercent: number
+	areas: Array<{
+		id: string
+		name: string
+		capacity: number
+		bookable: boolean
+		minParty?: number
+		maxParty?: number
+	}>
 	feedback: Array<{
 		id: string
 		reservationId: string
@@ -320,17 +311,6 @@ export interface AdminReservationsPage {
 	rows: AdminReservationRow[]
 }
 
-export async function fetchAdminAnalytics(filters: {
-	from: string
-	to: string
-	status?: string
-	source?: string
-	seatingAreaId?: string
-	occasion?: string
-}): Promise<AdminAnalytics> {
-	return apiFetch<AdminAnalytics>('/admin/analytics', { query: filters as Record<string, string> })
-}
-
 export interface VenueSettings {
 	id: string
 	name: string
@@ -437,8 +417,10 @@ export async function createVenue(body: { slug: string; name: string }): Promise
 	return apiFetch<VenueSummary>('/admin/venues', { method: 'POST', body })
 }
 
-export async function downloadExportCSV(venueId: string): Promise<string> {
-	return apiFetch<string>(`/admin/venues/${venueId}/export.csv`, { method: 'GET' })
+export interface VenueExport { columns: string[]; rows: (string | number)[][] }
+
+export async function fetchVenueExport(venueId: string): Promise<VenueExport> {
+	return apiFetch<VenueExport>(`/admin/venues/${venueId}/export`, { method: 'GET' })
 }
 
 export async function login(body: { login: string; password: string }): Promise<{ user: StaffUser }> {
@@ -461,6 +443,6 @@ export async function saveFloorImage(venueId: string, body: { image: string | nu
 	return apiFetch<AdminFloorPlan>(`/admin/venues/${venueId}/floor-plan/image`, { method: 'PUT', body })
 }
 
-export async function exportDayCSV(venueId: string, date: string): Promise<Blob> {
-	return apiFetch<Blob>(`/staff/venues/${venueId}/export.csv`, { query: { date }, responseType: 'blob' })
+export async function fetchDayExport(venueId: string, date: string): Promise<VenueExport> {
+	return apiFetch<VenueExport>(`/staff/venues/${venueId}/export`, { query: { date } })
 }

@@ -16,7 +16,6 @@ export interface TableHolder {
 export async function tableHolders(db: Prisma.TransactionClient, venueId: string, startsAt: Date, diningMinutes: number, excludeReservationId?: string): Promise<TableHolder[]> {
 	const rows = await db.reservationTable.findMany({
 		where: {
-			table: { venueId },
 			reservation: {
 				venueId,
 				id: excludeReservationId ? { not: excludeReservationId } : undefined,
@@ -26,10 +25,9 @@ export async function tableHolders(db: Prisma.TransactionClient, venueId: string
 		},
 		include: {
 			reservation: { select: { id: true, status: true, startsAt: true, guest: { select: { fullName: true } } } },
-			table: { select: { id: true } },
 		},
 	})
-	return rows.map((r) => ({ id: r.reservation.id, tableId: r.table.id, status: r.reservation.status, startsAt: r.reservation.startsAt, guestName: r.reservation.guest.fullName }))
+	return rows.map((r) => ({ id: r.reservation.id, tableId: r.tableId, status: r.reservation.status, startsAt: r.reservation.startsAt, guestName: r.reservation.guest.fullName }))
 }
 
 // A holder who has not arrived and is past start + grace: staff may give the table away.
@@ -126,4 +124,40 @@ export async function assertAreaCapacity(db: Prisma.TransactionClient, areaId: s
 		}),
 	])
 	if (Number(agg._sum.partySize ?? 0) + partySize > capacity) throw conflict('full')
+}
+
+export async function pickAreaForParty(
+	db: Prisma.TransactionClient,
+	venueId: string,
+	startsAt: Date,
+	partySize: number,
+	diningMinutes: number,
+	areas: Array<{ id: string; capacity: number; minParty?: number | null; maxParty?: number | null }>,
+): Promise<string | null> {
+	const before = new Date(startsAt.getTime() - diningMinutes * 60000)
+	const after = new Date(startsAt.getTime() + diningMinutes * 60000)
+	// Lock areas in id order to avoid deadlocks.
+	await db.$queryRaw<{ id: string }[]>`
+		SELECT id FROM seating_areas
+		WHERE venue_id = ${venueId}::uuid AND bookable = true
+		ORDER BY id
+		FOR UPDATE`
+	const usedByArea = await db.$queryRaw<{ area_id: string; used: string }[]>`
+		SELECT seating_area_id AS area_id, coalesce(sum(party_size), 0)::text AS used
+		FROM reservations
+		WHERE venue_id = ${venueId}::uuid
+		  AND starts_at > ${before}
+		  AND starts_at < ${after}
+		  AND status IN ('pending', 'confirmed', 'arrived', 'seated')
+		GROUP BY seating_area_id`
+	const usedMap = new Map(usedByArea.map((r) => [r.area_id, Number(r.used)]))
+	let best: { id: string; remaining: number } | null = null
+	for (const area of areas) {
+		if (area.minParty != null && partySize < area.minParty) continue
+		if (area.maxParty != null && partySize > area.maxParty) continue
+		const remaining = area.capacity - (usedMap.get(area.id) ?? 0)
+		if (remaining < partySize) continue
+		if (!best || remaining < best.remaining) best = { id: area.id, remaining }
+	}
+	return best ? best.id : null
 }

@@ -11,9 +11,9 @@ import { createWalkIn, fetchStaffTableAvailability } from '@/composables/useApi'
 const props = defineProps<{
 	open: boolean
 	areas: Array<{ id: string; name: string }>
-	venueSlug?: string
 	venueId?: string
 	date: string
+	floorPlan: PublicFloorPlan | null
 }>()
 
 const emit = defineEmits<{
@@ -43,7 +43,7 @@ const guestNotes = ref('')
 const country = ref('')
 const error = ref<string | null>(null)
 const submitting = ref(false)
-const floorPlan = ref<PublicFloorPlan | null>(null)
+const floorPlan = computed(() => props.floorPlan)
 // Chosen table indexes; all chosen tables share one seating area.
 const chosen = ref<number[]>([])
 const areaName = (id: string) => props.areas.find((a) => a.id === id)?.name
@@ -97,7 +97,6 @@ watch(seatingAreaId, (a) => {
 watch(() => props.open, (val) => {
 	if (val) {
 		chosen.value = []
-		if (props.venueSlug) $fetch<PublicFloorPlan>(`/api/public/venues/${props.venueSlug}/floor-plan`).then((p) => { floorPlan.value = p }).catch(() => { floorPlan.value = null })
 		error.value = null
 		fullName.value = ''
 		phone.value = ''
