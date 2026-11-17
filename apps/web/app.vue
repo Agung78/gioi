@@ -49,9 +49,9 @@
     <main id="main" class="flex-1">
       <NuxtPage />
     </main>
-    <!-- Public pages have no app header: floating on desktop, end of page on mobile so it never covers content. -->
-    <div v-if="isPublic" class="flex justify-end px-4 pb-6 md:fixed md:bottom-6 md:right-6 md:z-50 md:p-0">
-      <ThemeToggle class="md:h-12 md:w-12 md:shadow-soft" />
+    <!-- Public pages have no app header: the theme toggle floats bottom-right, above the booking bar when the page has one. -->
+    <div v-if="isPublic" class="fixed right-4 z-50 md:right-6" :class="route.meta.bottomBar ? 'bottom-28 lg:bottom-6' : 'bottom-4 md:bottom-6'">
+      <ThemeToggle class="shadow-soft md:h-12 md:w-12" />
     </div>
   </div>
 </template>

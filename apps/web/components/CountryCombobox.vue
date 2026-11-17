@@ -2,7 +2,9 @@
 import { computed, ref } from 'vue'
 
 const model = defineModel<string>({ default: '' })
-const props = defineProps<{ id: string; placeholder?: string }>()
+const UNKNOWN = 'Unknown / prefer not to say'
+
+const props = defineProps<{ id: string; placeholder?: string; required?: boolean }>()
 
 const names = new Intl.DisplayNames(['en'], { type: 'region' })
 // Intl returns the bare code for unassigned regions; drop those.
@@ -17,9 +19,9 @@ const active = ref(0)
 // Prefix matches first, then substring matches.
 const options = computed(() => {
 	const q = model.value.trim().toLowerCase()
-	if (!q) return all
+	if (!q) return [UNKNOWN, ...all]
 	const starts = all.filter((c) => c.toLowerCase().startsWith(q))
-	return [...starts, ...all.filter((c) => !starts.includes(c) && c.toLowerCase().includes(q))]
+	return [UNKNOWN, ...starts, ...all.filter((c) => !starts.includes(c) && c.toLowerCase().includes(q))]
 })
 
 function pick(c: string) {
@@ -44,7 +46,7 @@ function onKey(e: KeyboardEvent) {
 <template>
 	<div class="relative">
 		<input
-			:id="id" v-model="model" class="field" role="combobox" autocomplete="off" :placeholder="placeholder"
+			:id="id" v-model="model" class="field" role="combobox" autocomplete="off" :placeholder="placeholder" :required="required"
 			:aria-expanded="open && options.length > 0" :aria-controls="`${id}-list`" aria-autocomplete="list"
 			:aria-activedescendant="open ? `${id}-opt-${active}` : undefined"
 			@focus="open = true" @blur="open = false" @input="open = true; active = 0" @keydown="onKey"

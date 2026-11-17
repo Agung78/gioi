@@ -68,16 +68,16 @@ onBeforeUnmount(() => ctx?.revert())
 <template>
   <div ref="root" class="overflow-x-clip">
     <NyePromo v-if="venue === 'bali'" />
-    <section data-hero class="relative isolate z-10 flex min-h-[100svh] flex-col bg-navy text-white">
+    <section data-hero class="relative isolate z-10 flex flex-col bg-navy text-white md:min-h-[100svh]">
       <header class="relative z-20">
-        <div class="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 md:px-8">
-          <NuxtLink :to="`/${venue}`" class="flex"><img src="/logo-96.webp" alt="" width="96" height="96" fetchpriority="high" class="h-12 w-12 rounded-full object-cover" /><span class="sr-only">GIOI Ocean Gourmet, home</span></NuxtLink>
-          <nav class="flex items-center gap-1 sm:gap-2">
-            <a href="#signatures" class="hidden rounded-full px-4 py-2 text-sm font-medium text-white/80 transition hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-sand sm:inline-flex">Menu</a>
-            <a href="#experience" class="hidden rounded-full px-4 py-2 text-sm font-medium text-white/80 transition hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-sand sm:inline-flex">Experience</a>
-            <a href="#visit" class="hidden rounded-full px-4 py-2 text-sm font-medium text-white/80 transition hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-sand sm:inline-flex">Visit</a>
-            <a :href="bookHref" class="btn bg-sand text-navy hover:bg-white">Reserve a table</a>
+        <div class="mx-auto flex h-16 max-w-7xl items-center gap-1 px-4 sm:gap-2 md:px-8">
+          <NuxtLink :to="`/${venue}`" class="flex shrink-0"><img src="/logo-96.webp" alt="" width="96" height="96" fetchpriority="high" class="h-12 w-12 rounded-full object-cover" /><span class="sr-only">GIOI Ocean Gourmet, home</span></NuxtLink>
+          <nav class="ml-auto flex items-center sm:gap-2" aria-label="Sections">
+            <a href="#signatures" class="rounded-full px-2 py-2 text-[13px] font-medium text-white/80 transition hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-sand sm:px-4 sm:text-sm">Menu</a>
+            <a href="#experience" class="rounded-full px-2 py-2 text-[13px] font-medium text-white/80 transition hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-sand sm:px-4 sm:text-sm">Experience</a>
+            <a href="#visit" class="rounded-full px-2 py-2 text-[13px] font-medium text-white/80 transition hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-sand sm:px-4 sm:text-sm">Visit</a>
           </nav>
+          <a :href="bookHref" class="btn shrink-0 bg-sand !px-4 text-navy hover:bg-white sm:!px-6"><span>Reserve<span class="hidden sm:inline"> a table</span></span></a>
         </div>
       </header>
 
@@ -98,7 +98,7 @@ onBeforeUnmount(() => ctx?.revert())
       </div>
     </section>
 
-    <section id="about" class="mx-auto max-w-7xl px-4 py-16 md:px-8 md:py-20 border-b border-line">
+    <section id="about" class="mx-auto max-w-7xl px-4 py-12 md:px-8 md:py-20 border-b border-line">
       <div class="grid items-center gap-10 md:grid-cols-[1.4fr_0.6fr] md:gap-16">
         <div>
           <h2 class="text-[clamp(2rem,4.5vw,3.5rem)] font-extrabold leading-[1.05]">About GIOI Ocean Gourmet Bali</h2>
@@ -106,13 +106,13 @@ onBeforeUnmount(() => ctx?.revert())
             <p v-for="(para, i) in p.about" :key="i" class="leading-relaxed text-muted">{{ para }}</p>
           </div>
         </div>
-        <img src="/logo-480.webp" alt="GIOI Ocean Gourmet logo" width="480" height="480" class="aspect-square w-48 rounded-full object-cover md:w-64 md:justify-self-end" />
+        <img src="/logo-480.webp" alt="GIOI Ocean Gourmet logo" width="480" height="480" class="aspect-square w-48 justify-self-center rounded-full object-cover md:w-64 md:justify-self-end" />
       </div>
     </section>
 
-<section id="signatures" class="mx-auto max-w-7xl px-4 py-16 md:px-8 md:py-32 border-b border-line">
+<section id="signatures" class="mx-auto max-w-7xl px-4 py-12 md:px-8 md:py-20 border-b border-line">
       <h2 class="text-[clamp(2rem,4.5vw,3.5rem)] font-extrabold leading-[1.05]">{{ p.signaturesTitle }}</h2>
-      <div class="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+      <div class="mt-8 grid gap-6 sm:grid-cols-2 md:mt-12 lg:grid-cols-4">
         <article v-for="s in p.signatures" :key="s.name" class="leading-relaxed text-muted">
           <button type="button" class="block aspect-[4/3] w-full cursor-zoom-in overflow-hidden rounded-surface bg-line/50" :aria-label="`View ${s.name} full size`" @click="zoom = s"><img :src="s.img" :alt="s.alt" :srcset="`${s.img.replace(/\.webp$/, '-640.webp')} 640w, ${s.img} 1024w`" sizes="(min-width: 1024px) 25vw, (min-width: 640px) 50vw, 100vw" loading="lazy" decoding="async" width="320" height="240" class="h-full w-full object-cover" :style="{ objectPosition: `50% ${s.pos}%` }" /></button>
           <h3 class="mt-4 text-xl font-extrabold">{{ s.name }}</h3>
@@ -132,20 +132,20 @@ onBeforeUnmount(() => ctx?.revert())
     </section>
 
 
-<section id="experience" class="mx-auto max-w-7xl px-4 py-16 md:px-8 md:py-36">
+<section id="experience" class="mx-auto max-w-7xl px-4 py-12 md:px-8 md:py-24">
       <div class="max-w-3xl"><h2 data-rise class="text-[clamp(2rem,4.5vw,3.5rem)] font-extrabold leading-[1.05]">{{ p.experienceTitle }}</h2></div>
-      <ol class="mt-16 grid gap-6 md:mt-24 md:grid-cols-3 md:gap-8"><li v-for="scene in p.scenes" :key="scene.title" data-rise :class="scene.feature ? 'md:-translate-y-12' : ''"><div class="group relative overflow-hidden rounded-surface"><div class="aspect-[4/5] overflow-hidden bg-line/50"><img :src="scene.img" :alt="scene.alt" loading="lazy" width="1600" height="900" class="h-full w-full object-cover transition duration-700 group-hover:scale-[1.03]" /></div><span class="absolute left-4 top-4 rounded-full bg-navy/85 px-3 py-1 font-display text-sm font-bold text-sand backdrop-blur">{{ scene.time }}</span></div><div class="mt-5"><h3 class="text-2xl font-extrabold">{{ scene.title }}</h3><p class="mt-2 max-w-[36ch] leading-relaxed text-muted">{{ scene.copy }}</p></div></li></ol>
+      <ol class="mt-8 grid gap-6 md:mt-14 md:grid-cols-3 md:gap-8"><li v-for="scene in p.scenes" :key="scene.title" data-rise><div class="group relative overflow-hidden rounded-surface"><div class="aspect-[4/3] overflow-hidden bg-line/50 md:aspect-[4/5]"><img :src="scene.img" :alt="scene.alt" loading="lazy" width="1600" height="900" class="h-full w-full object-cover transition duration-700 group-hover:scale-[1.03]" /></div><span class="absolute left-4 top-4 rounded-full bg-navy/85 px-3 py-1 font-display text-sm font-bold text-sand backdrop-blur">{{ scene.time }}</span></div><div class="mt-5"><h3 class="text-2xl font-extrabold">{{ scene.title }}</h3><p class="mt-2 max-w-[36ch] leading-relaxed text-muted">{{ scene.copy }}</p></div></li></ol>
     </section>
 
-    <section id="visit" class="border-b border-line"><div class="mx-auto grid max-w-7xl gap-16 px-4 py-16 md:grid-cols-[1.1fr_0.9fr] md:px-8 md:py-32"><div><h2 data-rise class="text-[clamp(2rem,4.5vw,3.5rem)] font-extrabold leading-[1.02]">{{ p.visitTitle }}</h2><div data-rise class="mt-8 flex gap-3 text-lg leading-relaxed"><PhMapPin :size="24" class="mt-1 shrink-0 text-accent" aria-hidden="true" /><address class="not-italic">{{ info?.address }}<br /><a :href="info?.mapsUrl" target="_blank" rel="noopener" class="group inline-flex min-h-11 items-center gap-1 font-medium text-accent underline decoration-line underline-offset-4">Get directions <PhArrowUpRight :size="16" aria-hidden="true" /></a></address></div>
+    <section id="visit" class="border-b border-line"><div class="mx-auto grid max-w-7xl gap-10 px-4 py-12 md:grid-cols-[1.1fr_0.9fr] md:gap-16 md:px-8 md:py-20"><div><h2 data-rise class="text-[clamp(2rem,4.5vw,3.5rem)] font-extrabold leading-[1.02]">{{ p.visitTitle }}</h2><div data-rise class="mt-8 flex gap-3 text-lg leading-relaxed"><PhMapPin :size="24" class="mt-1 shrink-0 text-accent" aria-hidden="true" /><address class="not-italic">{{ info?.address }}<br /><a :href="info?.mapsUrl" target="_blank" rel="noopener" class="group inline-flex min-h-11 items-center gap-1 font-medium text-accent underline decoration-line underline-offset-4">Get directions <PhArrowUpRight :size="16" aria-hidden="true" /></a></address></div>
           <div data-rise class="mt-10 flex flex-wrap gap-3">
           <!-- Brand glyphs: simple-icons 16.38.0 (CC0), monochrome so they follow the theme ink -->
           <a v-if="gmaps" :href="gmaps" target="_blank" rel="noopener noreferrer" class="btn-secondary"><svg viewBox="0 0 24 24" class="size-5 fill-current" aria-hidden="true"><path d="M19.527 4.799c1.212 2.608.937 5.678-.405 8.173-1.101 2.047-2.744 3.74-4.098 5.614-.619.858-1.244 1.75-1.669 2.727-.141.325-.263.658-.383.992-.121.333-.224.673-.34 1.008-.109.314-.236.684-.627.687h-.007c-.466-.001-.579-.53-.695-.887-.284-.874-.581-1.713-1.019-2.525-.51-.944-1.145-1.817-1.79-2.671L19.527 4.799zM8.545 7.705l-3.959 4.707c.724 1.54 1.821 2.863 2.871 4.18.247.31.494.622.737.936l4.984-5.925-.029.01c-1.741.601-3.691-.291-4.392-1.987a3.377 3.377 0 0 1-.209-.716c-.063-.437-.077-.761-.004-1.198l.001-.007zM5.492 3.149l-.003.004c-1.947 2.466-2.281 5.88-1.117 8.77l4.785-5.689-.058-.05-3.607-3.035zM14.661.436l-3.838 4.563a.295.295 0 0 1 .027-.01c1.6-.551 3.403.15 4.22 1.626.176.319.323.683.377 1.045.068.446.085.773.012 1.22l-.003.016 3.836-4.561A8.382 8.382 0 0 0 14.67.439l-.009-.003zM9.466 5.868L14.162.285l-.047-.012A8.31 8.31 0 0 0 11.986 0a8.439 8.439 0 0 0-6.169 2.766l-.016.018 3.665 3.084z"/></svg> Google Maps<span v-if="seo.googleRating" class="font-medium text-muted">{{ seo.googleRating.rating }} · {{ seo.googleRating.count }} reviews</span></a>
           <a v-if="tripadvisor" :href="tripadvisor" target="_blank" rel="noopener noreferrer" class="btn-secondary"><svg viewBox="0 0 24 24" class="size-5 fill-current" aria-hidden="true"><path d="M12.006 4.295c-2.67 0-5.338.784-7.645 2.353H0l1.963 2.135a5.997 5.997 0 0 0 4.04 10.43 5.976 5.976 0 0 0 4.075-1.6L12 19.705l1.922-2.09a5.972 5.972 0 0 0 4.072 1.598 6 6 0 0 0 6-5.998 5.982 5.982 0 0 0-1.957-4.432L24 6.648h-4.35a13.573 13.573 0 0 0-7.644-2.353zM12 6.255c1.531 0 3.063.303 4.504.903C13.943 8.138 12 10.43 12 13.1c0-2.671-1.942-4.962-4.504-5.942A11.72 11.72 0 0 1 12 6.256zM6.002 9.157a4.059 4.059 0 1 1 0 8.118 4.059 4.059 0 0 1 0-8.118zm11.992.002a4.057 4.057 0 1 1 .003 8.115 4.057 4.057 0 0 1-.003-8.115zm-11.992 1.93a2.128 2.128 0 0 0 0 4.256 2.128 2.128 0 0 0 0-4.256zm11.992 0a2.128 2.128 0 0 0 0 4.256 2.128 2.128 0 0 0 0-4.256z"/></svg> Tripadvisor<span v-if="seo.tripadvisorRating" class="font-medium text-muted">{{ seo.tripadvisorRating.rating }} · {{ seo.tripadvisorRating.count }} reviews</span></a></div></div><div data-rise class="self-end"><div class="flex items-center justify-between"><h3 class="flex items-center gap-2 text-sm font-semibold uppercase tracking-[0.2em] text-muted"><PhClock :size="18" aria-hidden="true" /> Hours</h3><ClientOnly><span class="text-sm font-semibold uppercase tracking-[0.2em] tabular-nums" :aria-label="`Current time at ${name}`">{{ wita }} <span class="text-muted">{{ seo.tzLabel }}</span></span><template #fallback><span class="text-sm font-semibold uppercase tracking-[0.2em] tabular-nums" /></template></ClientOnly></div><ul class="mt-4 divide-y divide-line border-y border-line"><li v-for="d in days" :key="d" class="flex justify-between py-3"><span class="text-muted">{{ dayLabel[d] }}</span><span class="font-medium">{{ hours[d] ? `${hours[d].open} to ${hours[d].close}` : 'Closed' }}</span></li></ul></div></div></section>
 
-    <section id="faq" class="mx-auto max-w-7xl px-4 py-16 md:px-8 md:py-20 border-b border-line">
+    <section id="faq" class="mx-auto max-w-7xl px-4 py-12 md:px-8 md:py-20 border-b border-line">
       <h2 class="text-[clamp(2rem,4.5vw,3.5rem)] font-extrabold leading-[1.05]">Frequently asked questions</h2>
-      <div class="mt-12 border-t border-line">
+      <div class="mt-8 border-t border-line md:mt-12">
 <details v-for="(faq, i) in p.faqs" :key="i" class="group border-b border-line"><summary class="flex cursor-pointer list-none items-center justify-between py-4 font-medium focus:outline-none"><span>{{ faq.q }}</span><span class="text-xl leading-[1.2] text-muted transition-transform group-open:rotate-45" aria-hidden="true">+</span></summary><div class="pb-4 text-muted leading-relaxed">{{ faq.a }}</div></details>
       </div>
     </section>

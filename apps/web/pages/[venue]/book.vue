@@ -1,4 +1,5 @@
 <script setup lang="ts">
+definePageMeta({ public: true, bottomBar: true })
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter, useHead } from '#app'
 import { addDays, localDate, isOpenOn, hoursFor, checkAvailability } from '@gioi/domain'
@@ -219,14 +220,14 @@ const canSubmit = computed(() => {
   if (!time.value) return false
   if (!acceptedPolicy.value) return false
   if (noticeActive.value && !noticeAccepted.value) return false
-  if (!fullName.value.trim() || !phone.value.trim()) return false
+  if (!fullName.value.trim() || !phone.value.trim() || !country.value.trim()) return false
   const r = checkResult.value
   return r?.ok === true
 })
 
 const missingStepPrompt = computed(() => {
   if (!time.value) return 'Pick a time slot'
-  if (!fullName.value.trim() || !phone.value.trim() || !email.value.trim()) return 'Enter full name, phone & email'
+  if (!fullName.value.trim() || !phone.value.trim() || !email.value.trim() || !country.value.trim()) return 'Enter full name, phone, email & country'
   if (!acceptedPolicy.value) return 'Accept cancellation policy'
   if (noticeActive.value && !noticeAccepted.value) return 'Read and accept the special notice'
   return ''
@@ -441,8 +442,8 @@ onMounted(() => {
                 placeholder="you@example.com" />
             </div>
             <div>
-              <label class="label" for="country">Country (optional)</label>
-              <CountryCombobox id="country" v-model="country" placeholder="Australia" />
+              <label class="label" for="country">Country</label>
+              <CountryCombobox id="country" v-model="country" required placeholder="Australia" />
             </div>
           </div>
         </section>

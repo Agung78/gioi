@@ -117,6 +117,10 @@ async function submit() {
 		error.value = 'Name is required.'
 		return
 	}
+	if (!country.value.trim()) {
+		error.value = 'Nationality is required.'
+		return
+	}
 	if (chosen.value.length > 0 && !seatsCoverParty.value) {
 		error.value = `Chosen tables seat ${totalSeats.value}, party needs ${partySize.value}.`
 		return
@@ -194,8 +198,8 @@ async function submit() {
 						</select>
 					</div>
 					<div>
-						<label class="label" for="walkin-country">Nationality (optional)</label>
-						<CountryCombobox id="walkin-country" v-model="country" />
+						<label class="label" for="walkin-country">Nationality</label>
+						<CountryCombobox id="walkin-country" v-model="country" required />
 					</div>
 					<div v-if="floorPlan?.tables.length" class="col-span-2">
 						<FloorPlanSvg :plan="floorPlan" pickable :chosen="chosen" :selected="chosen.length ? `t:${chosen[0]}` : null" :disabled-ids="disabledIds"

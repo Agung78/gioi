@@ -10,7 +10,7 @@ import { registerPublicReservationRoutes } from '../../routes/public/reservation
 import { registerStaffAuthRoutes } from '../../routes/staff/auth'
 import { registerStaffRoutes } from '../../routes/staff'
 import { registerFloorPlanRoutes } from '../../routes/staff/floorPlan'
-import { localDate, localTime } from '@gioi/domain'
+import { localDate, localTime, addDays, type Channel, type ReservationStatus } from '@gioi/domain'
 
 const DATABASE_URL = process.env.TEST_DATABASE_URL || 'postgresql://gioi_app:password@localhost:5432/gioi_test'
 const ADMIN_URL = process.env.TEST_ADMIN_DATABASE_URL || 'postgresql://postgres:postgres@localhost:5432/gioi_test?sslmode=disable'
@@ -140,7 +140,7 @@ describe('API integration', () => {
 			headers: { 'Content-Type': 'application/json' },
 			body: JSON.stringify({
 				guestName: 'Ayu',
-				phone: '+62 811 222 333',
+				phone: '+62 811 222 333', country: 'Indonesia',
 				email: 'ayu@example.com',
 				date: DATE,
 				time: '13:00',
@@ -158,7 +158,7 @@ describe('API integration', () => {
 			fetch(`${baseUrl}/public/venues/bali/reservations`, {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ guestName: 'Ayu', phone: '+62 811 222 333', email: 'ayu@example.com', date: DATE, time: '13:00', partySize: 2, source, idempotencyKey: key }),
+				body: JSON.stringify({ guestName: 'Ayu', phone: '+62 811 222 333', country: 'Indonesia', email: 'ayu@example.com', date: DATE, time: '13:00', partySize: 2, source, idempotencyKey: key }),
 			})
 		const ok = await post('instagram', '33333333-3333-4333-8333-333333333333')
 		expect(ok.status).toBe(201)
@@ -170,7 +170,7 @@ describe('API integration', () => {
 	it('POST idempotency returns the same booking', async () => {
 		const booking = {
 			guestName: 'Ayu',
-			phone: '+62 811 222 333',
+			phone: '+62 811 222 333', country: 'Indonesia',
 			email: 'ayu@example.com',
 			date: DATE,
 			time: '13:00',
@@ -204,7 +204,7 @@ describe('API integration', () => {
 			headers: { 'Content-Type': 'application/json' },
 			body: JSON.stringify({
 				guestName: 'Ayu',
-				phone: '+62 811 222 333',
+				phone: '+62 811 222 333', country: 'Indonesia',
 				email: 'ayu@example.com',
 				date: DATE,
 				time: '13:00',
@@ -231,7 +231,7 @@ describe('API integration', () => {
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({
 					guestName: `Guest ${i}`,
-					phone: `+62 811 000 ${String(i).padStart(4, '0')}`,
+					phone: `+62 811 000 ${String(i).padStart(4, '0')}`, country: 'Indonesia',
 					email: `guest${i}@example.com`,
 					date: DATE,
 					time: '14:00',
@@ -264,7 +264,7 @@ describe('API integration', () => {
 			headers: { 'Content-Type': 'application/json' },
 			body: JSON.stringify({
 				guestName: 'Ayu',
-				phone: '+62 811 222 333',
+				phone: '+62 811 222 333', country: 'Indonesia',
 				email: 'ayu@example.com',
 				date: DATE,
 				time: '13:00',
@@ -291,7 +291,7 @@ describe('API integration', () => {
 			headers: { 'Content-Type': 'application/json' },
 			body: JSON.stringify({
 				guestName: 'Ayu',
-				phone: '+62 811 222 333',
+				phone: '+62 811 222 333', country: 'Indonesia',
 				email: 'ayu@example.com',
 				date: DATE,
 				time: '13:00',
@@ -429,7 +429,7 @@ describe('API integration', () => {
 			headers: { 'Content-Type': 'application/json' },
 			body: JSON.stringify({
 				guestName: 'Ayu',
-				phone: '+62 811 222 333',
+				phone: '+62 811 222 333', country: 'Indonesia',
 				email: 'ayu@example.com',
 				date: DATE,
 				time: '13:00',
@@ -453,7 +453,7 @@ describe('API integration', () => {
 			fetch(`${baseUrl}/public/venues/bali/reservations`, {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ guestName: 'Ayu', phone: '+62 811 222 333', email: 'ayu@example.com', date: DATE, time, partySize, ...extra }),
+				body: JSON.stringify({ guestName: 'Ayu', phone: '+62 811 222 333', country: 'Indonesia', email: 'ayu@example.com', date: DATE, time, partySize, ...extra }),
 			})
 		const unavailable = async (time: string, partySize: number) =>
 			(await (await fetch(`${baseUrl}/public/venues/bali/table-availability?date=${DATE}&time=${time}&partySize=${partySize}`)).json()).unavailableTableIds.sort()
@@ -490,7 +490,7 @@ describe('API integration', () => {
 			fetch(`${baseUrl}/staff/reservations`, {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json', cookie },
-				body: JSON.stringify({ guestName: 'Walk', date: DATE, time: '13:00', partySize: 2, source: 'walk_in', tableIds: [tableId] }),
+				body: JSON.stringify({ guestName: 'Walk', country: 'Indonesia', date: DATE, time: '13:00', partySize: 2, source: 'walk_in', tableIds: [tableId] }),
 			})
 		expect((await walkIn(four.id)).status).toBe(409)
 
@@ -566,7 +566,7 @@ describe('API integration', () => {
 			fetch(`${baseUrl}${path}`, { method, headers: { 'Content-Type': 'application/json', cookie }, body: JSON.stringify(body) })
 		const now = new Date()
 		const walkIn = (tableId: string, takeOver?: boolean) =>
-			send('POST', '/staff/reservations', { guestName: 'Walk', date: localDate(now, venue.timeZone), time: localTime(now, venue.timeZone), partySize: 2, source: 'walk_in', tableIds: [tableId], takeOver })
+			send('POST', '/staff/reservations', { guestName: 'Walk', country: 'Indonesia', date: localDate(now, venue.timeZone), time: localTime(now, venue.timeZone), partySize: 2, source: 'walk_in', tableIds: [tableId], takeOver })
 		const states = async () =>
 			(await (await fetch(`${baseUrl}/admin/venues/${venue.id}/table-availability?date=${localDate(now, venue.timeZone)}&time=${localTime(now, venue.timeZone)}&partySize=2`, { headers: { cookie } })).json()).tables
 
@@ -631,7 +631,7 @@ describe('API integration', () => {
 			fetch(`${baseUrl}${path}`, { method, headers: { 'Content-Type': 'application/json', cookie }, body: JSON.stringify(body) })
 
 		// Two 4-seat tables for partySize 6: SUM=8 >= 6 -> 200, both held.
-		const ok = await send('POST', '/staff/reservations', { guestName: 'Six', date: DATE, time: '13:00', partySize: 6, source: 'walk_in', tableIds: [t1.id, t2.id] })
+		const ok = await send('POST', '/staff/reservations', { guestName: 'Six', country: 'Indonesia', date: DATE, time: '13:00', partySize: 6, source: 'walk_in', tableIds: [t1.id, t2.id] })
 		expect(ok.status).toBe(200)
 		const { reservationId } = await ok.json()
 		const rows = await prisma.reservationTable.findMany({ where: { reservationId }, select: { tableId: true } })
@@ -642,10 +642,10 @@ describe('API integration', () => {
 		expect((await states()).find((t: { tableId: string }) => t.tableId === t2.id)!.reason).toBe('held')
 
 		// Sum too small: one 2-seater for partySize 5 -> 422 'tables are too small'.
-		expect((await send('POST', '/staff/reservations', { guestName: 'Five', date: DATE, time: '14:00', partySize: 5, source: 'walk_in', tableIds: [small1.id] })).status).toBe(422)
+		expect((await send('POST', '/staff/reservations', { guestName: 'Five', country: 'Indonesia', date: DATE, time: '14:00', partySize: 5, source: 'walk_in', tableIds: [small1.id] })).status).toBe(422)
 
 		// Tables from two different areas -> 422.
-		expect((await send('POST', '/staff/reservations', { guestName: 'Split', date: DATE, time: '15:00', partySize: 2, source: 'walk_in', tableIds: [t1.id, u1.id] })).status).toBe(422)
+		expect((await send('POST', '/staff/reservations', { guestName: 'Split', country: 'Indonesia', date: DATE, time: '15:00', partySize: 2, source: 'walk_in', tableIds: [t1.id, u1.id] })).status).toBe(422)
 	})
 	it('staff paths enforce area capacity; walk-in can be created confirmed; notice needs a date', async () => {
 		const venue = (await prisma.venue.findUnique({ where: { slug: 'bali' } }))!
@@ -673,7 +673,7 @@ describe('API integration', () => {
 		expect((await prisma.reservation.findUnique({ where: { id: moving.id } }))!.seatingAreaId).toBe(areaIds[0])
 
 		// Walk-in into the explicit full area -> 409.
-		const walk = { guestName: 'Walk', date: localDate(startsAt, venue.timeZone), time: localTime(startsAt, venue.timeZone), partySize: 2, source: 'walk_in' }
+		const walk = { guestName: 'Walk', country: 'Indonesia', date: localDate(startsAt, venue.timeZone), time: localTime(startsAt, venue.timeZone), partySize: 2, source: 'walk_in' }
 		expect((await send('POST', '/staff/reservations', { ...walk, seatingAreaId: terrace.id })).status).toBe(409)
 
 		// Walk-in created as confirmed: one status event, toStatus confirmed.
@@ -688,5 +688,92 @@ describe('API integration', () => {
 		// Notice enabled without a date -> 422.
 		expect((await send('PATCH', `/admin/venues/${venue.id}`, { noticeEnabled: true, noticeDate: null })).status).toBe(422)
 		expect((await send('PATCH', `/admin/venues/${venue.id}`, { noticeEnabled: true, noticeDate: DATE })).status).toBe(200)
+	})
+	it('GET /admin/analytics returns previous and occasionOptions', async () => {
+		const venue = (await prisma.venue.findUnique({ where: { slug: 'bali' } }))!
+		const mainHall = (await prisma.seatingArea.findFirst({ where: { venueId: venue.id, name: 'Main Hall' } }))!
+
+		await prisma.user.create({
+			data: {
+				name: 'Admin',
+				login: 'analyticsadmin',
+				passwordHash: await hash('pw-12345'),
+				active: true,
+				venues: { create: { venueId: venue.id, role: 'admin' } },
+			},
+		})
+		const login = await fetch(`${baseUrl}/staff/login`, {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify({ login: 'analyticsadmin', password: 'pw-12345' }),
+		})
+		expect(login.status).toBe(200)
+		const cookie = login.headers.get('set-cookie')!.split(';')[0]
+
+		const today = DATE
+		const to = today
+		const from = addDays(today, -6)
+		const prevEnd = addDays(from, -1)
+		const prevStart = addDays(prevEnd, -6)
+
+		let phoneSeq = 0
+		const book = async (date: string, time: string, source: Channel, occasion: string | null, status: ReservationStatus) =>
+			prisma.reservation.create({
+				data: {
+					venueId: venue.id,
+					bookingCode: `AN${date.replace(/-/g, '')}${time.replace(':', '')}`,
+					guestId: (await prisma.guest.create({ data: { venueId: venue.id, fullName: 'G', phone: `+62 811 000 ${String(++phoneSeq).padStart(3, '0')}` } })).id,
+					seatingAreaId: mainHall.id,
+					startsAt: new Date(`${date}T${time}:00Z`),
+					partySize: 2,
+					source,
+					occasion,
+					status,
+				},
+			})
+
+		// current window: 2 website bookings w/ occasion 'Birthday', 1 instagram w/ 'Dinner'
+		await book(from, '10:00', 'website', 'Birthday', 'completed')
+		await book(addDays(from, 1), '11:00', 'website', 'Birthday', 'completed')
+		await book(addDays(from, 2), '12:00', 'instagram', 'Dinner', 'completed')
+		// previous window: 1 website 'Birthday', 1 walk_in 'Dinner'
+		await book(prevStart, '10:00', 'website', 'Birthday', 'completed')
+		await book(addDays(prevStart, 1), '11:00', 'walk_in', 'Dinner', 'completed')
+
+		const res = await fetch(`${baseUrl}/admin/analytics?from=${from}&to=${to}&source=website&occasion=Birthday`, {
+			headers: { cookie },
+		})
+		expect(res.status).toBe(200)
+		const body = await res.json()
+		expect(Array.isArray(body.occasionOptions)).toBe(true)
+		expect(body.occasionOptions).toContain('Birthday')
+		expect(body.occasionOptions).toContain('Dinner')
+		expect(body.previous).toEqual({
+			channel: { totalBookings: 1, totalCovers: 2 },
+			reliability: { noShowRate: 0, cancellationRate: 0 },
+		})
+		// current window, filtered to website + Birthday, aggregated in SQL
+		expect(body.dashboard.channel).toMatchObject({ totalBookings: 2, totalCovers: 4, rows: [{ channel: 'website', bookings: 2, covers: 4, share: 100 }] })
+		expect(body.dashboard.reliability).toMatchObject({ totalRealised: 2, noShowRate: 0, cancellationRate: 0 })
+		expect(body.dashboard.reliability.averageLeadTimeHours).toBeGreaterThan(0)
+		// feedback: summary covers every row, list pages by keyset cursor
+		for (let i = 0; i < 7; i++) await book(addDays(from, 3), `${13 + i}:00`, 'walk_in', 'Dinner', 'completed')
+		const fbRes = await prisma.reservation.findMany({ where: { venueId: venue.id, status: 'completed' }, orderBy: { startsAt: 'asc' } })
+		const submittedAt = new Date(`${to}T05:00:00Z`) // identical timestamps force the id tiebreak
+		for (const [i, r] of fbRes.entries()) await prisma.feedback.create({ data: { venueId: venue.id, reservationId: r.id, rating: i % 2 ? 5 : 3, comments: 'c', serviceTags: ['Food'], submittedAt } })
+		const fbBody = await (await fetch(`${baseUrl}/admin/analytics?from=${prevStart}&to=${to}`, { headers: { cookie } })).json()
+		expect(fbBody.feedbackSummary).toMatchObject({ count: 12, average: 4, tags: [{ tag: 'Food', count: 12 }] })
+		expect(fbBody.feedback).toHaveLength(10)
+		const page2 = await (await fetch(`${baseUrl}/admin/feedback?from=${prevStart}&to=${to}&cursor=${fbBody.feedbackNextCursor}`, { headers: { cookie } })).json()
+		expect(page2.items).toHaveLength(2)
+		expect(page2.nextCursor).toBeNull()
+		expect(new Set([...fbBody.feedback, ...page2.items].map((f: { id: string }) => f.id)).size).toBe(12)
+		expect((await fetch(`${baseUrl}/admin/feedback?from=${prevStart}&to=${to}&cursor=garbage`, { headers: { cookie } })).status).toBe(400)
+		expect(body.dashboard.guestMix).toMatchObject({
+			firstTimers: 2,
+			repeatGuests: 0,
+			occasionMix: [{ occasion: 'Birthday', covers: 4 }],
+			partySizeMix: [{ bucket: '1–2', bookings: 2 }],
+		})
 	})
 })

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+definePageMeta({ public: true })
 import { computed, ref } from 'vue'
 import { useRoute, useHead } from '#app'
 import { PhCheckCircle, PhCopy, PhCalendarPlus, PhMapPin, PhWhatsappLogo } from '@phosphor-icons/vue'
