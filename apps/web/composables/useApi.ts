@@ -215,6 +215,13 @@ export interface AdminAnalytics {
 			guest: { id: string; fullName: string; phone: string | null }
 		}
 	}>
+	feedbackNextCursor: string | null
+	feedbackSummary: {
+		count: number
+		average: number | null
+		distribution: Array<{ rating: number; count: number }>
+		tags: Array<{ tag: string; count: number }>
+	}
 	dashboard: {
 		today: {
 			date: string

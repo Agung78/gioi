@@ -15,7 +15,6 @@ import DatePicker from '@/components/DatePicker.vue'
 import BarChart from '@/components/BarChart.vue'
 import Sparkline from '@/components/Sparkline.vue'
 import Pagination from '@/components/Pagination.vue'
-import { usePagination } from '@/composables/usePagination'
 import { useAuthStore } from '@/stores/auth'
 import type { AdminAnalytics, AdminReservationsPage } from '@/composables/useApi'
 
@@ -179,7 +178,25 @@ function deltaFor(current: number, previousValue: number | null, kind: 'count' |
 const dashboard = computed(() => analytics.value?.dashboard ?? null)
 const analyticsErrorMessage = computed(() => (analyticsError.value?.data as { message?: string } | null)?.message ?? analyticsError.value?.message)
 const settings = computed(() => analytics.value?.settings)
-const feedback = computed(() => analytics.value?.feedback ?? [])
+const feedback = ref<AdminAnalytics['feedback']>([])
+const feedbackCursor = ref<string | null>(null)
+const feedbackLoading = ref(false)
+watch(analytics, (a) => { feedback.value = a?.feedback ?? []; feedbackCursor.value = a?.feedbackNextCursor ?? null }, { immediate: true })
+const feedbackSummary = computed(() => analytics.value?.feedbackSummary)
+async function loadMoreFeedback() {
+	if (!feedbackCursor.value || feedbackLoading.value) return
+	feedbackLoading.value = true
+	try {
+		const page = await $fetch<{ items: AdminAnalytics['feedback']; nextCursor: string | null }>('/api/admin/feedback', {
+			query: { from: filters.value.rangeStart, to: filters.value.rangeEnd, cursor: feedbackCursor.value, venueId: auth.isSuperAdmin && auth.selectedVenueId ? auth.selectedVenueId : undefined },
+			credentials: 'include',
+		})
+		feedback.value = [...feedback.value, ...page.items]
+		feedbackCursor.value = page.nextCursor
+	} finally {
+		feedbackLoading.value = false
+	}
+}
 const turnTime = computed(() => analytics.value?.turnTime ?? null)
 
 function setPreset(next: DateRangePreset) {
@@ -194,18 +211,13 @@ const areaName = (id: string) => areas.value.find((a: { id: string; name: string
 const rangeLabel = computed(() => `${filters.value.rangeStart} → ${filters.value.rangeEnd}`)
 const periodLabel = computed(() => ({ today: 'today', last7: 'last 7 days', last30: 'last 30 days', custom: rangeLabel.value })[preset.value])
 const resPageCount = computed(() => Math.max(1, Math.ceil((resData.value?.total ?? 0) / RES_PAGE)))
-const { page: fbPage, pageCount: fbPageCount, paged: fbPaged } = usePagination(feedback, 10)
 const cueLink = (cue: { guestId?: string; kind: string }) =>
 	cue.guestId ? `/guests/${cue.guestId}` : cue.kind === 'slot_over_capacity' ? '/host' : null
 const cueLinkLabel = (cue: { guestId?: string; kind: string }) => (cue.guestId ? 'Open guest →' : 'Open host view →')
-const feedbackDistribution = computed(() => [5, 4, 3, 2, 1].map((n) => ({ label: `${n} ★`, value: feedback.value.filter((r) => r.rating === n).length })))
-const feedbackTags = computed(() => {
-	const counts = new Map<string, number>()
-	for (const r of feedback.value) for (const t of r.serviceTags) counts.set(t, (counts.get(t) ?? 0) + 1)
-	return [...counts].sort((a, b) => b[1] - a[1]).slice(0, 8)
-})
+const feedbackDistribution = computed(() => (feedbackSummary.value?.distribution ?? []).map((d) => ({ label: `${d.rating} ★`, value: d.count })))
+const feedbackTags = computed(() => feedbackSummary.value?.tags ?? [])
 const asOf = new Date().toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })
-const feedbackAverage = computed(() => feedback.value.length ? (feedback.value.reduce((sum, r) => sum + r.rating, 0) / feedback.value.length).toFixed(1) : '—')
+const feedbackAverage = computed(() => feedbackSummary.value?.average?.toFixed(1) ?? '—')
 const selectedFeedback = ref<AdminAnalytics['feedback'][number] | null>(null)
 const closeOnEsc = (e: KeyboardEvent) => { if (e.key === 'Escape') selectedFeedback.value = null }
 onMounted(() => document.addEventListener('keydown', closeOnEsc))
@@ -427,18 +439,18 @@ definePageMeta({ middleware: ['auth', 'admin'] })
 		<section class="card mt-4">
 			<div class="flex flex-wrap items-baseline justify-between gap-2">
 				<h3 class="font-display text-lg font-semibold text-ink">Guest feedback <span class="ml-1 text-xs font-normal text-muted">range only</span></h3>
-				<span class="text-sm text-muted">{{ feedback.length }} responses · {{ feedbackAverage }}/5 average</span>
+				<span class="text-sm text-muted">{{ feedbackSummary?.count ?? 0 }} responses · {{ feedbackAverage }}/5 average</span>
 			</div>
-			<div v-if="feedback.length" class="mt-4 grid gap-4 md:grid-cols-2">
+			<div v-if="feedbackSummary?.count" class="mt-4 grid gap-4 md:grid-cols-2">
 				<div><h4 class="label">Rating distribution</h4><BarChart :rows="feedbackDistribution" color="rgb(var(--brand-sun))" /></div>
 				<div>
 					<h4 class="label">Top tags</h4>
-					<div class="mt-2 flex flex-wrap gap-1.5"><span v-for="[tag, n] in feedbackTags" :key="tag" class="rounded-full bg-line px-2.5 py-0.5 text-xs text-ink">{{ tag }} · {{ n }}</span></div>
+					<div class="mt-2 flex flex-wrap gap-1.5"><span v-for="{ tag, count: n } in feedbackTags" :key="tag" class="rounded-full bg-line px-2.5 py-0.5 text-xs text-ink">{{ tag }} · {{ n }}</span></div>
 				</div>
 			</div>
 			<div v-if="feedback.length" class="mt-4 divide-y divide-line border-t border-line">
 				<article
-					v-for="response in fbPaged"
+					v-for="response in feedback"
 					:key="response.id"
 					class="group -mx-2 cursor-pointer rounded-input px-2 py-3 text-sm transition hover:bg-line/40 focus:outline-none focus:ring-2 focus:ring-accent"
 					tabindex="0"
@@ -454,7 +466,7 @@ definePageMeta({ middleware: ['auth', 'admin'] })
 						<span class="text-xs font-medium text-accent underline underline-offset-2">View details →</span>
 					</div>
 				</article>
-				<Pagination v-model:page="fbPage" :page-count="fbPageCount" />
+				<button v-if="feedbackCursor" type="button" class="btn-ghost mt-3 w-full" :disabled="feedbackLoading" @click="loadMoreFeedback">{{ feedbackLoading ? 'Loading…' : 'Load more' }}</button>
 			</div>
 			<p v-else class="mt-4 text-sm text-muted">No native feedback responses yet.</p>
 		</section>

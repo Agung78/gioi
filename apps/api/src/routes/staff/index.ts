@@ -5,9 +5,9 @@ import type { AuthedSession } from '../../lib/auth'
 import {
 	canTransition,
 	nextStatuses,
-	dashboardData,
-	channelPerformancePanel,
-	reliabilityPanel,
+	todayLivePanel,
+	upcomingDaysPanel,
+	actionCues,
 	turnTimePanel,
 	type ReservationStatus,
 	type Channel,
@@ -19,6 +19,7 @@ import {
 import { notFound, conflict, forbidden, unprocessable, AppError } from '../../lib/errors'
 import { csvEscape } from '../../lib/csv'
 import { hash } from '@node-rs/argon2'
+import { channelAndReliability, guestMix, feedbackPage, feedbackSummary } from '../../lib/dashboardStats'
 import { venueToSettings, noticeDateOf } from '../../lib/settings'
 import { requireAuth, requireAdmin, requireVenueAccess } from '../../lib/middleware'
 import { assertAreaCapacity, claimTable, isLate, requestedTableArea, tableHolders, type TableHolder } from '../../lib/tables'
@@ -1106,9 +1107,10 @@ export function registerStaffRoutes(app: FastifyInstance, prisma: PrismaClient):
 			const rangeStart = request.query.from ?? addDays(today, -30)
 			const rangeEnd = request.query.to ?? today
 
-			// Live panels (today, next 7/30 days) need data outside the selected range
-			const fromUtc = startOfLocalDay(rangeStart < today ? rangeStart : today, settings.timeZone)
-			const toUtc = startOfNextLocalDay(rangeEnd > addDays(today, 30) ? rangeEnd : addDays(today, 30), settings.timeZone)
+			// Row-level panels (today, next 7/30 days, 30-day cues) only ever need a fixed window around today;
+			// the selected range is aggregated in SQL (lib/dashboardStats.ts).
+			const fromUtc = startOfLocalDay(addDays(today, -30), settings.timeZone)
+			const toUtc = startOfNextLocalDay(addDays(today, 30), settings.timeZone)
 
 			const reservations = await prisma.reservation.findMany({
 				where: {
@@ -1133,55 +1135,8 @@ export function registerStaffRoutes(app: FastifyInstance, prisma: PrismaClient):
 
 			const feedbackFrom = startOfLocalDay(rangeStart, settings.timeZone)
 			const feedbackTo = startOfNextLocalDay(rangeEnd, settings.timeZone)
-			const feedback = await prisma.feedback.findMany({
-				where: { venueId, submittedAt: { gte: feedbackFrom, lt: feedbackTo } },
-				orderBy: { submittedAt: 'desc' },
-				take: 200,
-				include: {
-					reservation: {
-						select: {
-							id: true,
-							bookingCode: true,
-							guestId: true,
-							startsAt: true,
-							partySize: true,
-							seatingAreaId: true,
-							source: true,
-							occasion: true,
-							guest: { select: { id: true, fullName: true, phone: true } },
-						},
-					},
-				},
-			})
-
-			const feedbackItems = feedback.map((f) => {
-				const r = f.reservation
-				return {
-					id: f.id,
-					reservationId: f.reservationId,
-					guestId: r.guestId,
-					rating: f.rating,
-					comments: f.comments,
-					serviceTags: f.serviceTags,
-					submittedAt: f.submittedAt.toISOString(),
-					reservation: {
-						id: r.id,
-						bookingCode: r.bookingCode,
-						guestId: r.guestId,
-						date: localDate(r.startsAt, settings.timeZone),
-						time: localTime(r.startsAt, settings.timeZone),
-						partySize: r.partySize,
-						seatingAreaId: r.seatingAreaId,
-						source: r.source,
-						occasion: r.occasion ?? undefined,
-						guest: {
-							id: r.guest.id,
-							fullName: r.guest.fullName,
-							phone: r.guest.phone ?? null,
-						},
-					},
-				}
-			})
+			const feedbackScope = { venueId, timeZone: settings.timeZone, fromUtc: feedbackFrom, toUtc: feedbackTo }
+			const [feedbackFirst, summary] = await Promise.all([feedbackPage(prisma, feedbackScope), feedbackSummary(prisma, feedbackScope)])
 
 			const filters: DashboardFilters = {
 				rangeStart,
@@ -1206,17 +1161,31 @@ export function registerStaffRoutes(app: FastifyInstance, prisma: PrismaClient):
 			})
 			const areaMap = venue.seatingAreas.map((a) => ({ id: a.id, name: a.name, capacity: a.capacity, bookable: a.bookable, minParty: a.minParty ?? undefined, maxParty: a.maxParty ?? undefined }))
 			const turnTime = turnTimePanel(statusEvents, areaMap, venue.diningMinutes)
-			const { filtered: _filtered, ...dashboard } = dashboardData(settings, domainReservations, guests, today, filters, guestCount)
+			const periodScope = {
+				venueId,
+				timeZone: settings.timeZone,
+				fromUtc: feedbackFrom,
+				toUtc: feedbackTo,
+				filters,
+			}
+			const [{ channel, reliability }, guestMixPanel] = await Promise.all([
+				channelAndReliability(prisma, periodScope),
+				guestMix(prisma, periodScope, guestCount),
+			])
+			const dashboard = {
+				today: todayLivePanel(settings, domainReservations, today),
+				upcoming7: upcomingDaysPanel(settings, domainReservations, today, 7),
+				upcoming30: upcomingDaysPanel(settings, domainReservations, today, 30),
+				guestMix: guestMixPanel,
+				channel,
+				reliability,
+				cues: actionCues(settings, domainReservations, guests, today),
+			}
 
 			// occasionOptions: distinct occasions for range+venue, ignoring occasion/status filters
-			const occasionRows = await prisma.reservation.findMany({
-				where: {
-					venueId,
-					startsAt: { gte: startOfLocalDay(rangeStart, settings.timeZone), lt: startOfNextLocalDay(rangeEnd, settings.timeZone) },
-				},
-				distinct: ['occasion'],
-				select: { occasion: true },
-				orderBy: { occasion: 'asc' },
+			const occasionRows = await prisma.reservation.groupBy({
+				by: ['occasion'],
+				where: { venueId, startsAt: { gte: feedbackFrom, lt: feedbackTo } },
 			})
 			const occasionOptions = [...new Set(occasionRows.map((o) => (o.occasion ?? '').trim() || 'No occasion'))].sort()
 
@@ -1224,38 +1193,63 @@ export function registerStaffRoutes(app: FastifyInstance, prisma: PrismaClient):
 			const rangeLength = daysBetween(rangeStart, rangeEnd) + 1
 			const prevEnd = addDays(rangeStart, -1)
 			const prevStart = addDays(prevEnd, -(rangeLength - 1))
-			const prevDomain = (
-				await prisma.reservation.findMany({
-					where: {
-						venueId,
-						startsAt: { gte: startOfLocalDay(prevStart, settings.timeZone), lt: startOfNextLocalDay(prevEnd, settings.timeZone) },
-					},
-					select: reservationSelect,
-				})
-			).map((r) => toDomainReservation(r, settings.timeZone))
-			const prevPeriod = prevDomain.filter((r) => {
-				if (filters.source !== 'all' && r.source !== filters.source) return false
-				if (filters.occasion !== 'all' && (r.occasion?.trim() || 'No occasion') !== filters.occasion) return false
-				return true
+			const prevStats = await channelAndReliability(prisma, {
+				venueId,
+				timeZone: settings.timeZone,
+				fromUtc: startOfLocalDay(prevStart, settings.timeZone),
+				toUtc: startOfNextLocalDay(prevEnd, settings.timeZone),
+				filters: { source: filters.source, occasion: filters.occasion, seatingAreaId: 'all' },
 			})
-			const prevChannel = channelPerformancePanel(prevPeriod, prevStart, prevEnd)
-			const prevReliability = reliabilityPanel(prevPeriod, prevStart, prevEnd)
 			const previous = {
-				channel: { totalBookings: prevChannel.totalBookings, totalCovers: prevChannel.totalCovers },
-				reliability: { noShowRate: prevReliability.noShowRate, cancellationRate: prevReliability.cancellationRate },
+				channel: { totalBookings: prevStats.channel.totalBookings, totalCovers: prevStats.channel.totalCovers },
+				reliability: { noShowRate: prevStats.reliability.noShowRate, cancellationRate: prevStats.reliability.cancellationRate },
 			}
 			return {
 				venueId,
 				today,
 				timeZone: settings.timeZone,
 				settings,
-				feedback: feedbackItems,
+				feedback: feedbackFirst!.items,
+				feedbackNextCursor: feedbackFirst!.nextCursor,
+				feedbackSummary: summary,
 				dashboard,
 				turnTime,
 				occasionOptions,
 				previous,
 			}
 		})
+
+	// ---- Admin: feedback list (keyset-paged) ----------------------------------
+	app.get(
+		'/admin/feedback',
+		{
+			schema: {
+				querystring: {
+					type: 'object',
+					required: ['from', 'to'],
+					properties: { venueId: { type: 'string' }, from: { type: 'string' }, to: { type: 'string' }, cursor: { type: 'string' } },
+				},
+			},
+		},
+		async (request: FastifyRequest<{ Querystring: { venueId?: string; from: string; to: string; cursor?: string } }>) => {
+			const session = await requireAuth(prisma, request.cookies as Record<string, string>)
+			const venueId = staffVenue(session, request.query.venueId)
+			requireVenueAccess(session, venueId)
+			requireAdmin(session, venueId)
+			const { from, to, cursor } = request.query
+			const dateRe = /^\d{4}-\d{2}-\d{2}$/
+			if (!dateRe.test(from) || !dateRe.test(to) || daysBetween(from, to) < 0 || daysBetween(from, to) > 366) throw new AppError(400, 'invalid date range', 'ERR_BAD_REQUEST')
+			const venue = await prisma.venue.findUnique({ where: { id: venueId }, select: { timeZone: true } })
+			if (!venue) throw notFound('venue not found')
+			const page = await feedbackPage(
+				prisma,
+				{ venueId, timeZone: venue.timeZone, fromUtc: startOfLocalDay(from, venue.timeZone), toUtc: startOfNextLocalDay(to, venue.timeZone) },
+				cursor,
+			)
+			if (!page) throw new AppError(400, 'invalid cursor', 'ERR_BAD_REQUEST')
+			return page
+		},
+	)
 
 	// ---- Admin: reservations table (filtered + paged in the DB) ---------------
 	app.get(
