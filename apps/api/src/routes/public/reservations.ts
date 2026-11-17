@@ -20,7 +20,7 @@ interface CreateReservationBody {
 	guestNotes?: string
 	allergies?: string[]
 	accessibility?: string
-	country?: string
+	country: string
 	idempotencyKey?: string
 	source?: 'website' | 'instagram' | 'google' | 'whatsapp'
 	noticeAccepted?: boolean
@@ -43,7 +43,7 @@ export function registerPublicReservationRoutes(app: FastifyInstance, prisma: Pr
 				params: { type: 'object', properties: { slug: { type: 'string' } }, required: ['slug'] },
 				body: {
 					type: 'object',
-					required: ['guestName', 'phone', 'email', 'date', 'time', 'partySize'],
+					required: ['guestName', 'phone', 'email', 'date', 'time', 'partySize', 'country'],
 					properties: {
 						guestName: { type: 'string', maxLength: 120 },
 						phone: { type: 'string', maxLength: 32 },
@@ -63,7 +63,7 @@ export function registerPublicReservationRoutes(app: FastifyInstance, prisma: Pr
 						noticeAccepted: { type: 'boolean' },
 						marketingConsent: { type: 'boolean' },
 						website: { type: 'string', maxLength: 200 },
-						country: { type: 'string', maxLength: 80 },
+						country: { type: 'string', minLength: 1, maxLength: 80 },
 					},
 				},
 			},
@@ -71,6 +71,8 @@ export function registerPublicReservationRoutes(app: FastifyInstance, prisma: Pr
 		async (request: FastifyRequest<{ Params: { slug: string }; Body: CreateReservationBody & { website?: string } }>, reply: FastifyReply) => {
 			const { slug } = request.params
 			const body = request.body
+			const country = typeof body.country === 'string' ? body.country.trim() : ''
+			if (!country) return reply.status(400).send({ error: 'ERR_BAD_REQUEST', message: 'country is required' })
 
 			// Honeypot: hidden field real users never fill. Fake success so bots don't adapt.
 			if (body.website) return reply.status(200).send({ bookingCode: randomBookingCode(), reservationId: randomUUID() })
@@ -152,7 +154,7 @@ export function registerPublicReservationRoutes(app: FastifyInstance, prisma: Pr
 						email: body.email ?? null,
 						...(body.allergies?.length ? { allergies: { set: [...new Set([...(existing?.allergies ?? []), ...body.allergies])] } } : {}),
 						...(body.accessibility ? { accessibility: body.accessibility } : {}),
-						...(body.country ? { country: body.country } : {}),
+						...(country ? { country } : {}),
 						// Opt-in only: an unticked box on a later booking is not a withdrawal.
 						...(body.marketingConsent ? { marketingConsent: true, marketingConsentAt: new Date() } : {}),
 					},
@@ -162,7 +164,7 @@ export function registerPublicReservationRoutes(app: FastifyInstance, prisma: Pr
 						phone: body.phone,
 						email: body.email ?? null,
 						allergies: body.allergies ?? [],
-						country: body.country || null,
+						country: country || null,
 						accessibility: body.accessibility ?? null,
 						...(body.marketingConsent ? { marketingConsent: true, marketingConsentAt: new Date() } : {}),
 					},

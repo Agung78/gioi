@@ -128,7 +128,7 @@ export function registerStaffRoutes(app: FastifyInstance, prisma: PrismaClient):
 			schema: {
 				body: {
 					type: 'object',
-					required: ['guestName', 'date', 'time', 'partySize', 'source'],
+					required: ['guestName', 'date', 'time', 'partySize', 'source', 'country'],
 					properties: {
 						guestName: { type: 'string' },
 						phone: { type: 'string' },
@@ -141,7 +141,7 @@ export function registerStaffRoutes(app: FastifyInstance, prisma: PrismaClient):
 						tableIds: { type: 'array', minItems: 1, maxItems: 8, items: { type: 'string', format: 'uuid' } },
 						guestNotes: { type: 'string' },
 						internalNotes: { type: 'string' },
-						country: { type: 'string', maxLength: 80 },
+						country: { type: 'string', minLength: 1, maxLength: 80 },
 						source: { type: 'string' },
 						takeOver: { type: 'boolean' },
 						status: { type: 'string', enum: ['pending', 'confirmed'] },
@@ -229,7 +229,8 @@ export function registerStaffRoutes(app: FastifyInstance, prisma: PrismaClient):
 				const status = body.status === 'confirmed' ? 'confirmed' : 'pending'
 
 				const phone = ((body.phone as string | undefined) ?? '').trim() || null
-				const country = typeof body.country === 'string' ? body.country.trim() : undefined
+				const country = typeof body.country === 'string' ? body.country.trim() : ''
+				if (!country) throw new AppError(400, 'country is required', 'ERR_BAD_REQUEST')
 				const guestFields: { fullName: string; email: string | null; country?: string } = {
 					fullName: body.guestName as string,
 					email: (body.email as string | undefined) ?? null,
