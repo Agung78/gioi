@@ -51,6 +51,50 @@ function asJson(v: unknown): Prisma.InputJsonValue | null {
 	return v as unknown as Prisma.InputJsonValue | null
 }
 
+const reservationSelect = {
+	id: true,
+	bookingCode: true,
+	guestId: true,
+	guest: { select: { fullName: true, phone: true, email: true, country: true, allergies: true, accessibility: true } },
+	seatingAreaId: true,
+	startsAt: true,
+	partySize: true,
+	occasion: true,
+	source: true,
+	status: true,
+	guestNotes: true,
+	internalNotes: true,
+	createdById: true,
+	createdAt: true,
+	updatedAt: true,
+} as const
+
+function toDomainReservation(r: Prisma.ReservationGetPayload<{ select: typeof reservationSelect }>, timeZone: string) {
+	return {
+		id: r.id,
+		bookingCode: r.bookingCode,
+		guestId: r.guestId,
+		guestName: r.guest?.fullName ?? null,
+		guestPhone: r.guest?.phone ?? null,
+		guestEmail: r.guest?.email ?? null,
+		guestAllergies: r.guest?.allergies ?? [],
+		guestAccessibility: r.guest?.accessibility ?? null,
+		guestCountry: r.guest?.country ?? null,
+		date: localDate(r.startsAt, timeZone),
+		time: localTime(r.startsAt, timeZone),
+		partySize: r.partySize,
+		seatingAreaId: r.seatingAreaId,
+		occasion: r.occasion ?? undefined,
+		source: r.source,
+		status: r.status,
+		guestNotes: r.guestNotes ?? undefined,
+		internalNotes: r.internalNotes ?? undefined,
+		createdBy: r.createdById ?? 'system',
+		createdAt: r.createdAt.toISOString(),
+		updatedAt: r.updatedAt.toISOString(),
+	}
+}
+
 export function registerStaffRoutes(app: FastifyInstance, prisma: PrismaClient): void {
 	// ---- Host: day view -----------------------------------------------------
 	app.get(
@@ -1066,46 +1110,6 @@ export function registerStaffRoutes(app: FastifyInstance, prisma: PrismaClient):
 			const fromUtc = startOfLocalDay(rangeStart < today ? rangeStart : today, settings.timeZone)
 			const toUtc = startOfNextLocalDay(rangeEnd > addDays(today, 30) ? rangeEnd : addDays(today, 30), settings.timeZone)
 
-			const reservationSelect = {
-				id: true,
-				bookingCode: true,
-				guestId: true,
-				guest: { select: { fullName: true, phone: true, email: true, country: true, allergies: true, accessibility: true } },
-				seatingAreaId: true,
-				startsAt: true,
-				partySize: true,
-				occasion: true,
-				source: true,
-				status: true,
-				guestNotes: true,
-				internalNotes: true,
-				createdById: true,
-				createdAt: true,
-				updatedAt: true,
-			} as const
-			const toDomain = (r: Prisma.ReservationGetPayload<{ select: typeof reservationSelect }>) => ({
-				id: r.id,
-				bookingCode: r.bookingCode,
-				guestId: r.guestId,
-				guestName: r.guest?.fullName ?? null,
-				guestPhone: r.guest?.phone ?? null,
-				guestEmail: r.guest?.email ?? null,
-				guestAllergies: r.guest?.allergies ?? [],
-				guestAccessibility: r.guest?.accessibility ?? null,
-				guestCountry: r.guest?.country ?? null,
-				date: localDate(r.startsAt, settings.timeZone),
-				time: localTime(r.startsAt, settings.timeZone),
-				partySize: r.partySize,
-				seatingAreaId: r.seatingAreaId,
-				occasion: r.occasion ?? undefined,
-				source: r.source,
-				status: r.status,
-				guestNotes: r.guestNotes ?? undefined,
-				internalNotes: r.internalNotes ?? undefined,
-				createdBy: r.createdById ?? 'system',
-				createdAt: r.createdAt.toISOString(),
-				updatedAt: r.updatedAt.toISOString(),
-			})
 			const reservations = await prisma.reservation.findMany({
 				where: {
 					venueId,
@@ -1115,42 +1119,17 @@ export function registerStaffRoutes(app: FastifyInstance, prisma: PrismaClient):
 				orderBy: { startsAt: 'asc' },
 			})
 
-			const domainReservations = reservations.map(toDomain)
+			const domainReservations = reservations.map((r) => toDomainReservation(r, settings.timeZone))
 
-			const guests = (
-				await prisma.guest.findMany({
-					where: { venueId },
-					select: {
-						id: true,
-						fullName: true,
-						phone: true,
-						email: true,
-						country: true,
-						allergies: true,
-						accessibility: true,
-						seatingPreference: true,
-						notes: true,
-						marketingConsent: true,
-						marketingConsentAt: true,
-						createdAt: true,
-						updatedAt: true,
-					},
-				})
-			).map((g) => ({
-				id: g.id,
-				fullName: g.fullName,
-				phone: g.phone ?? '',
-				email: g.email ?? undefined,
-				country: g.country ?? undefined,
-				allergies: g.allergies,
-				accessibility: g.accessibility ?? undefined,
-				seatingPreference: g.seatingPreference ?? undefined,
-				notes: g.notes ?? undefined,
-				marketingConsent: g.marketingConsent,
-				marketingConsentAt: g.marketingConsentAt?.toISOString() ?? undefined,
-				createdAt: g.createdAt.toISOString(),
-				updatedAt: g.updatedAt.toISOString(),
-			}))
+			// Only today's repeat-guest allergy cue needs guest rows; the headline count is a COUNT, not the whole table.
+			const todayGuestIds = [...new Set(domainReservations.filter((r) => r.date === today && r.status !== 'cancelled' && r.status !== 'no_show').map((r) => r.guestId))]
+			const [guestCount, guests] = await Promise.all([
+				prisma.guest.count({ where: { venueId } }),
+				prisma.guest.findMany({
+					where: { venueId, id: { in: todayGuestIds }, allergies: { isEmpty: false } },
+					select: { id: true, fullName: true, allergies: true },
+				}),
+			])
 
 			const feedbackFrom = startOfLocalDay(rangeStart, settings.timeZone)
 			const feedbackTo = startOfNextLocalDay(rangeEnd, settings.timeZone)
@@ -1227,7 +1206,7 @@ export function registerStaffRoutes(app: FastifyInstance, prisma: PrismaClient):
 			})
 			const areaMap = venue.seatingAreas.map((a) => ({ id: a.id, name: a.name, capacity: a.capacity, bookable: a.bookable, minParty: a.minParty ?? undefined, maxParty: a.maxParty ?? undefined }))
 			const turnTime = turnTimePanel(statusEvents, areaMap, venue.diningMinutes)
-			const dashboard = dashboardData(settings, domainReservations, guests, today, filters)
+			const { filtered: _filtered, ...dashboard } = dashboardData(settings, domainReservations, guests, today, filters, guestCount)
 
 			// occasionOptions: distinct occasions for range+venue, ignoring occasion/status filters
 			const occasionRows = await prisma.reservation.findMany({
@@ -1253,7 +1232,7 @@ export function registerStaffRoutes(app: FastifyInstance, prisma: PrismaClient):
 					},
 					select: reservationSelect,
 				})
-			).map(toDomain)
+			).map((r) => toDomainReservation(r, settings.timeZone))
 			const prevPeriod = prevDomain.filter((r) => {
 				if (filters.source !== 'all' && r.source !== filters.source) return false
 				if (filters.occasion !== 'all' && (r.occasion?.trim() || 'No occasion') !== filters.occasion) return false
@@ -1277,6 +1256,71 @@ export function registerStaffRoutes(app: FastifyInstance, prisma: PrismaClient):
 				previous,
 			}
 		})
+
+	// ---- Admin: reservations table (filtered + paged in the DB) ---------------
+	app.get(
+		'/admin/reservations',
+		{
+			schema: {
+				querystring: {
+					type: 'object',
+					required: ['from', 'to'],
+					properties: {
+						venueId: { type: 'string' },
+						from: { type: 'string' },
+						to: { type: 'string' },
+						status: { type: 'string', enum: ['all', 'pending', 'confirmed', 'arrived', 'seated', 'completed', 'cancelled', 'no_show'] },
+						source: { type: 'string', enum: ['all', 'website', 'instagram', 'google', 'whatsapp', 'walk_in', 'phone', 'host', 'chope_import'] },
+						occasion: { type: 'string' },
+						q: { type: 'string', maxLength: 100 },
+						limit: { type: 'integer', minimum: 1, maximum: 5000, default: 10 },
+						offset: { type: 'integer', minimum: 0, default: 0 },
+					},
+				},
+			},
+		},
+		async (request: FastifyRequest<{
+			Querystring: { venueId?: string; from: string; to: string; status?: string; source?: string; occasion?: string; q?: string; limit: number; offset: number }
+		}>) => {
+			const session = await requireAuth(prisma, request.cookies as Record<string, string>)
+			const venueId = request.query.venueId ?? session.user.venueIds[0]
+			if (!venueId) throw forbidden('no venue associated with this user')
+			requireVenueAccess(session, venueId)
+			requireAdmin(session, venueId)
+			const { from, to, status, source, occasion, q, limit, offset } = request.query
+			const dateRe = /^\d{4}-\d{2}-\d{2}$/
+			if (!dateRe.test(from) || !dateRe.test(to)) throw new AppError(400, 'dates must be YYYY-MM-DD', 'ERR_BAD_REQUEST')
+			if (daysBetween(from, to) < 0) throw new AppError(400, 'from must be on or before to', 'ERR_BAD_REQUEST')
+			if (daysBetween(from, to) > 366) throw new AppError(400, 'range must not exceed 366 days', 'ERR_BAD_REQUEST')
+			const venue = await prisma.venue.findUnique({ where: { id: venueId }, select: { timeZone: true } })
+			if (!venue) throw notFound('venue not found')
+
+			const and: Prisma.ReservationWhereInput[] = []
+			if (occasion && occasion !== 'all') and.push(occasion === 'No occasion' ? { OR: [{ occasion: null }, { occasion: '' }] } : { occasion })
+			const search = q?.trim()
+			if (search) {
+				and.push({
+					OR: [
+						{ bookingCode: { contains: search, mode: 'insensitive' } },
+						{ guest: { fullName: { contains: search, mode: 'insensitive' } } },
+						{ guest: { phone: { contains: search } } },
+					],
+				})
+			}
+			const where: Prisma.ReservationWhereInput = {
+				venueId,
+				startsAt: { gte: startOfLocalDay(from, venue.timeZone), lt: startOfNextLocalDay(to, venue.timeZone) },
+				...(status && status !== 'all' ? { status: status as ReservationStatus } : {}),
+				...(source && source !== 'all' ? { source: source as Channel } : {}),
+				...(and.length ? { AND: and } : {}),
+			}
+			const [total, rows] = await Promise.all([
+				prisma.reservation.count({ where }),
+				prisma.reservation.findMany({ where, select: reservationSelect, orderBy: [{ startsAt: 'desc' }, { id: 'asc' }], take: limit, skip: offset }),
+			])
+			return { total, rows: rows.map((r) => toDomainReservation(r, venue.timeZone)) }
+		},
+	)
 
 	// ---- Admin: CSV export --------------------------------------------------
 	app.get(

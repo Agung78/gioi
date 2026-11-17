@@ -17,7 +17,7 @@ import Sparkline from '@/components/Sparkline.vue'
 import Pagination from '@/components/Pagination.vue'
 import { usePagination } from '@/composables/usePagination'
 import { useAuthStore } from '@/stores/auth'
-import type { AdminAnalytics } from '@/composables/useApi'
+import type { AdminAnalytics, AdminReservationsPage } from '@/composables/useApi'
 
 const showExport = ref(false)
 
@@ -34,11 +34,20 @@ const filterSummary = computed(() => {
 	if (parts.length === 1) return `${parts[0]} · no other filters`
 	return parts.join(' · ')
 })
-const exportColumns = computed(() => ['booking_code', 'guest_name', 'phone', 'email', 'nationality', 'party_size', 'date', 'time', 'area', 'source', 'status', 'allergies', 'accessibility'])
-const exportRows = computed(() => searchedReservations.value.map((r) => [r.bookingCode, r.guestName ?? '', r.guestPhone ?? '', r.guestEmail ?? '', r.guestCountry ?? '', r.partySize, r.date, r.time, areaName(r.seatingAreaId), r.source, r.status, (r.guestAllergies ?? []).join('; '), r.guestAccessibility ?? '']))
+const exportColumns = ['booking_code', 'guest_name', 'phone', 'email', 'nationality', 'party_size', 'date', 'time', 'area', 'source', 'status', 'allergies', 'accessibility']
+const exportRows = ref<unknown[][]>([])
 const exportFilename = computed(() => `gioi-reservations-${filters.value.rangeStart}_${filters.value.rangeEnd}.csv`)
-function exportCsv() {
-	showExport.value = true
+const exporting = ref(false)
+// Fetched only on click: the full matching list (up to 5000) never loads with the page.
+async function exportCsv() {
+	exporting.value = true
+	try {
+		const all = await $fetch<AdminReservationsPage>('/api/admin/reservations', { query: { ...reservationQuery.value, limit: 5000, offset: 0 }, credentials: 'include' })
+		exportRows.value = all.rows.map((r) => [r.bookingCode, r.guestName ?? '', r.guestPhone ?? '', r.guestEmail ?? '', r.guestCountry ?? '', r.partySize, r.date, r.time, areaName(r.seatingAreaId), r.source, r.status, (r.guestAllergies ?? []).join('; '), r.guestAccessibility ?? ''])
+		showExport.value = true
+	} finally {
+		exporting.value = false
+	}
 }
 const today = todayISO()
 const route = useRoute()
@@ -67,7 +76,7 @@ filters.value.occasion = typeof route.query.occasion === 'string' ? route.query.
 let refreshTimer: ReturnType<typeof setTimeout> | null = null
 function requestRefresh() {
 	if (refreshTimer) clearTimeout(refreshTimer)
-	refreshTimer = setTimeout(() => { refreshTimer = null; refresh() }, 250)
+	refreshTimer = setTimeout(() => { refreshTimer = null; reloadAll() }, 250)
 }
 function syncQuery() {
 	const f = filters.value
@@ -98,8 +107,40 @@ const { data: analytics, error: analyticsError, refresh, pending } = await useFe
 	watch: false,
 })
 
+const search = ref('')
+const resPage = ref(1)
+// The reservations table is filtered, searched and paged in the DB; only one page ever reaches the browser.
+const RES_PAGE = 10
+const reservationQuery = computed(() => ({
+	from: filters.value.rangeStart,
+	to: filters.value.rangeEnd,
+	status: filters.value.status !== 'all' ? filters.value.status : undefined,
+	source: filters.value.source !== 'all' ? filters.value.source : undefined,
+	occasion: filters.value.occasion !== 'all' ? filters.value.occasion : undefined,
+	q: search.value.trim() || undefined,
+	venueId: auth.isSuperAdmin && auth.selectedVenueId ? auth.selectedVenueId : undefined,
+}))
+const { data: resData, pending: resPending, error: resError, refresh: refreshRes } = await useFetch<AdminReservationsPage>('/api/admin/reservations', {
+	query: computed(() => ({ ...reservationQuery.value, limit: RES_PAGE, offset: (resPage.value - 1) * RES_PAGE })),
+	server: true,
+	credentials: 'include',
+	watch: false,
+})
+const resRows = computed(() => resData.value?.rows ?? [])
+function reloadTable() {
+	if (resPage.value !== 1) resPage.value = 1 // the resPage watcher refetches
+	else refreshRes()
+}
+function reloadAll() {
+	refresh()
+	reloadTable()
+}
+watch(resPage, () => refreshRes())
+let searchTimer: ReturnType<typeof setTimeout> | undefined
+watch(search, () => { clearTimeout(searchTimer); searchTimer = setTimeout(reloadTable, 250) }) // search only affects the table, not the analytics
+
 watch(() => auth.selectedVenueId, () => {
-	if (auth.isSuperAdmin && auth.selectedVenueId) refresh()
+	if (auth.isSuperAdmin && auth.selectedVenueId) reloadAll()
 })
 
 watch([preset, filters], () => {
@@ -147,28 +188,12 @@ function setPreset(next: DateRangePreset) {
 	filters.value = { ...filters.value, rangeStart: range.start, rangeEnd: range.end }
 }
 
-const occasions = computed(() => {
-	const opts = analytics.value?.occasionOptions
-	if (opts) {
-		const selected = filters.value.occasion
-		return [...new Set([...opts, selected].filter(Boolean))].sort()
-	}
-	const selected = filters.value.occasion
-	const base = [...new Set((dashboard.value?.filtered ?? []).map((r) => r.occasion?.trim() || 'No occasion'))]
-	return [...new Set([...base, selected].filter(Boolean))].sort()
-})
+const occasions = computed(() => [...new Set([...(analytics.value?.occasionOptions ?? []), filters.value.occasion].filter((o) => o && o !== 'all'))].sort())
 const areas = computed(() => (settings.value as any)?.seatingAreas ?? [])
 const areaName = (id: string) => areas.value.find((a: { id: string; name: string }) => a.id === id)?.name ?? id
 const rangeLabel = computed(() => `${filters.value.rangeStart} → ${filters.value.rangeEnd}`)
 const periodLabel = computed(() => ({ today: 'today', last7: 'last 7 days', last30: 'last 30 days', custom: rangeLabel.value })[preset.value])
-const search = ref('')
-const searchedReservations = computed(() => {
-	const q = search.value.trim().toLowerCase()
-	const base = dashboard.value?.filtered ?? []
-	if (!q) return base
-	return base.filter((r) => [r.guestName, r.bookingCode, r.guestPhone].some((v) => v?.toLowerCase().includes(q)))
-})
-const { page: resPage, pageCount: resPageCount, paged: resPaged } = usePagination(searchedReservations, 10)
+const resPageCount = computed(() => Math.max(1, Math.ceil((resData.value?.total ?? 0) / RES_PAGE)))
 const { page: fbPage, pageCount: fbPageCount, paged: fbPaged } = usePagination(feedback, 10)
 const cueLink = (cue: { guestId?: string; kind: string }) =>
 	cue.guestId ? `/guests/${cue.guestId}` : cue.kind === 'slot_over_capacity' ? '/host' : null
@@ -182,7 +207,6 @@ const feedbackTags = computed(() => {
 const asOf = new Date().toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })
 const feedbackAverage = computed(() => feedback.value.length ? (feedback.value.reduce((sum, r) => sum + r.rating, 0) / feedback.value.length).toFixed(1) : '—')
 const selectedFeedback = ref<AdminAnalytics['feedback'][number] | null>(null)
-const reservationOf = (id: string) => (dashboard.value?.filtered ?? []).find((r) => r.id === id)
 const closeOnEsc = (e: KeyboardEvent) => { if (e.key === 'Escape') selectedFeedback.value = null }
 onMounted(() => document.addEventListener('keydown', closeOnEsc))
 onBeforeUnmount(() => document.removeEventListener('keydown', closeOnEsc))
@@ -522,20 +546,21 @@ definePageMeta({ middleware: ['auth', 'admin'] })
 				<h3 class="font-display text-lg font-semibold text-ink">Filtered reservations</h3>
 				<div class="flex flex-wrap items-center gap-2">
 					<input v-model="search" type="search" class="field !w-56 !py-1.5 !px-3 text-sm" placeholder="Search name, code, phone" aria-label="Search reservations">
-					<span class="text-sm text-muted">{{ searchedReservations.length }} reservations</span>
+					<span class="text-sm text-muted">{{ resData?.total ?? 0 }} reservations</span>
 					<p v-if="filterSummary !== `${fmtDate(filters.rangeStart)} - ${fmtDate(filters.rangeEnd)} · no other filters`" class="text-sm text-muted">{{ filterSummary }}</p>
-					<button type="button" class="btn-secondary !min-h-9 !px-4" :disabled="!searchedReservations.length" @click="exportCsv">Export CSV</button>
-					<ExportViewer v-if="showExport" :columns="exportColumns" :rows="exportRows" :filter-summary="filterSummary" :filename="exportFilename" @close="showExport = false" />
+					<button type="button" class="btn-secondary !min-h-9 !px-4" :disabled="!resData?.total || exporting" @click="exportCsv">{{ exporting ? 'Preparing…' : 'Export CSV' }}</button>
+					<Transition name="modal"><ExportViewer v-if="showExport" :columns="exportColumns" :rows="exportRows" :filter-summary="filterSummary" :filename="exportFilename" @close="showExport = false" /></Transition>
 				</div>
 			</div>
-			<div v-if="searchedReservations.length" class="mt-4 overflow-x-auto relative">
+			<div v-if="resRows.length" class="mt-4 overflow-x-auto relative" :class="{ 'opacity-60': resPending }">
 				<p class="mb-2 text-xs text-muted sm:hidden">Swipe sideways for more columns</p>
 				<table class="min-w-[40rem] w-full text-left text-sm">
 					<thead><tr class="border-b border-line text-muted"><th class="p-2 whitespace-nowrap">Date</th><th class="p-2">Guest</th><th class="p-2">Party</th><th class="p-2">Area</th><th class="p-2">Source</th><th class="p-2">Status</th></tr></thead>
-					<tbody><tr v-for="reservation in resPaged" :key="reservation.id" class="border-b border-line"><td class="p-2 whitespace-nowrap">{{ reservation.date }} {{ reservation.time }}</td><td class="p-2"><NuxtLink :to="`/guests/${reservation.guestId}`" class="font-medium text-accent underline underline-offset-2">{{ reservation.guestName ?? 'Unknown guest' }}</NuxtLink><div class="text-xs text-muted">{{ reservation.bookingCode }}</div></td><td class="p-2">{{ reservation.partySize }}</td><td class="p-2">{{ areaName(reservation.seatingAreaId) }}</td><td class="p-2">{{ reservation.source }}</td><td class="p-2"><StatusChip :status="reservation.status" /></td></tr></tbody>
+					<tbody><tr v-for="reservation in resRows" :key="reservation.id" class="border-b border-line"><td class="p-2 whitespace-nowrap">{{ reservation.date }} {{ reservation.time }}</td><td class="p-2"><NuxtLink :to="`/guests/${reservation.guestId}`" class="font-medium text-accent underline underline-offset-2">{{ reservation.guestName ?? 'Unknown guest' }}</NuxtLink><div class="text-xs text-muted">{{ reservation.bookingCode }}</div></td><td class="p-2">{{ reservation.partySize }}</td><td class="p-2">{{ areaName(reservation.seatingAreaId) }}</td><td class="p-2">{{ reservation.source }}</td><td class="p-2"><StatusChip :status="reservation.status" /></td></tr></tbody>
 				</table>
 				<Pagination v-model:page="resPage" :page-count="resPageCount" />
 			</div>
+			<p v-else-if="resError" class="mt-4 text-sm text-red-500" role="alert">Could not load reservations.</p>
 			<p v-else class="mt-4 text-sm text-muted">No reservations match these filters.</p>
 		</section>
 	</div>

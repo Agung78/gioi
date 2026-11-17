@@ -273,24 +273,6 @@ export interface AdminAnalytics {
 			date?: string
 			time?: string
 		}>
-		filtered: Array<{
-			id: string
-			bookingCode: string
-			guestId: string
-			guestName?: string | null
-			guestPhone?: string | null
-			guestEmail?: string | null
-			guestAllergies?: string[]
-			guestAccessibility?: string | null
-			guestCountry?: string | null
-			date: string
-			time: string
-			partySize: number
-			seatingAreaId: string
-			source: string
-		status: ReservationStatus
-			occasion?: string
-		}>
 	}
 	turnTime: {
 		byArea: Array<{
@@ -306,6 +288,29 @@ export interface AdminAnalytics {
 		channel: { totalBookings: number; totalCovers: number }
 		reliability: { noShowRate: number; cancellationRate: number }
 	}
+}
+
+export interface AdminReservationRow {
+	id: string
+	bookingCode: string
+	guestId: string
+	guestName: string | null
+	guestPhone: string | null
+	guestEmail: string | null
+	guestAllergies: string[]
+	guestAccessibility: string | null
+	guestCountry: string | null
+	date: string
+	time: string
+	partySize: number
+	seatingAreaId: string
+	source: string
+	status: ReservationStatus
+}
+
+export interface AdminReservationsPage {
+	total: number
+	rows: AdminReservationRow[]
 }
 
 export async function fetchAdminAnalytics(filters: {

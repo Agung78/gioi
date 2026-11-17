@@ -157,7 +157,7 @@ export interface GuestMixPanel {
 
 export function guestMixPanel(
 	reservations: Reservation[],
-	guests: Guest[],
+	totalGuests: number,
 	rangeStart?: string,
 	rangeEnd?: string,
 ): GuestMixPanel {
@@ -204,7 +204,7 @@ export function guestMixPanel(
 		.map((bucket) => ({ bucket, bookings: bucketCounts[bucket] }))
 
 	return {
-		totalGuests: guests.length,
+		totalGuests,
 		firstTimers,
 		repeatGuests,
 		retentionShare: total === 0 ? 0 : Math.round((repeatGuests / total) * 100),
@@ -337,7 +337,7 @@ export interface ActionCue {
 export function actionCues(
 	settings: Settings,
 	reservations: Reservation[],
-	guests: Guest[],
+	guests: Pick<Guest, 'id' | 'fullName' | 'allergies'>[],
 	date: string = todayISO(),
 ): ActionCue[] {
 	const cues: ActionCue[] = []
@@ -417,9 +417,10 @@ export interface DashboardData {
 export function dashboardData(
 	settings: Settings,
 	reservations: Reservation[],
-	guests: Guest[],
+	guests: Pick<Guest, 'id' | 'fullName' | 'allergies'>[],
 	today: string = todayISO(),
 	filters: DashboardFilters = defaultDashboardFilters(today),
+	totalGuests: number = guests.length,
 ): DashboardData {
 	const filtered = filterReservations(reservations, filters)
 	// Period analytics ignore the status filter, else reliability rates are meaningless
@@ -428,7 +429,7 @@ export function dashboardData(
 		today: todayLivePanel(settings, reservations, today),
 		upcoming7: upcomingDaysPanel(settings, reservations, today, 7),
 		upcoming30: upcomingDaysPanel(settings, reservations, today, 30),
-		guestMix: guestMixPanel(period, guests),
+		guestMix: guestMixPanel(period, totalGuests),
 		channel: channelPerformancePanel(period),
 		reliability: reliabilityPanel(period),
 		cues: actionCues(settings, reservations, guests, today),

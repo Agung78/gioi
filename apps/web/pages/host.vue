@@ -222,7 +222,7 @@ definePageMeta({ middleware: 'auth' })
 					<button class="btn-secondary min-h-12" type="button" :disabled="date === todayISO()" @click="date = todayISO()">Today</button>
 				</div>
 				<button class="btn-secondary min-h-12" type="button" :disabled="!venueId" @click="exportCsv">Export CSV</button>
-				<ExportViewer v-if="showExport" :columns="exportColumns" :rows="exportRows" :filter-summary="`Date: ${date}`" :filename="exportFilename" @close="showExport = false" />
+				<Transition name="modal"><ExportViewer v-if="showExport" :columns="exportColumns" :rows="exportRows" :filter-summary="`Date: ${date}`" :filename="exportFilename" @close="showExport = false" /></Transition>
 				<button class="btn-primary min-h-12" type="button" @click="showWalkIn = true">+ Walk-in</button>
 			</div>
 		</header>

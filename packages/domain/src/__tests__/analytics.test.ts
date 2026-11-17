@@ -107,7 +107,7 @@ describe('upcomingDaysPanel', () => {
 
 describe('guestMixPanel', () => {
 	it('classifies first-timers vs repeat guests and counts occasions', () => {
-		const panel = guestMixPanel(makeReservations(), makeGuests(), '2026-06-01', '2026-06-30')
+		const panel = guestMixPanel(makeReservations(), makeGuests().length, '2026-06-01', '2026-06-30')
 		// g1 visited twice (id 1 + id 5) — repeat
 		// g3 visited once — first timer
 		expect(panel.firstTimers + panel.repeatGuests).toBeGreaterThan(0)

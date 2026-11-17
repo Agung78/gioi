@@ -482,7 +482,7 @@ definePageMeta({ middleware: ['auth', 'admin'] })
 				<h2 class="font-display text-xl font-semibold text-ink">Data export</h2>
 				<p class="mt-1 text-sm text-muted">Download every reservation as CSV. The file includes guest contact details and allergy/accessibility notes — handle accordingly.</p>
 				<button class="btn-primary mt-4" type="button" @click="exportReservations">Download reservations CSV</button>
-				<ExportViewer v-if="showExport" :columns="exportColumns" :rows="exportRows" :filter-summary="'No filters (all reservations)'" :filename="exportFilename" @close="showExport = false" />
+				<Transition name="modal"><ExportViewer v-if="showExport" :columns="exportColumns" :rows="exportRows" :filter-summary="'No filters (all reservations)'" :filename="exportFilename" @close="showExport = false" /></Transition>
 			</section>
 		</div>
 	</div>
