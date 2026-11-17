@@ -295,7 +295,7 @@ onMounted(() => {
   <div v-else-if="venueError || !settings" class="mx-auto max-w-5xl px-4 pt-8 pb-32 text-center">
     <p class="text-muted">Venue not found.</p>
   </div>
-  <div v-else class="mx-auto max-w-5xl px-4 pb-28 pt-8 md:px-8 lg:pb-16">
+  <div v-else class="rise mx-auto max-w-5xl px-4 pb-28 pt-8 md:px-8 lg:pb-16">
     <div class="flex items-center justify-between">
       <NuxtLink :to="venueHome" class="btn-ghost !min-h-10 !px-3 -ml-3 gap-2 text-sm text-ink">
         <PhArrowLeft :size="16" aria-hidden="true" />

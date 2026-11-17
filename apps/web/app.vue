@@ -49,6 +49,7 @@
     <main id="main" class="flex-1">
       <NuxtPage />
     </main>
+    <ToastHost />
     <!-- Public pages have no app header: the theme toggle floats bottom-right, above the booking bar when the page has one. -->
     <div v-if="isPublic" class="fixed right-4 z-50 md:right-6" :class="route.meta.bottomBar ? 'bottom-28 lg:bottom-6' : 'bottom-4 md:bottom-6'">
       <ThemeToggle class="shadow-soft md:h-12 md:w-12" />

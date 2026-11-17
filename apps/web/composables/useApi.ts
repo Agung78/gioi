@@ -132,6 +132,10 @@ export async function changeReservationStatus(
 	return apiFetch(`/staff/reservations/${id}/status`, { method: 'POST', body })
 }
 
+export async function updateGuestPhone(id: string, phone: string): Promise<{ id: string; phone: string }> {
+	return apiFetch(`/staff/guests/${id}`, { method: 'PATCH', body: { phone } })
+}
+
 export interface StaffGuest {
 	id: string
 	fullName: string

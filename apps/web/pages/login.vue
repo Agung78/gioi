@@ -1,11 +1,12 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import { useRouter, useRoute } from '#app'
+import { useRouter, useRoute, useHead } from '#app'
 import { useAuthStore } from '@/stores/auth'
 
 const auth = useAuthStore()
 const router = useRouter()
 const route = useRoute()
+useHead({ title: 'Sign in | GIOI' })
 
 const next = computed(() => {
 	const raw = route.query.next

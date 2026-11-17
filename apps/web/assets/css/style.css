@@ -124,6 +124,9 @@
   }
 }
 
+/* full-document navigations (venue page -> booking in dev, same origin) get the same transition. Prod book.* is another origin: the browser can't animate that, so book.vue animates its own arrival. */
+@view-transition { navigation: auto; }
+
 /* route transition (see router.ts): old page fades out fast, new page rises in. Enter-only motion, under 300ms. */
 :::view-transition-old(root) { animation: 150ms cubic-bezier(0.23, 1, 0.32, 1) both vt-out; }
 :::view-transition-new(root) { animation: 250ms cubic-bezier(0.23, 1, 0.32, 1) both vt-in; }
@@ -144,6 +147,12 @@
 .modal-leave-active .modal-panel { transition: transform 150ms cubic-bezier(0.23, 1, 0.32, 1); }
 .modal-enter-from, .modal-leave-to { opacity: 0; }
 .modal-enter-from .modal-panel, .modal-leave-to .modal-panel { transform: translateY(12px) scale(0.97); }
+
+/* toast (ToastHost): rises like the modal panel, leaves with a plain fade. Reduced-motion handled globally. */
+.toast-enter-active { transition: opacity 200ms cubic-bezier(0.23, 1, 0.32, 1), transform 250ms cubic-bezier(0.23, 1, 0.32, 1); }
+.toast-leave-active { transition: opacity 150ms cubic-bezier(0.23, 1, 0.32, 1); }
+.toast-enter-from { opacity: 0; transform: translateY(12px); }
+.toast-leave-to { opacity: 0; }
 
 /* tab panel fade (HostView) */
 .fade-enter-active,

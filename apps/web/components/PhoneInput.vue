@@ -40,8 +40,16 @@ const query = ref('')
 const open = ref(false)
 const active = ref(0)
 const national = ref('')
-// Parent clearing the value (e.g. a modal reset) must clear the digits too.
-watch(model, (v) => { if (!v) national.value = '' })
+// Parent clearing the value (e.g. a modal reset) must clear the digits too; a stored "+62 812-345-678" is split back into country + number.
+watch(model, (v) => {
+	if (!v) { national.value = ''; return }
+	if (v === (national.value ? `${sel.value.dial} ${national.value}` : '')) return
+	const digits = v.replace(/\D/g, '')
+	const hasPlus = v.trim().startsWith('+')
+	const match = hasPlus ? all.filter((c) => digits.startsWith(c.dial.slice(1))).sort((a, b) => b.dial.length - a.dial.length)[0] : undefined
+	if (match) sel.value = match
+	national.value = digits.slice(match ? match.dial.length - 1 : 0).replace(/^0+/, '').slice(0, 13).replace(/(\d{3})(?=\d)/g, '$1-')
+}, { immediate: true })
 
 const options = computed(() => {
 	const q = query.value.trim().toLowerCase().replace(/^\+/, '')

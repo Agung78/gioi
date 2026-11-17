@@ -2,6 +2,7 @@
 import { computed, onMounted, ref, watch } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import { useRoute } from '#app'
+import { toastAfterReload, useToast } from '@/composables/useToast'
 import FloorPlanSvg from '@/components/FloorPlanSvg.vue'
 import DatePicker from '@/components/DatePicker.vue'
 import TimePicker from '@/components/TimePicker.vue'
@@ -31,8 +32,7 @@ let venueId = String(route.query.venueId || (auth.isSuperAdmin ? auth.selectedVe
 
 const venue = ref<VenueSettings | null>(null)
 const loading = ref(true)
-const saved = ref<string | null>(null)
-function flash() { saved.value = `Saved at ${new Date().toLocaleTimeString()}`; setTimeout(() => { saved.value = null }, 2000) }
+const { toast } = useToast()
 
 const clone = <T>(v: T): T => JSON.parse(JSON.stringify(v))
 const draft = ref<VenueSettings | null>(null)
@@ -47,8 +47,9 @@ const imageError = ref<string | null>(null)
 
 const dayLabel: Record<string, string> = { mon: 'Mon', tue: 'Tue', wed: 'Wed', thu: 'Thu', fri: 'Fri', sat: 'Sat', sun: 'Sun' }
 
-async function load() {
-	loading.value = true
+// `silent` refreshes in place after a save; the loading card replaces the whole page and would reset the scroll position.
+async function load(silent = false) {
+	if (!silent) loading.value = true
 	try {
 		if (auth.isSuperAdmin) {
 			if (!auth.selectedVenueId) auth.setSelectedVenueId(null)
@@ -101,11 +102,11 @@ async function saveImageFile(input: HTMLInputElement) {
 		width = w > 0 ? w : 1200
 		height = h > 0 ? h : 900
 	}
-	await run(() => saveFloorImage(venueId, { image, width, height }))
+	await run(() => saveFloorImage(venueId, { image, width, height }), 'Drawing saved')
 }
 
 function removeImage() {
-	if (confirm('Remove the floor plan drawing?')) return run(() => saveFloorImage(venueId, { image: null }))
+	if (confirm('Remove the floor plan drawing?')) return run(() => saveFloorImage(venueId, { image: null }), 'Drawing removed')
 }
 
 onMounted(async () => {
@@ -119,14 +120,14 @@ watch(() => draft.value?.feedbackTags, (val) => { feedbackTagsText.value = (val 
 const feedbackTagsPreview = computed(() => parseTags(feedbackTagsText.value))
 
 // Run a save, then reload; surface API failures instead of swallowing them.
-async function run(fn: () => Promise<unknown>) {
+async function run(fn: () => Promise<unknown>, okText: string) {
 	try {
 		await fn()
-		await load()
-		flash()
+		await load(true)
+		toast(okText)
 	} catch (e) {
 		const msg = (e as { data?: { message?: string } })?.data?.message
-		saved.value = `Save failed${msg ? `: ${msg}` : '.'}`
+		toast(`Save failed${msg ? `: ${msg}` : '.'}`, 'error')
 	}
 }
 
@@ -145,7 +146,7 @@ function settingsBody() {
 
 function saveSettings() {
 	if (!draft.value) return
-	return run(() => updateVenue(venueId, settingsBody()))
+	return run(() => updateVenue(venueId, settingsBody()), 'Settings saved')
 }
 
 // Opening hours & closed dates: one save (the prototype's "Save hours & rules").
@@ -155,32 +156,33 @@ async function saveHours() {
 		await updateVenue(venueId, settingsBody())
 		await saveOpeningHours(venueId, opening.value)
 		await saveClosedDates(venueId, closed.value.map((c) => ({ date: c.date, reason: c.reason ?? null })))
-	})
+	}, 'Hours saved')
 }
 
 const saveUsersApi = () => run(async () => {
 	await saveUsers(users.value.map((u) => ({ userId: u.id, venueId: u.venueId, role: u.role, name: u.name, login: u.login, active: u.active, password: resetPasswords.value[u.id] || undefined })))
 	resetPasswords.value = {}
-})
+}, 'Accounts saved')
 const newUser = ref({ name: '', login: '', password: '', role: 'host' })
 const addUser = () => run(async () => {
 	await createUser({ venueId, ...newUser.value })
 	newUser.value = { name: '', login: '', password: '', role: 'host' }
-})
+}, 'Account added')
 const resetPasswords = ref<Record<string, string>>({})
 const newVenue = ref({ name: '', slug: '' })
 const addVenue = async () => {
 	try {
 		auth.setSelectedVenueId((await createVenue(newVenue.value)).id)
+		toastAfterReload('Venue created')
 		location.reload() // header venue list loads once; reload picks up the new venue
 	} catch (e) {
 		const msg = (e as { data?: { message?: string } })?.data?.message
-		saved.value = `Save failed${msg ? `: ${msg}` : '.'}`
+		toast(`Save failed${msg ? `: ${msg}` : '.'}`, 'error')
 	}
 }
 
 const removeAccount = (u: StaffUserRow) => {
-	if (confirm(`Remove ${u.login} from this venue?`)) return run(() => removeUser(u.id, venueId))
+	if (confirm(`Remove ${u.login} from this venue?`)) return run(() => removeUser(u.id, venueId), 'Account removed')
 }
 
 const newClosedDate = ref('')
@@ -228,7 +230,7 @@ async function exportReservations() {
 		exportRows.value = rows
 		showExport.value = true
 	} catch {
-		saved.value = 'Export failed.'
+		toast('Export failed.', 'error')
 	}
 }
 
@@ -241,7 +243,6 @@ definePageMeta({ middleware: ['auth', 'admin'] })
 			<div>
 				<h1 class="font-display text-3xl font-semibold text-ink">Settings</h1>
 			</div>
-			<p v-if="saved" class="text-sm text-ink">{{ saved }}</p>
 		</header>
 
 		<div v-if="loading" class="card text-center py-16">
