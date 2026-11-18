@@ -2,7 +2,7 @@ name: Backup
 
 on:
   schedule:
-    - cron: '0 19 * * *' # 03:00 WITA
+    - cron: '0 19 * * 6' # Sunday 03:00 WITA (Saturday 19:00 UTC)
   workflow_dispatch:
 
 jobs:
@@ -30,5 +30,5 @@ jobs:
           pg_dump "$DATABASE_URL_DIRECT" -Fc \
             | age -r "$AGE_PUBLIC_KEY" \
             | rclone rcat "gdrive:gioi-$(date +%F).dump.age"
-          # keep 30 days; --drive-use-trash=false frees quota immediately
-          rclone delete gdrive: --min-age 30d --drive-use-trash=false --include "gioi-*.dump.age"
+          # keep last 4 weekly dumps (27d, not 28d, so timing jitter cannot keep a 5th); --drive-use-trash=false frees quota immediately
+          rclone delete gdrive: --min-age 27d --drive-use-trash=false --include "gioi-*.dump.age"
