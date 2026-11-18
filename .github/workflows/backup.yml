@@ -2,7 +2,7 @@ name: Backup
 
 on:
   schedule:
-    - cron: '0 19 * * *' # 03:00 WITA
+    - cron: '0 19 * * *' # daily 03:00 WITA (19:00 UTC)
   workflow_dispatch:
 
 jobs:
@@ -11,20 +11,24 @@ jobs:
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
 
-      - name: Install Postgres client tools and age
+      - name: Install Postgres client tools, age and rclone
         run: |
           sudo apt-get update
-          sudo apt-get install -y postgresql-client age
+          sudo apt-get install -y postgresql-client age rclone
 
-      - name: Dump, encrypt, and upload to R2
+      - name: Dump, encrypt, and upload to Google Drive
         env:
           DATABASE_URL_DIRECT: ${{ secrets.DATABASE_URL_DIRECT }}
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          R2_ENDPOINT: ${{ secrets.R2_ENDPOINT }}
           AGE_PUBLIC_KEY: ${{ secrets.AGE_PUBLIC_KEY }}
+          RCLONE_CONFIG_GDRIVE_TYPE: drive
+          RCLONE_CONFIG_GDRIVE_SCOPE: drive
+          RCLONE_CONFIG_GDRIVE_ROOT_FOLDER_ID: 1nxImroHCCbUB60n4WBkeE7sCc7UtIjRL
+          RCLONE_CONFIG_GDRIVE_TOKEN: ${{ secrets.GDRIVE_TOKEN }}
         run: |
           set -o pipefail
+          # pg_dump -Fc is already compressed; zipping would not shrink it
           pg_dump "$DATABASE_URL_DIRECT" -Fc \
             | age -r "$AGE_PUBLIC_KEY" \
-            | aws s3 cp - "s3://gioi-backups/gioi-$(date +%F).dump.age" --endpoint-url "$R2_ENDPOINT"
+            | rclone rcat "gdrive:gioi-$(date +%F).dump.age"
+          # keep 30 days; --drive-use-trash=false frees quota immediately
+          rclone delete gdrive: --min-age 30d --drive-use-trash=false --include "gioi-*.dump.age"
