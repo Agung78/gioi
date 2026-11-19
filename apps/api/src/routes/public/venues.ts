@@ -25,10 +25,13 @@ export function registerPublicVenueRoutes(app: FastifyInstance, prisma: PrismaCl
 				},
 			})
 			if (!venue) throw notFound('venue not found')
+			const settings = venueToSettings(venue)
+			const max = Math.min(settings.partySizeLimits.max, 10) // ponytail: online bookings capped at 10, bigger groups go to WhatsApp
 			return {
 				id: venue.id,
 				slug: venue.slug,
-				...venueToSettings(venue),
+				...settings,
+				partySizeLimits: { min: settings.partySizeLimits.min, max },
 				feedbackTitle: venue.feedbackTitle,
 				feedbackSubtitle: venue.feedbackSubtitle,
 				feedbackTags: venue.feedbackTags,
