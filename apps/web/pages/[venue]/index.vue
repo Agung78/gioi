@@ -32,6 +32,7 @@ function cta(where: string, extra: Record<string, unknown> = {}, e?: Event) {
 }
 
 function quickBook() {
+  if (qParty.value > max) return
   cta('quick_form', { party_size: qParty.value, date: qDate.value })
   const q = new URLSearchParams({ date: qDate.value, party: String(qParty.value) })
   if (src !== 'website') q.set('src', src)
@@ -64,9 +65,8 @@ onMounted(async () => {
     gsap.utils.toArray<HTMLElement>('[data-reveal]').forEach((el) => {
       gsap.from(el.querySelectorAll('[data-word]'), { yPercent: 100, opacity: 0, duration: 1, stagger: 0.04, ease, scrollTrigger: { trigger: el, start: 'top 85%', once: true } })
     })
-    gsap.utils.toArray<HTMLElement>('[data-rise]').forEach((el) => {
-      gsap.from(el, { y: 40, opacity: 0, duration: 1.1, ease, scrollTrigger: { trigger: el, start: 'top 90%', once: true } })
-    })
+    gsap.set('[data-rise]', { y: 40, opacity: 0 })
+    ScrollTrigger.batch('[data-rise]', { start: 'top 90%', once: true, onEnter: (els) => gsap.to(els, { y: 0, opacity: 1, duration: 1.1, ease, stagger: 0.08, overwrite: true }) })
   }, root.value)
   document.fonts?.ready.then(() => ScrollTrigger.refresh())
 })
@@ -91,26 +91,28 @@ onBeforeUnmount(() => ctx?.revert())
 
       <div class="mx-auto grid w-full max-w-7xl flex-1 items-end gap-8 px-4 pb-8 pt-2 md:grid-cols-[1.1fr_0.9fr] md:items-center md:gap-12 md:px-8 md:pb-10">
         <div class="relative z-10 order-2 md:order-1">
-          <p class="mb-4 inline-flex items-center gap-2 rounded-full border border-white/15 px-3 py-1.5 text-xs font-medium text-white/80"><PhSunHorizon :size="16" class="text-sun" aria-hidden="true" /> {{ p.badge }}</p>
-          <h1 :aria-label="p.heroLines.join(' ')" class="font-display text-[clamp(2.5rem,5.5vw,5rem)] font-extrabold leading-[0.98] tracking-[-0.035em] text-white">
+          <h1 :aria-label="`${p.badge}. ${p.heroLines.join(' ')}`" class="font-display text-[clamp(2.5rem,5.5vw,5rem)] font-extrabold leading-[0.98] tracking-[-0.035em] text-white">
+            <span class="mb-4 flex w-fit items-center gap-2 rounded-full border border-white/15 px-3 py-1.5 font-sans text-xs font-medium leading-normal tracking-normal text-white/80" aria-hidden="true"><PhSunHorizon :size="16" class="text-sun" aria-hidden="true" /> {{ p.badge }}</span>
             <template v-for="(line, i) in p.heroLines" :key="i"><span class="block overflow-hidden pb-[0.06em]" aria-hidden="true"><template v-for="w in line.split(' ')" :key="w"><span data-hero-word class="inline-block pr-[0.22em]" :class="i === 2 ? 'text-sun' : ''">{{ w }}</span>{{ ' ' }}</template></span></template>
           </h1>
           <p data-hero-fade class="mt-4 max-w-[42ch] text-base leading-relaxed text-white/80 md:text-lg">{{ p.intro }}</p>
           <form method="post" data-hero-fade class="mt-6 flex max-w-xl flex-wrap items-end gap-3 rounded-[20px] bg-white/[0.08] p-3 ring-1 ring-white/15 backdrop-blur-sm" @submit.prevent="quickBook">
             <div class="min-w-[9.5rem] flex-1"><label class="mb-1 block px-1 text-xs font-medium text-white/70" for="q-date">Date</label><ClientOnly><DatePicker id="q-date" v-model="qDate" :min="today" :max="addDays(today, 90)" :closed="info?.closedDates" class="h-12 border-white/15 bg-navy/60 text-white [color-scheme:dark] focus:border-sand focus:ring-sand/30" /><template #fallback><div class="h-12 rounded-xl border border-white/15 bg-navy/60" /></template></ClientOnly></div>
-            <div class="w-28"><label class="mb-1 block px-1 text-xs font-medium text-white/70" for="q-party">Guests</label><select id="q-party" v-model.number="qParty" class="field h-12 border-white/15 bg-navy/60 text-white [color-scheme:dark] focus:border-sand focus:ring-sand/30"><option v-for="n in max - min + 1" :key="n" :value="min + n - 1">{{ min + n - 1 }}</option></select></div>
-            <button class="btn h-12 flex-1 bg-sun px-6 text-base text-navy hover:bg-sand focus-visible:ring-sand focus-visible:ring-offset-navy sm:flex-none" type="submit">Find a table</button>
+            <div class="w-36"><label class="mb-1 block px-1 text-xs font-medium text-white/70" for="q-party">Guests</label><select id="q-party" v-model.number="qParty" class="field h-12 border-white/15 bg-navy/60 text-white [color-scheme:dark] focus:border-sand focus:ring-sand/30"><option v-for="n in max - min + 1" :key="n" :value="min + n - 1">{{ min + n - 1 }}</option><option :value="max + 1">More than {{ max }}</option></select></div>
+            <a v-if="qParty > max" :href="`${wa}?text=${encodeURIComponent(`Hi ${name}, I'd like to book a table for more than ${max} guests on ${qDate}.`)}`" target="_blank" rel="noopener" class="btn h-12 flex-1 bg-sun px-6 text-base text-navy hover:bg-sand focus-visible:ring-sand focus-visible:ring-offset-navy sm:flex-none" @click="posthog?.capture('book_cta_clicked', { venue, location: 'quick_form_whatsapp', date: qDate })"><PhWhatsappLogo :size="20" aria-hidden="true" /> Message us on WhatsApp</a>
+            <button v-else class="btn h-12 flex-1 bg-sun px-6 text-base text-navy hover:bg-sand focus-visible:ring-sand focus-visible:ring-offset-navy sm:flex-none" type="submit">Find a table</button>
+            <p v-if="qParty > max" class="w-full px-1 text-sm text-white/80" role="status">Groups of more than {{ max }} are arranged directly with our team.</p>
           </form>
         </div>
-<div data-hero-media class="relative order-1 overflow-hidden rounded-[28px] md:order-2"><div class="aspect-[16/10] bg-navy md:aspect-auto md:h-[min(60svh,34rem)]"><img :src="seo.image.url" :alt="p.imageAlt" :srcset="heroSrcset" sizes="(min-width: 768px) 45vw, 100vw" width="1600" height="1600" class="h-full w-full object-cover" fetchpriority="high" /></div></div>
+<div data-hero-media class="relative isolate order-1 overflow-hidden rounded-[28px] md:order-2"><div class="aspect-[16/10] bg-navy md:aspect-auto md:h-[min(60svh,34rem)]"><img :src="seo.image.url" :alt="p.imageAlt" :srcset="heroSrcset" sizes="(min-width: 768px) 45vw, 100vw" width="1600" height="1600" class="h-full w-full object-cover" fetchpriority="high" /></div></div>
       </div>
     </section>
 
     <section id="about" class="mx-auto max-w-7xl px-4 py-12 md:px-8 md:py-20 border-b border-line">
       <div class="grid items-center gap-10 md:grid-cols-[1.4fr_0.6fr] md:gap-16">
         <div>
-          <h2 class="text-[clamp(2rem,4.5vw,3.5rem)] font-extrabold leading-[1.05]">About GIOI Ocean Gourmet Bali</h2>
-          <div class="mt-8 max-w-3xl space-y-4">
+          <h2 data-rise class="text-[clamp(2rem,4.5vw,3.5rem)] font-extrabold leading-[1.05]">About GIOI Ocean Gourmet Bali</h2>
+          <div data-rise class="mt-8 max-w-3xl space-y-4">
             <p v-for="(para, i) in p.about" :key="i" class="leading-relaxed text-muted">{{ para }}</p>
           </div>
         </div>
@@ -119,16 +121,16 @@ onBeforeUnmount(() => ctx?.revert())
     </section>
 
 <section id="signatures" class="mx-auto max-w-7xl px-4 py-12 md:px-8 md:py-20 border-b border-line">
-      <h2 class="text-[clamp(2rem,4.5vw,3.5rem)] font-extrabold leading-[1.05]">{{ p.signaturesTitle }}</h2>
-      <div class="mt-8 grid gap-6 sm:grid-cols-2 md:mt-12 lg:grid-cols-4">
-        <article v-for="s in p.signatures" :key="s.name" class="leading-relaxed text-muted">
+      <h2 data-rise class="text-[clamp(2rem,4.5vw,3.5rem)] font-extrabold leading-[1.05]">{{ p.signaturesTitle }}</h2>
+      <div class="-mx-4 mt-8 flex snap-x snap-mandatory scroll-px-4 gap-4 overflow-x-auto px-4 pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:mx-0 sm:grid sm:grid-cols-2 sm:gap-6 sm:overflow-visible sm:px-0 sm:pb-0 md:mt-12 lg:grid-cols-4">
+        <article v-for="s in p.signatures" :key="s.name" data-rise class="w-[78%] shrink-0 snap-start leading-relaxed text-muted sm:w-auto">
           <button type="button" class="block aspect-[4/3] w-full cursor-zoom-in overflow-hidden rounded-surface bg-line/50" :aria-label="`View ${s.name} full size`" @click="zoom = s"><img :src="s.img" :alt="s.alt" :srcset="`${s.img.replace(/\.webp$/, '-640.webp')} 640w, ${s.img} 1024w`" sizes="(min-width: 1024px) 25vw, (min-width: 640px) 50vw, 100vw" loading="lazy" decoding="async" width="320" height="240" class="h-full w-full object-cover" :style="{ objectPosition: `50% ${s.pos}%` }" /></button>
           <h3 class="mt-4 text-xl font-extrabold">{{ s.name }}</h3>
           <div class="mt-1"><p v-for="line in [s.price].flat()" :key="line">{{ line }}</p></div>
           <p class="mt-2">{{ s.copy }}</p>
         </article>
       </div>
-      <Transition enter-active-class="transition duration-200 ease-out" enter-from-class="opacity-0" leave-active-class="transition duration-150 ease-in" leave-to-class="opacity-0">
+      <Transition enter-active-class="transition duration-200 ease-out" enter-from-class="opacity-0" leave-active-class="transition duration-150 ease-out" leave-to-class="opacity-0">
         <div v-if="zoom" class="fixed inset-0 z-50 flex cursor-zoom-out items-center justify-center bg-black/80 p-4" role="dialog" aria-modal="true" :aria-label="zoom.name" @click="zoom = null">
           <img :src="zoom.img" :alt="zoom.alt" class="zoom-img max-h-full max-w-full rounded-surface object-contain" />
         </div>
@@ -139,10 +141,9 @@ onBeforeUnmount(() => ctx?.revert())
       </div>
     </section>
 
-
 <section id="experience" class="mx-auto max-w-7xl px-4 py-12 md:px-8 md:py-24">
       <div class="max-w-3xl"><h2 data-rise class="text-[clamp(2rem,4.5vw,3.5rem)] font-extrabold leading-[1.05]">{{ p.experienceTitle }}</h2></div>
-      <ol class="mt-8 grid gap-6 md:mt-14 md:grid-cols-3 md:gap-8"><li v-for="scene in p.scenes" :key="scene.title" data-rise><div class="group relative overflow-hidden rounded-surface"><div class="aspect-[4/3] overflow-hidden bg-line/50 md:aspect-[4/5]"><img :src="scene.img" :alt="scene.alt" loading="lazy" width="1600" height="900" class="h-full w-full object-cover transition duration-700 group-hover:scale-[1.03]" /></div><span class="absolute left-4 top-4 rounded-full bg-navy/85 px-3 py-1 font-display text-sm font-bold text-sand backdrop-blur">{{ scene.time }}</span></div><div class="mt-5"><h3 class="text-2xl font-extrabold">{{ scene.title }}</h3><p class="mt-2 max-w-[36ch] leading-relaxed text-muted">{{ scene.copy }}</p></div></li></ol>
+      <ol class="-mx-4 mt-8 flex snap-x snap-mandatory scroll-px-4 gap-4 overflow-x-auto px-4 pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden [&>li:nth-child(1)]:mt-4 [&>li:nth-child(3)]:mt-8 md:mx-0 md:mt-14 md:grid md:grid-cols-3 md:gap-8 md:overflow-visible md:px-0 md:pb-0 md:[&>li:nth-child(1)]:mt-8 md:[&>li:nth-child(3)]:mt-16"><li v-for="scene in p.scenes" :key="scene.title" data-rise class="w-[82%] shrink-0 snap-start md:w-auto"><div class="group relative overflow-hidden rounded-surface"><div class="aspect-[4/3] overflow-hidden bg-line/50 md:aspect-[4/5]"><img :src="scene.img" :alt="scene.alt" loading="lazy" width="1600" height="900" class="h-full w-full object-cover transition-transform duration-500 ease-out [@media(hover:hover)_and_(pointer:fine)]:group-hover:scale-[1.03]" /></div><span class="absolute left-4 top-4 rounded-full bg-navy/85 px-3 py-1 font-display text-sm font-bold text-sand backdrop-blur">{{ scene.time }}</span></div><div class="mt-5"><h3 class="text-2xl font-extrabold">{{ scene.title }}</h3><p class="mt-2 max-w-[36ch] leading-relaxed text-muted">{{ scene.copy }}</p></div></li></ol>
     </section>
 
     <section id="visit" class="border-b border-line"><div class="mx-auto grid max-w-7xl gap-10 px-4 py-12 md:grid-cols-[1.1fr_0.9fr] md:gap-16 md:px-8 md:py-20"><div><h2 data-rise class="text-[clamp(2rem,4.5vw,3.5rem)] font-extrabold leading-[1.02]">{{ p.visitTitle }}</h2><div data-rise class="mt-8 flex gap-3 text-lg leading-relaxed"><PhMapPin :size="24" class="mt-1 shrink-0 text-accent" aria-hidden="true" /><address class="not-italic">{{ info?.restaurant.address }}<br /><a :href="info?.restaurant.mapsUrl" target="_blank" rel="noopener" class="group inline-flex min-h-11 items-center gap-1 font-medium text-accent underline decoration-line underline-offset-4">Get directions <PhArrowUpRight :size="16" aria-hidden="true" /></a></address></div>
@@ -152,7 +153,7 @@ onBeforeUnmount(() => ctx?.revert())
           <a v-if="tripadvisor" :href="tripadvisor" target="_blank" rel="noopener noreferrer" class="btn-secondary"><svg viewBox="0 0 24 24" class="size-5 fill-current" aria-hidden="true"><path d="M12.006 4.295c-2.67 0-5.338.784-7.645 2.353H0l1.963 2.135a5.997 5.997 0 0 0 4.04 10.43 5.976 5.976 0 0 0 4.075-1.6L12 19.705l1.922-2.09a5.972 5.972 0 0 0 4.072 1.598 6 6 0 0 0 6-5.998 5.982 5.982 0 0 0-1.957-4.432L24 6.648h-4.35a13.573 13.573 0 0 0-7.644-2.353zM12 6.255c1.531 0 3.063.303 4.504.903C13.943 8.138 12 10.43 12 13.1c0-2.671-1.942-4.962-4.504-5.942A11.72 11.72 0 0 1 12 6.256zM6.002 9.157a4.059 4.059 0 1 1 0 8.118 4.059 4.059 0 0 1 0-8.118zm11.992.002a4.057 4.057 0 1 1 .003 8.115 4.057 4.057 0 0 1-.003-8.115zm-11.992 1.93a2.128 2.128 0 0 0 0 4.256 2.128 2.128 0 0 0 0-4.256zm11.992 0a2.128 2.128 0 0 0 0 4.256 2.128 2.128 0 0 0 0-4.256z"/></svg> Tripadvisor<span v-if="seo.tripadvisorRating" class="font-medium text-muted">{{ seo.tripadvisorRating.rating }} · {{ seo.tripadvisorRating.count }} reviews</span></a></div></div><div data-rise class="self-end"><div class="flex items-center justify-between"><h3 class="flex items-center gap-2 text-sm font-semibold uppercase tracking-[0.2em] text-muted"><PhClock :size="18" aria-hidden="true" /> Hours</h3><ClientOnly><span class="text-sm font-semibold uppercase tracking-[0.2em] tabular-nums" :aria-label="`Current time at ${name}`">{{ wita }} <span class="text-muted">{{ seo.tzLabel }}</span></span><template #fallback><span class="text-sm font-semibold uppercase tracking-[0.2em] tabular-nums" /></template></ClientOnly></div><ul class="mt-4 divide-y divide-line border-y border-line"><li v-for="d in days" :key="d" class="flex justify-between py-3"><span class="text-muted">{{ dayLabel[d] }}</span><span class="font-medium">{{ hours[d] ? `${hours[d].open} to ${hours[d].close}` : 'Closed' }}</span></li></ul></div></div></section>
 
     <section id="faq" class="mx-auto max-w-7xl px-4 py-12 md:px-8 md:py-20 border-b border-line">
-      <h2 class="text-[clamp(2rem,4.5vw,3.5rem)] font-extrabold leading-[1.05]">Frequently asked questions</h2>
+      <h2 data-rise class="text-[clamp(2rem,4.5vw,3.5rem)] font-extrabold leading-[1.05]">Frequently asked questions</h2>
       <div class="mt-8 border-t border-line md:mt-12">
 <details v-for="(faq, i) in p.faqs" :key="i" class="group border-b border-line"><summary class="flex cursor-pointer list-none items-center justify-between py-4 font-medium focus:outline-none"><span>{{ faq.q }}</span><span class="text-xl leading-[1.2] text-muted transition-transform group-open:rotate-45" aria-hidden="true">+</span></summary><div class="pb-4 text-muted leading-relaxed">{{ faq.a }}</div></details>
       </div>
@@ -173,4 +174,11 @@ onBeforeUnmount(() => ctx?.revert())
   .zoom-img { animation: zoom-in 220ms cubic-bezier(0.23, 1, 0.32, 1); }
 }
 @keyframes zoom-in { from { transform: scale(0.92); } }
+/* Fallback for engines without ::details-content (all iOS browsers use WebKit): fade/rise the answer in; no height animation. */
+@supports not selector(::details-content) {
+  @media (prefers-reduced-motion: no-preference) {
+    #faq details[open] > div { animation: faq-in 220ms cubic-bezier(0.23, 1, 0.32, 1); }
+  }
+}
+@keyframes faq-in { from { opacity: 0; transform: translateY(-4px); } }
 </style>
