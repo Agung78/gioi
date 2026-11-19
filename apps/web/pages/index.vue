@@ -1,6 +1,7 @@
 <script setup lang="ts">
 definePageMeta({ public: true })
 import { VENUE_SEO } from '@/utils/venueSeo'
+const posthog = usePostHog()
 
 const GROUP_TITLE = 'GIOI Group | Restaurants in Indonesia'
 const GROUP_DESCRIPTION = 'GIOI Group restaurants and bars. Choose a venue to see the menu, opening hours and reserve a table.'
@@ -61,8 +62,8 @@ useHead({
       <h1 class="mt-4 font-display text-[clamp(2.25rem,6vw,4.5rem)] font-extrabold leading-[1] tracking-[-0.035em]">GIOI Group</h1>
       <p class="mt-6 max-w-[40ch] text-lg leading-relaxed text-muted">Our new website is under development. Coming soon.</p>
       <ul class="mt-10 flex flex-wrap justify-center gap-3">
-        <li v-for="(seo, slug) in VENUE_SEO" :key="slug">
-          <NuxtLink :to="`/${slug}`" class="inline-flex min-h-11 items-center rounded-full border border-line px-6 text-sm font-medium transition hover:bg-ink hover:text-surface focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent">Visit {{ seo.title.split(' | ')[0] }}</NuxtLink>
+        <li v-for="(seo, slug, i) in VENUE_SEO" :key="slug">
+          <NuxtLink :to="`/${slug}`" class="inline-flex min-h-11 items-center rounded-full border border-line px-6 text-sm font-medium transition hover:bg-ink hover:text-surface focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent" @click="posthog?.capture('venue_selected', { venue: slug, position: i, from: 'main' })">Visit {{ seo.title.split(' | ')[0] }}</NuxtLink>
         </li>
       </ul>
     </main>

@@ -250,7 +250,10 @@ export function registerPublicReservationRoutes(app: FastifyInstance, prisma: Pr
 		},
 		async (request: FastifyRequest<{ Params: { code: string } }>, reply: FastifyReply) => {
 			const { code } = request.params
-			const reservation = await prisma.reservation.findUnique({ where: { bookingCode: code } })
+			const reservation = await prisma.reservation.findUnique({
+				where: { bookingCode: code },
+				include: { venue: { select: { slug: true } } },
+			})
 			if (!reservation) throw notFound('reservation not found')
 
 			if (!canTransition(reservation.status, 'cancelled')) {
@@ -289,6 +292,7 @@ export function registerPublicReservationRoutes(app: FastifyInstance, prisma: Pr
 				distinctIdOf(request, reservation.id),
 				{
 					reservation_id: reservation.id,
+					venue: reservation.venue.slug,
 					from_status: reservation.status,
 					actor_type: 'guest',
 				},
@@ -313,7 +317,10 @@ export function registerPublicReservationRoutes(app: FastifyInstance, prisma: Pr
 			const { code } = request.params
 			const { rating, comments = '', serviceTags = [] } = request.body
 
-			const reservation = await prisma.reservation.findUnique({ where: { bookingCode: code } })
+			const reservation = await prisma.reservation.findUnique({
+				where: { bookingCode: code },
+				include: { venue: { select: { slug: true } } },
+			})
 			if (!reservation) throw notFound('reservation not found')
 			if (reservation.status !== 'completed') {
 				return reply.status(409).send({ error: 'ERR_NOT_COMPLETED', message: 'feedback only allowed for completed reservations' })
@@ -349,6 +356,7 @@ export function registerPublicReservationRoutes(app: FastifyInstance, prisma: Pr
 				distinctIdOf(request, reservation.id),
 				{
 					reservation_id: reservation.id,
+					venue: reservation.venue.slug,
 					rating,
 				},
 			)

@@ -75,6 +75,7 @@ export default defineNuxtConfig({
 		host: process.env.NUXT_PUBLIC_POSTHOG_HOST ?? 'https://us.i.posthog.com',
 		clientConfig: {
 			autocapture: false,
+			capture_pageview: 'history_change',
 			capture_pageleave: true,
 			person_profiles: 'identified_only',
 			disable_session_recording: true,
