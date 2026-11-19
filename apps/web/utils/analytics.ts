@@ -19,3 +19,15 @@ export function gateEvent<T extends { properties?: Record<string, unknown> }>(
   if (venue && cp.properties?.venue === undefined) cp.properties!.venue = venue
   return cp
 }
+
+const UTM_KEYS = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'utm_term']
+
+// Booking runs on another subdomain and PostHog keeps registered props per origin, so utm rides the link.
+export function withUtm(url: string, search: string): string {
+  const from = new URLSearchParams(search)
+  const [base, query = ''] = url.split('?')
+  const to = new URLSearchParams(query)
+  for (const k of UTM_KEYS) if (from.get(k) && !to.has(k)) to.set(k, from.get(k)!)
+  const q = to.toString()
+  return q ? `${base}?${q}` : base
+}

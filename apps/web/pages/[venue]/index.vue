@@ -7,6 +7,7 @@ import DatePicker from '@/components/DatePicker.vue'
 import NyePromo from '@/components/NyePromo.vue'
 import { useVenueSeo } from '@/composables/useVenueSeo'
 import { imageSrcset } from '@/utils/venueSeo'
+import { withUtm } from '@/utils/analytics'
 
 const { venue, info, hours, seo, name, bookHref, bookPath, phoneE164, wa, src } = await useVenueSeo()
 const p = seo.page
@@ -24,13 +25,17 @@ const qParty = ref(2)
 const max = info?.partySizeLimits?.max ?? 8
 const min = info?.partySizeLimits?.min ?? 1
 
-function cta(location: string, extra: Record<string, unknown> = {}) { posthog?.capture('book_cta_clicked', { venue, location, ...extra }) }
+function cta(where: string, extra: Record<string, unknown> = {}, e?: Event) {
+  posthog?.capture('book_cta_clicked', { venue, location: where, ...extra })
+  const a = e?.currentTarget as HTMLAnchorElement | null
+  if (a) a.href = withUtm(a.href, location.search)
+}
 
 function quickBook() {
   cta('quick_form', { party_size: qParty.value, date: qDate.value })
   const q = new URLSearchParams({ date: qDate.value, party: String(qParty.value) })
   if (src !== 'website') q.set('src', src)
-  navigateTo(`${bookPath}?${q}`, { external: true })
+  navigateTo(withUtm(`${bookPath}?${q}`, location.search), { external: true })
 }
 
 const heroSrcset = imageSrcset(seo.image.url, [800, 1200], 1600)
@@ -80,7 +85,7 @@ onBeforeUnmount(() => ctx?.revert())
             <a href="#experience" class="rounded-full px-2 py-2 text-[13px] font-medium text-white/80 transition hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-sand sm:px-4 sm:text-sm">Experience</a>
             <a href="#visit" class="rounded-full px-2 py-2 text-[13px] font-medium text-white/80 transition hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-sand sm:px-4 sm:text-sm">Visit</a>
           </nav>
-          <a :href="bookHref" class="btn shrink-0 bg-sand !px-4 text-navy hover:bg-white sm:!px-6" @click="cta('nav')"><span>Reserve<span class="hidden sm:inline"> a table</span></span></a>
+          <a :href="bookHref" class="btn shrink-0 bg-sand !px-4 text-navy hover:bg-white sm:!px-6" @click="cta('nav', {}, $event)"><span>Reserve<span class="hidden sm:inline"> a table</span></span></a>
         </div>
       </header>
 
@@ -153,7 +158,7 @@ onBeforeUnmount(() => ctx?.revert())
       </div>
     </section>
 
-    <section class="bg-navy text-white"><div class="mx-auto max-w-7xl px-4 pb-10 pt-24 md:px-8 md:pt-32"><h2 data-reveal :aria-label="p.ctaTitle" class="max-w-[14ch] text-[clamp(2.5rem,7vw,6rem)] font-extrabold leading-[0.95] tracking-[-0.03em] text-white"><span aria-hidden="true"><template v-for="(w, wi) in p.ctaTitle.split(' ')" :key="w"><span class="inline-block overflow-hidden align-bottom"><span data-word class="inline-block pr-[0.2em]" :class="wi === p.ctaTitle.split(' ').length - 1 ? 'text-sun' : ''">{{ w }}</span>{{ ' ' }}</span></template></span></h2><div data-rise class="mt-10 flex flex-wrap items-center gap-6"><a :href="bookHref" class="btn min-h-12 bg-sun px-8 text-base text-navy hover:bg-sand focus-visible:ring-sand focus-visible:ring-offset-navy" @click="cta('footer')">Reserve a table</a><p class="max-w-[48ch] text-sm leading-relaxed text-white/65">{{ p.ctaNote }}</p></div><footer class="mt-24 flex flex-col gap-4 border-t border-white/10 pt-6 text-xs text-white/50 sm:flex-row sm:items-center sm:justify-between"><img src="/logo-96.webp" alt="GIOI Ocean Gourmet logo" width="96" height="96" loading="lazy" class="h-10 w-10 rounded-full object-cover" /><span>{{ name }} · {{ info?.restaurant.address }}</span><a :href="`tel:${phoneE164}`" class="inline-flex min-h-11 items-center hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-sand">{{ info?.restaurant.phone }}</a><a :href="ig" v-if="ig" target="_blank" rel="noopener noreferrer" :aria-label="`@${igHandle} on Instagram`" class="inline-flex min-h-11 items-center gap-1.5 hover:text-white focus-visible:outline focus-visible:outline-sand"><PhInstagramLogo :size="20" aria-hidden="true" /> {{ '@' + igHandle }}</a><NuxtLink to="/privacy" class="inline-flex min-h-11 items-center hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-sand">Privacy</NuxtLink></footer></div></section>
+    <section class="bg-navy text-white"><div class="mx-auto max-w-7xl px-4 pb-10 pt-24 md:px-8 md:pt-32"><h2 data-reveal :aria-label="p.ctaTitle" class="max-w-[14ch] text-[clamp(2.5rem,7vw,6rem)] font-extrabold leading-[0.95] tracking-[-0.03em] text-white"><span aria-hidden="true"><template v-for="(w, wi) in p.ctaTitle.split(' ')" :key="w"><span class="inline-block overflow-hidden align-bottom"><span data-word class="inline-block pr-[0.2em]" :class="wi === p.ctaTitle.split(' ').length - 1 ? 'text-sun' : ''">{{ w }}</span>{{ ' ' }}</span></template></span></h2><div data-rise class="mt-10 flex flex-wrap items-center gap-6"><a :href="bookHref" class="btn min-h-12 bg-sun px-8 text-base text-navy hover:bg-sand focus-visible:ring-sand focus-visible:ring-offset-navy" @click="cta('footer', {}, $event)">Reserve a table</a><p class="max-w-[48ch] text-sm leading-relaxed text-white/65">{{ p.ctaNote }}</p></div><footer class="mt-24 flex flex-col gap-4 border-t border-white/10 pt-6 text-xs text-white/50 sm:flex-row sm:items-center sm:justify-between"><img src="/logo-96.webp" alt="GIOI Ocean Gourmet logo" width="96" height="96" loading="lazy" class="h-10 w-10 rounded-full object-cover" /><span>{{ name }} · {{ info?.restaurant.address }}</span><a :href="`tel:${phoneE164}`" class="inline-flex min-h-11 items-center hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-sand">{{ info?.restaurant.phone }}</a><a :href="ig" v-if="ig" target="_blank" rel="noopener noreferrer" :aria-label="`@${igHandle} on Instagram`" class="inline-flex min-h-11 items-center gap-1.5 hover:text-white focus-visible:outline focus-visible:outline-sand"><PhInstagramLogo :size="20" aria-hidden="true" /> {{ '@' + igHandle }}</a><NuxtLink to="/privacy" class="inline-flex min-h-11 items-center hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-sand">Privacy</NuxtLink></footer></div></section>
   </div>
 </template>
 
