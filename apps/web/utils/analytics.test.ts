@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { gateEvent, isStaffPath, venueOfPath } from './analytics'
+import { gateEvent, isStaffPath, venueOfPath, withUtm } from './analytics'
 
 type Event = { properties?: Record<string, unknown> }
 
@@ -41,5 +41,15 @@ describe('gateEvent', () => {
   it('keeps an explicit pre-set venue', () => {
     const cp = gateEvent({ properties: { $pathname: '/bali/book', venue: 'other' } } as unknown as Event, slugs)
     expect(cp?.properties?.venue).toBe('other')
+  })
+})
+
+describe('withUtm', () => {
+  it('copies utm params onto a booking link, keeping existing query', () => {
+    expect(withUtm('https://book.x.com/bali/book?src=instagram', '?utm_source=ig&foo=1&utm_medium=bio'))
+      .toBe('https://book.x.com/bali/book?src=instagram&utm_source=ig&utm_medium=bio')
+  })
+  it('leaves the url untouched without utm', () => {
+    expect(withUtm('/bali/book', '?foo=1')).toBe('/bali/book')
   })
 })
