@@ -255,17 +255,18 @@ definePageMeta({ middleware: ['auth', 'admin'] })
 
 <template>
 	<div class="mx-auto max-w-6xl px-4 pb-8">
-		<div class="sticky top-[3.6rem] z-20 -mx-4 bg-surface px-4 pb-3 pt-5">
-		<header class="mb-4 flex flex-wrap items-baseline justify-between gap-3">
+		<!-- Filters stay pinned under the app header; compact 2x2 grid on phones. -->
+		<div class="-mx-4 bg-surface px-4 pb-3 pt-4 sticky top-[var(--app-header-h,3.6rem)] z-20 md:pt-5">
+		<header class="mb-3 flex flex-wrap items-baseline justify-between gap-x-3 md:mb-4">
 			<div>
-				<h1 class="font-display text-3xl font-semibold text-ink">
+				<h1 class="font-display text-2xl font-semibold text-ink md:text-3xl">
 					{{ new Date((analytics?.today ?? today) + 'T00:00:00').toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' }) }}
 				</h1>
 			</div>
 			<p class="text-sm text-muted">Live as of {{ asOf }}</p>
 		</header>
 
-		<section class="card grid gap-3 md:grid-cols-3 lg:grid-cols-6" :class="{ 'opacity-60': pending }">
+		<section class="card grid grid-cols-2 gap-x-3 gap-y-2 !p-3 md:grid-cols-4 md:gap-x-4 md:!p-4" :class="{ 'opacity-60': pending }">
 			<label class="label">Range
 				<select v-model="preset" class="field mt-1 !py-1.5 !px-3 text-sm" @change="setPreset(preset)">
 					<option value="today">Today</option>
@@ -298,8 +299,8 @@ definePageMeta({ middleware: ['auth', 'admin'] })
 					<option v-for="occasion in occasions" :key="occasion" :value="occasion">{{ occasion }}</option>
 				</select>
 			</label>
-			<button v-if="isFiltersDirty()" type="button" class="btn-ghost self-end !min-h-9 !px-4 !py-1.5 text-sm" @click="resetFilters">Reset filters</button>
-			<p v-if="analyticsError" class="text-sm text-red-500 md:col-span-3 lg:col-span-6" role="alert">{{ analyticsErrorMessage }}</p>
+			<button v-if="isFiltersDirty()" type="button" class="btn-ghost col-span-2 self-end !min-h-9 !px-4 !py-1.5 text-sm md:col-span-1" @click="resetFilters">Reset filters</button>
+			<p v-if="analyticsError" class="col-span-2 text-sm text-red-500 md:col-span-4" role="alert">{{ analyticsErrorMessage }}</p>
 		</section>
 		</div>
 		<p class="mb-6 mt-3 text-xs text-muted">
@@ -570,14 +571,16 @@ definePageMeta({ middleware: ['auth', 'admin'] })
 					<Transition name="modal"><ExportViewer v-if="showExport" :columns="exportColumns" :rows="exportRows" :filter-summary="filterSummary" :filename="exportFilename" @close="showExport = false" /></Transition>
 				</div>
 			</div>
-			<div v-if="resRows.length" class="mt-4 overflow-x-auto relative" :class="{ 'opacity-60': resPending }">
+			<template v-if="resRows.length">
+			<div class="mt-4 overflow-x-auto relative" :class="{ 'opacity-60': resPending }">
 				<p class="mb-2 text-xs text-muted sm:hidden">Swipe sideways for more columns</p>
 				<table class="min-w-[40rem] w-full text-left text-sm">
 					<thead><tr class="border-b border-line text-muted"><th class="p-2 whitespace-nowrap">Date</th><th class="p-2">Guest</th><th class="p-2">Party</th><th class="p-2">Area</th><th class="p-2">Source</th><th class="p-2">Status</th></tr></thead>
 					<tbody><tr v-for="reservation in resRows" :key="reservation.id" class="border-b border-line"><td class="p-2 whitespace-nowrap">{{ reservation.date }} {{ reservation.time }}</td><td class="p-2"><NuxtLink :to="`/guests/${reservation.guestId}`" class="font-medium text-accent underline underline-offset-2">{{ reservation.guestName ?? 'Unknown guest' }}</NuxtLink><div class="text-xs text-muted">{{ reservation.bookingCode }}</div></td><td class="p-2">{{ reservation.partySize }}</td><td class="p-2">{{ areaName(reservation.seatingAreaId) }}</td><td class="p-2">{{ reservation.source }}</td><td class="p-2"><StatusChip :status="reservation.status" /></td></tr></tbody>
 				</table>
-				<Pagination v-model:page="resPage" :page-count="resPageCount" />
 			</div>
+			<Pagination v-model:page="resPage" :page-count="resPageCount" />
+			</template>
 			<p v-else-if="resError" class="mt-4 text-sm text-red-500" role="alert">Could not load reservations.</p>
 			<p v-else class="mt-4 text-sm text-muted">No reservations match these filters.</p>
 		</section>

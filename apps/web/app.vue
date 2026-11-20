@@ -7,6 +7,7 @@
     >
     <header
       v-if="!isPublic"
+      ref="headerEl"
       class="[view-transition-name:app-header] sticky top-0 z-30 border-b border-line bg-surface/90 backdrop-blur-md"
     >
       <div class="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-2">
@@ -58,13 +59,23 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue'
+import { computed, onBeforeUnmount, ref, watch } from 'vue'
 import { useRoute } from '#app'
 import { useAuthStore } from '@/stores/auth'
 import { applyTheme, useTheme } from '@/composables/useTheme'
 import { fetchVenues } from '@/composables/useApi'
 
 const route = useRoute()
+// Sticky page toolbars sit under the app header, whose height varies (second nav row on phones).
+const headerEl = ref<HTMLElement | null>(null)
+let ro: ResizeObserver | undefined
+watch(headerEl, (el) => {
+	ro?.disconnect()
+	if (!el) return
+	ro = new ResizeObserver(() => document.documentElement.style.setProperty('--app-header-h', `${el.offsetHeight}px`))
+	ro.observe(el)
+})
+onBeforeUnmount(() => ro?.disconnect())
 const auth = useAuthStore()
 const { isDark } = useTheme()
 if (import.meta.client) applyTheme(isDark)

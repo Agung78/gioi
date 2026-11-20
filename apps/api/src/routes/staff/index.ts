@@ -96,6 +96,8 @@ function toDomainReservation(r: Prisma.ReservationGetPayload<{ select: typeof re
 	}
 }
 
+const UNDO_WINDOW_MS = 30_000
+
 export function registerStaffRoutes(app: FastifyInstance, prisma: PrismaClient): void {
 	// ---- Host: day view -----------------------------------------------------
 	app.get(
@@ -496,6 +498,50 @@ export function registerStaffRoutes(app: FastifyInstance, prisma: PrismaClient):
 			})
 
 			return { bookingCode: reservation.bookingCode, status: to }
+		},
+	)
+
+	// Undo a mis-tap: only the actor's own latest move, within UNDO_WINDOW_MS, never out of cancelled/no_show
+	// (those free the table and may already be rebooked).
+	app.post(
+		'/staff/reservations/:id/status/undo',
+		{ schema: { params: { type: 'object', properties: { id: { type: 'string' } }, required: ['id'] } } },
+		async (request: FastifyRequest<{ Params: { id: string } }>) => {
+			const session = await requireAuth(prisma, request.cookies as Record<string, string>)
+			const reservation = await prisma.reservation.findUnique({ where: { id: request.params.id } })
+			if (!reservation) throw notFound('reservation not found')
+			requireVenueAccess(session, reservation.venueId)
+
+			const last = await prisma.reservationStatusEvent.findFirst({ where: { reservationId: reservation.id }, orderBy: { at: 'desc' } })
+			const undoable =
+				last?.fromStatus && last.toStatus === reservation.status && last.actorUserId === session.user.id &&
+				Date.now() - last.at.getTime() <= UNDO_WINDOW_MS && last.reason !== 'undo' &&
+				!['cancelled', 'no_show'].includes(last.toStatus)
+			if (!last || !undoable) throw new AppError(409, 'nothing to undo', 'ERR_NOTHING_TO_UNDO')
+			const back = last.fromStatus as ReservationStatus
+
+			await prisma.$transaction(async (tx) => {
+				const rows = await tx.$executeRaw`
+					UPDATE reservations
+					SET status = ${back}::reservation_status, updated_at = now()
+					WHERE id = ${reservation.id}::uuid AND status = ${reservation.status}::reservation_status`
+				if (rows === 0) throw conflict('concurrent update')
+				await tx.reservationStatusEvent.create({
+					data: { reservationId: reservation.id, fromStatus: reservation.status, toStatus: back, actorType: 'user', actorUserId: session.user.id, reason: 'undo' },
+				})
+				await tx.auditEvent.create({
+					data: {
+						venueId: reservation.venueId,
+						actorType: 'user',
+						actorUserId: session.user.id,
+						action: 'reservation.status_undone',
+						entityType: 'reservation_status',
+						entityId: reservation.id,
+						changes: { status: { from: reservation.status, to: back } } as Prisma.InputJsonValue,
+					},
+				})
+			})
+			return { bookingCode: reservation.bookingCode, status: back }
 		},
 	)
 
