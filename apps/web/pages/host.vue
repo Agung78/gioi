@@ -2,7 +2,7 @@
 import { computed, ref, watch, onMounted, onBeforeUnmount } from 'vue'
 import { useRouter } from '#app'
 import { addDays, todayISO, type PublicFloorPlan, type ReservationStatus } from '@gioi/domain'
-import { PhWarning, PhWheelchair, PhStar, PhWhatsappLogo } from '@phosphor-icons/vue'
+import { PhWarning, PhWheelchair, PhStar, PhWhatsappLogo, PhCaretLeft, PhCaretRight } from '@phosphor-icons/vue'
 import StatusChip from '@/components/StatusChip.vue'
 import StatusButtons from '@/components/StatusButtons.vue'
 import GuestSearch from '@/components/GuestSearch.vue'
@@ -244,58 +244,53 @@ definePageMeta({ middleware: 'auth' })
 
 <template>
 	<div class="mx-auto max-w-6xl px-4 pb-8">
-		<div class="sticky top-[3.6rem] z-20 -mx-4 mb-4 border-b border-line bg-surface px-4 pt-5">
+		<!-- Whole toolbar stays pinned under the app header. -->
+		<div class="sticky top-[var(--app-header-h,3.6rem)] z-20 -mx-4 mb-4 border-b border-line bg-surface px-4 pt-3 md:pt-5">
 			<header class="mb-2 flex flex-wrap items-baseline gap-x-3">
-				<h1 class="font-display text-xl font-extrabold">
+				<h1 class="font-display text-lg font-extrabold md:text-xl">
 					{{ new Date(date + 'T00:00:00').toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' }) }}
 				</h1>
 				<p class="text-sm text-muted">{{ todays.length }} bookings · {{ activeCount }} active</p>
 			</header>
-			<div class="flex flex-wrap items-center gap-2">
-				<div class="flex flex-wrap items-center gap-2">
-					<button class="btn-secondary min-h-12" type="button" @click="date = addDays(date, -1)">Previous</button>
-					<DatePicker v-model="date" aria-label="Service date" class="min-h-12 !w-auto min-w-[11rem] py-1.5 text-sm" />
-					<button class="btn-secondary min-h-12" type="button" @click="date = addDays(date, 1)">Next</button>
-					<button class="btn-secondary min-h-12" type="button" :disabled="date === todayISO()" @click="date = todayISO()">Today</button>
-				</div>
-				<button class="btn-secondary min-h-12" type="button" :disabled="!venueId" @click="exportCsv">Export CSV</button>
-				<Transition name="modal"><ExportViewer v-if="showExport" :columns="exportColumns" :rows="exportRows" :filter-summary="`Date: ${date}`" :filename="exportFilename" @close="showExport = false" /></Transition>
-				<button class="btn-primary min-h-12" type="button" @click="showWalkIn = true">+ Walk-in</button>
+			<div class="flex items-center gap-2">
+				<button class="btn-secondary min-h-11 !px-3" type="button" aria-label="Previous day" @click="date = addDays(date, -1)"><PhCaretLeft :size="20" aria-hidden="true" /></button>
+				<DatePicker v-model="date" aria-label="Service date" class="min-h-11 min-w-0 flex-1 py-1.5 text-sm md:!w-auto md:min-w-[11rem] md:flex-none" />
+				<button class="btn-secondary min-h-11 !px-3" type="button" aria-label="Next day" @click="date = addDays(date, 1)"><PhCaretRight :size="20" aria-hidden="true" /></button>
+				<button class="btn-secondary min-h-11" type="button" :disabled="date === todayISO()" @click="date = todayISO()">Today</button>
 			</div>
-			<nav class="mt-2 flex flex-wrap items-center justify-between gap-x-6 gap-y-3">
-				<div class="flex gap-6">
-					<button
-						v-for="t in [{ id: 'today', label: 'Today\'s service' }, { id: 'search', label: 'Guest search' }] as const"
-						:key="t.id"
-						class="-mb-px min-h-12 border-b-2 text-base font-medium"
-						:class="tab === t.id ? 'border-ink text-ink' : 'border-transparent text-muted'"
-						type="button"
-						@click="tab = t.id"
-					>
-						{{ t.label }}
-					</button>
-				</div>
-				<div v-if="tab === 'today' && todays.length" class="flex flex-wrap items-center gap-x-6 gap-y-2 pb-2">
-					<label class="flex items-center gap-2 text-sm text-muted">
-						Status <select v-model="statusFilter" class="field !w-auto !py-1.5 !px-3 text-sm text-ink">
-							<option value="all">All</option>
-							<option value="pending">Pending</option>
-							<option value="confirmed">Confirmed</option>
-							<option value="arrived">Arrived</option>
-							<option value="seated">Seated</option>
-							<option value="completed">Completed</option>
-							<option value="no_show">No-show</option>
-							<option value="cancelled">Cancelled</option>
-						</select>
-					</label>
-					<label class="flex items-center gap-2 text-sm text-muted">
-						Source <select v-model="sourceFilter" class="field !w-auto !py-1.5 !px-3 text-sm text-ink">
-							<option value="all">All sources</option>
-							<option v-for="s in ['website', 'instagram', 'google', 'whatsapp', 'walk_in', 'phone', 'host']" :key="s" :value="s">{{ s }}</option>
-						</select>
-					</label>
-				</div>
-				</nav>
+		<div v-if="tab === 'today'" class="mb-1 mt-3 flex flex-wrap items-center gap-2">
+			<button class="btn-primary min-h-12 flex-1 md:flex-none" type="button" @click="showWalkIn = true">+ Walk-in</button>
+			<button class="btn-secondary min-h-12 flex-1 md:flex-none" type="button" :disabled="!venueId" @click="exportCsv">Export CSV</button>
+			<Transition name="modal"><ExportViewer v-if="showExport" :columns="exportColumns" :rows="exportRows" :filter-summary="`Date: ${date}`" :filename="exportFilename" @close="showExport = false" /></Transition>
+			<template v-if="todays.length">
+				<select v-model="statusFilter" aria-label="Status" class="field min-h-12 !w-auto min-w-0 flex-1 !px-3 text-sm text-ink md:flex-none">
+					<option value="all">All statuses</option>
+					<option value="pending">Pending</option>
+					<option value="confirmed">Confirmed</option>
+					<option value="arrived">Arrived</option>
+					<option value="seated">Seated</option>
+					<option value="completed">Completed</option>
+					<option value="no_show">No-show</option>
+					<option value="cancelled">Cancelled</option>
+				</select>
+				<select v-model="sourceFilter" aria-label="Source" class="field min-h-12 !w-auto min-w-0 flex-1 !px-3 text-sm text-ink md:flex-none">
+					<option value="all">All sources</option>
+					<option v-for="s in ['website', 'instagram', 'google', 'whatsapp', 'walk_in', 'phone', 'host']" :key="s" :value="s">{{ s }}</option>
+				</select>
+			</template>
+		</div>
+			<nav class="flex gap-6">
+				<button
+					v-for="t in [{ id: 'today', label: 'Today\'s service' }, { id: 'search', label: 'Guest search' }] as const"
+					:key="t.id"
+					class="-mb-px min-h-11 border-b-2 text-base font-medium"
+					:class="tab === t.id ? 'border-ink text-ink' : 'border-transparent text-muted'"
+					type="button"
+					@click="tab = t.id"
+				>
+					{{ t.label }}
+				</button>
+			</nav>
 		</div>
 		<div v-if="lastError" class="alert-danger mb-4">{{ lastError }}</div>
 
