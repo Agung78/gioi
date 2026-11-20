@@ -46,8 +46,8 @@ definePageMeta({ middleware: ['auth', 'admin'] })
 </script>
 
 <template>
-	<div class="mx-auto max-w-5xl px-4 py-8">
-		<header class="mb-6 flex flex-wrap items-baseline justify-between gap-3">
+	<div class="mx-auto max-w-5xl px-4 pb-8">
+		<header class="sticky top-[3.6rem] z-20 -mx-4 mb-4 flex flex-wrap items-baseline justify-between gap-3 bg-surface px-4 pb-3 pt-5">
 			<div>
 				<h1 class="font-display text-3xl font-semibold text-ink">Audit log</h1>
 			</div>

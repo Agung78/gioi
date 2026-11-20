@@ -243,15 +243,14 @@ definePageMeta({ middleware: 'auth' })
 </script>
 
 <template>
-	<div class="mx-auto max-w-6xl px-4 py-8">
-		<header class="mb-6 flex flex-wrap items-center justify-between gap-3">
-			<div>
-				<p class="text-sm font-medium text-muted">Service day</p>
-				<h1 class="font-display text-3xl font-extrabold">
+	<div class="mx-auto max-w-6xl px-4 pb-8">
+		<div class="sticky top-[3.6rem] z-20 -mx-4 mb-4 border-b border-line bg-surface px-4 pt-5">
+			<header class="mb-2 flex flex-wrap items-baseline gap-x-3">
+				<h1 class="font-display text-xl font-extrabold">
 					{{ new Date(date + 'T00:00:00').toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' }) }}
 				</h1>
 				<p class="text-sm text-muted">{{ todays.length }} bookings · {{ activeCount }} active</p>
-			</div>
+			</header>
 			<div class="flex flex-wrap items-center gap-2">
 				<div class="flex flex-wrap items-center gap-2">
 					<button class="btn-secondary min-h-12" type="button" @click="date = addDays(date, -1)">Previous</button>
@@ -263,44 +262,42 @@ definePageMeta({ middleware: 'auth' })
 				<Transition name="modal"><ExportViewer v-if="showExport" :columns="exportColumns" :rows="exportRows" :filter-summary="`Date: ${date}`" :filename="exportFilename" @close="showExport = false" /></Transition>
 				<button class="btn-primary min-h-12" type="button" @click="showWalkIn = true">+ Walk-in</button>
 			</div>
-		</header>
-
+			<nav class="mt-2 flex flex-wrap items-center justify-between gap-x-6 gap-y-3">
+				<div class="flex gap-6">
+					<button
+						v-for="t in [{ id: 'today', label: 'Today\'s service' }, { id: 'search', label: 'Guest search' }] as const"
+						:key="t.id"
+						class="-mb-px min-h-12 border-b-2 text-base font-medium"
+						:class="tab === t.id ? 'border-ink text-ink' : 'border-transparent text-muted'"
+						type="button"
+						@click="tab = t.id"
+					>
+						{{ t.label }}
+					</button>
+				</div>
+				<div v-if="tab === 'today' && todays.length" class="flex flex-wrap items-center gap-x-6 gap-y-2 pb-2">
+					<label class="flex items-center gap-2 text-sm text-muted">
+						Status <select v-model="statusFilter" class="field !w-auto !py-1.5 !px-3 text-sm text-ink">
+							<option value="all">All</option>
+							<option value="pending">Pending</option>
+							<option value="confirmed">Confirmed</option>
+							<option value="arrived">Arrived</option>
+							<option value="seated">Seated</option>
+							<option value="completed">Completed</option>
+							<option value="no_show">No-show</option>
+							<option value="cancelled">Cancelled</option>
+						</select>
+					</label>
+					<label class="flex items-center gap-2 text-sm text-muted">
+						Source <select v-model="sourceFilter" class="field !w-auto !py-1.5 !px-3 text-sm text-ink">
+							<option value="all">All sources</option>
+							<option v-for="s in ['website', 'instagram', 'google', 'whatsapp', 'walk_in', 'phone', 'host']" :key="s" :value="s">{{ s }}</option>
+						</select>
+					</label>
+				</div>
+				</nav>
+		</div>
 		<div v-if="lastError" class="alert-danger mb-4">{{ lastError }}</div>
-
-		<nav class="mb-6 flex flex-wrap items-center justify-between gap-x-6 gap-y-3 border-b border-line">
-			<div class="flex gap-6">
-				<button
-					v-for="t in [{ id: 'today', label: 'Today\'s service' }, { id: 'search', label: 'Guest search' }] as const"
-					:key="t.id"
-					class="-mb-px min-h-12 border-b-2 text-base font-medium"
-					:class="tab === t.id ? 'border-ink text-ink' : 'border-transparent text-muted'"
-					type="button"
-					@click="tab = t.id"
-				>
-					{{ t.label }}
-				</button>
-			</div>
-			<div v-if="tab === 'today' && todays.length" class="flex flex-wrap items-center gap-x-6 gap-y-2 pb-2">
-				<label class="flex items-center gap-2 text-sm text-muted">
-					Status <select v-model="statusFilter" class="field !w-auto !py-1.5 !px-3 text-sm text-ink">
-						<option value="all">All</option>
-						<option value="pending">Pending</option>
-						<option value="confirmed">Confirmed</option>
-						<option value="arrived">Arrived</option>
-						<option value="seated">Seated</option>
-						<option value="completed">Completed</option>
-						<option value="no_show">No-show</option>
-						<option value="cancelled">Cancelled</option>
-					</select>
-				</label>
-				<label class="flex items-center gap-2 text-sm text-muted">
-					Source <select v-model="sourceFilter" class="field !w-auto !py-1.5 !px-3 text-sm text-ink">
-						<option value="all">All sources</option>
-						<option v-for="s in ['website', 'instagram', 'google', 'whatsapp', 'walk_in', 'phone', 'host']" :key="s" :value="s">{{ s }}</option>
-					</select>
-				</label>
-			</div>
-		</nav>
 
 	<Transition name="fade" mode="out-in">
 		<template v-if="tab === 'search'" key="search">
