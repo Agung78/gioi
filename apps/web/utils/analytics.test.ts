@@ -42,6 +42,21 @@ describe('gateEvent', () => {
     const cp = gateEvent({ properties: { $pathname: '/bali/book', venue: 'other' } } as unknown as Event, slugs)
     expect(cp?.properties?.venue).toBe('other')
   })
+  it('masks booking codes in pageview props', () => {
+    const cp = gateEvent({
+      properties: {
+        $pathname: '/bali/confirmation/GIOI-ABCD2345',
+        $current_url: 'https://book.x.com/bali/confirmation/GIOI-ABCD2345?a=1',
+        $session_entry_url: 'https://book.x.com/bali/feedback/GIOI-ABCD2345',
+        $set_once: { $initial_pathname: '/bali/feedback/GIOI-ABCD2345' },
+      },
+    } as unknown as Event, slugs)
+    expect(JSON.stringify(cp?.properties)).not.toContain('GIOI-ABCD2345')
+    expect(cp?.properties?.$pathname).toBe('/bali/confirmation/:code')
+    expect(cp?.properties?.$current_url).toBe(
+      'https://book.x.com/bali/confirmation/:code?a=1',
+    )
+  })
 })
 
 describe('withUtm', () => {

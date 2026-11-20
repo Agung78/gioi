@@ -776,4 +776,28 @@ describe('API integration', () => {
 			partySizeMix: [{ bucket: '1–2', bookings: 2 }],
 		})
 	})
+	it('PII: junk posthog id is ignored; phone edit audit stores masked numbers only', async () => {
+		const venue = (await prisma.venue.findUnique({ where: { slug: 'bali' } }))!
+		const create = await fetch(`${baseUrl}/public/venues/bali/reservations`, {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json', 'x-posthog-distinct-id': 'ayu@example.com' },
+			body: JSON.stringify({ guestName: 'Ayu', phone: '+62 811 222 333', country: 'Indonesia', email: 'ayu@example.com', date: DATE, time: '13:00', partySize: 2 }),
+		})
+		expect(create.status).toBe(201)
+
+		await prisma.user.create({ data: { name: 'Host', login: 'piihost', passwordHash: await hash('pw-12345'), active: true, venues: { create: { venueId: venue.id, role: 'host' } } } })
+		const login = await fetch(`${baseUrl}/staff/login`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ login: 'piihost', password: 'pw-12345' }) })
+		const cookie = login.headers.get('set-cookie')!.split(';')[0]
+
+		const guest = (await prisma.guest.findFirst({ where: { venueId: venue.id } }))!
+		const patch = await fetch(`${baseUrl}/staff/guests/${guest.id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json', cookie }, body: JSON.stringify({ phone: '+62 811 999 888' }) })
+		expect(patch.status).toBe(200)
+		expect((await patch.json()).phone).toBe('+62 811 999 888')
+
+		const ev = (await prisma.auditEvent.findFirst({ where: { action: 'guest.phone_updated' } }))!
+		const stored = JSON.stringify(ev.changes)
+		expect(stored).not.toContain('811 222 333')
+		expect(stored).not.toContain('811 999 888')
+		expect(stored).toContain('•')
+	})
 })
