@@ -254,8 +254,9 @@ definePageMeta({ middleware: ['auth', 'admin'] })
 </script>
 
 <template>
-	<div class="mx-auto max-w-6xl px-4 py-8">
-		<header class="mb-6 flex flex-wrap items-baseline justify-between gap-3">
+	<div class="mx-auto max-w-6xl px-4 pb-8">
+		<div class="sticky top-[3.6rem] z-20 -mx-4 bg-surface px-4 pb-3 pt-5">
+		<header class="mb-4 flex flex-wrap items-baseline justify-between gap-3">
 			<div>
 				<h1 class="font-display text-3xl font-semibold text-ink">
 					{{ new Date((analytics?.today ?? today) + 'T00:00:00').toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' }) }}
@@ -264,7 +265,7 @@ definePageMeta({ middleware: ['auth', 'admin'] })
 			<p class="text-sm text-muted">Live as of {{ asOf }}</p>
 		</header>
 
-		<section class="card mb-6 grid gap-3 md:grid-cols-3 lg:grid-cols-6" :class="{ 'opacity-60': pending }">
+		<section class="card grid gap-3 md:grid-cols-3 lg:grid-cols-6" :class="{ 'opacity-60': pending }">
 			<label class="label">Range
 				<select v-model="preset" class="field mt-1 !py-1.5 !px-3 text-sm" @change="setPreset(preset)">
 					<option value="today">Today</option>
@@ -299,10 +300,11 @@ definePageMeta({ middleware: ['auth', 'admin'] })
 			</label>
 			<button v-if="isFiltersDirty()" type="button" class="btn-ghost self-end !min-h-9 !px-4 !py-1.5 text-sm" @click="resetFilters">Reset filters</button>
 			<p v-if="analyticsError" class="text-sm text-red-500 md:col-span-3 lg:col-span-6" role="alert">{{ analyticsErrorMessage }}</p>
-			<p class="text-xs text-muted md:col-span-3 lg:col-span-6">
-				Filters apply to period analytics ({{ periodLabel }}: guest mix, channels, reliability) and the reservations table. Turn time and Guest feedback follow the Range only. Status only narrows the table. Today live, Next 7 days and Next 30 days are always live.
-			</p>
 		</section>
+		</div>
+		<p class="mb-6 mt-3 text-xs text-muted">
+			Filters apply to period analytics ({{ periodLabel }}: guest mix, channels, reliability) and the reservations table. Turn time and Guest feedback follow the Range only. Status only narrows the table. Today live, Next 7 days and Next 30 days are always live.
+		</p>
 
 		<section v-if="dashboard && dashboard.cues.length" class="mb-6 space-y-2">
 			<h2 class="font-display text-lg font-semibold text-ink">Action cues</h2>
