@@ -132,6 +132,10 @@ export async function changeReservationStatus(
 	return apiFetch(`/staff/reservations/${id}/status`, { method: 'POST', body })
 }
 
+export async function undoReservationStatus(id: string): Promise<{ bookingCode: string; status: ReservationStatus }> {
+	return apiFetch(`/staff/reservations/${id}/status/undo`, { method: 'POST' })
+}
+
 export async function updateGuestPhone(id: string, phone: string): Promise<{ id: string; phone: string }> {
 	return apiFetch(`/staff/guests/${id}`, { method: 'PATCH', body: { phone } })
 }

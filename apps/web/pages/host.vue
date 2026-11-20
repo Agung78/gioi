@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, ref, watch, onMounted, onBeforeUnmount } from 'vue'
 import { useRouter } from '#app'
-import { addDays, todayISO, type PublicFloorPlan, type ReservationStatus } from '@gioi/domain'
+import { addDays, statusLabel, todayISO, type PublicFloorPlan, type ReservationStatus } from '@gioi/domain'
 import { PhWarning, PhWheelchair, PhStar, PhWhatsappLogo, PhCaretLeft, PhCaretRight } from '@phosphor-icons/vue'
 import StatusChip from '@/components/StatusChip.vue'
 import StatusButtons from '@/components/StatusButtons.vue'
@@ -15,6 +15,7 @@ import { useAuthStore } from '@/stores/auth'
 import {
 	fetchDay,
 	changeReservationStatus,
+	undoReservationStatus,
 	fetchDayExport,
 	updateGuestPhone,
 	type DayView,
@@ -113,8 +114,20 @@ async function changeStatus(r: StaffReservation, to: ReservationStatus) {
 	try {
 		await changeReservationStatus(r.id, { to })
 		await load(date.value)
+		if (to !== 'cancelled' && to !== 'no_show') toast(`${guestOf(r).fullName} · ${statusLabel(to)}`, 'success', { label: 'Undo', run: () => undo(r.id) })
 	} catch (e: any) {
 		lastError.value = e.message ?? 'Cannot change status.'
+	}
+}
+
+async function undo(id: string) {
+	lastError.value = null
+	try {
+		await undoReservationStatus(id)
+		await load(date.value)
+		toast('Change undone')
+	} catch (e: any) {
+		lastError.value = e.message ?? 'Cannot undo.'
 	}
 }
 
@@ -245,8 +258,9 @@ definePageMeta({ middleware: 'auth' })
 <template>
 	<div class="mx-auto max-w-6xl px-4 pb-8">
 		<!-- Whole toolbar stays pinned under the app header. -->
-		<div class="sticky top-[var(--app-header-h,3.6rem)] z-20 -mx-4 mb-4 border-b border-line bg-surface px-4 pt-3 md:pt-5">
-			<header class="mb-2 flex flex-wrap items-baseline gap-x-3">
+		<div class="sticky top-[var(--app-header-h,3.6rem)] z-20 -mx-4 mb-4 border-b border-line bg-surface px-4 pt-3 md:flex md:flex-wrap md:items-end md:pt-4">
+			<div class="md:flex md:w-full md:items-center md:justify-between md:mb-3 md:gap-4">
+			<header class="mb-2 md:mb-0 flex flex-wrap items-baseline gap-x-3">
 				<h1 class="font-display text-lg font-extrabold md:text-xl">
 					{{ new Date(date + 'T00:00:00').toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' }) }}
 				</h1>
@@ -258,12 +272,13 @@ definePageMeta({ middleware: 'auth' })
 				<button class="btn-secondary min-h-11 !px-3" type="button" aria-label="Next day" @click="date = addDays(date, 1)"><PhCaretRight :size="20" aria-hidden="true" /></button>
 				<button class="btn-secondary min-h-11" type="button" :disabled="date === todayISO()" @click="date = todayISO()">Today</button>
 			</div>
-		<div v-if="tab === 'today'" class="mb-1 mt-3 flex flex-wrap items-center gap-2">
-			<button class="btn-primary min-h-12 flex-1 md:flex-none" type="button" @click="showWalkIn = true">+ Walk-in</button>
-			<button class="btn-secondary min-h-12 flex-1 md:flex-none" type="button" :disabled="!venueId" @click="exportCsv">Export CSV</button>
+			</div>
+		<div v-if="tab === 'today'" class="mb-1 mt-3 flex flex-wrap items-center gap-2 md:order-2 md:my-0 md:ml-auto md:pb-2">
+			<button class="btn-primary min-h-12 md:min-h-11 flex-1 md:flex-none" type="button" @click="showWalkIn = true">+ Walk-in</button>
+			<button class="btn-secondary min-h-12 md:min-h-11 flex-1 md:flex-none" type="button" :disabled="!venueId" @click="exportCsv">Export CSV</button>
 			<Transition name="modal"><ExportViewer v-if="showExport" :columns="exportColumns" :rows="exportRows" :filter-summary="`Date: ${date}`" :filename="exportFilename" @close="showExport = false" /></Transition>
 			<template v-if="todays.length">
-				<select v-model="statusFilter" aria-label="Status" class="field min-h-12 !w-auto min-w-0 flex-1 !px-3 text-sm text-ink md:flex-none">
+				<select v-model="statusFilter" aria-label="Status" class="field min-h-12 md:min-h-11 !w-auto min-w-0 flex-1 !px-3 text-sm text-ink md:flex-none">
 					<option value="all">All statuses</option>
 					<option value="pending">Pending</option>
 					<option value="confirmed">Confirmed</option>
@@ -273,13 +288,13 @@ definePageMeta({ middleware: 'auth' })
 					<option value="no_show">No-show</option>
 					<option value="cancelled">Cancelled</option>
 				</select>
-				<select v-model="sourceFilter" aria-label="Source" class="field min-h-12 !w-auto min-w-0 flex-1 !px-3 text-sm text-ink md:flex-none">
+				<select v-model="sourceFilter" aria-label="Source" class="field min-h-12 md:min-h-11 !w-auto min-w-0 flex-1 !px-3 text-sm text-ink md:flex-none">
 					<option value="all">All sources</option>
 					<option v-for="s in ['website', 'instagram', 'google', 'whatsapp', 'walk_in', 'phone', 'host']" :key="s" :value="s">{{ s }}</option>
 				</select>
 			</template>
 		</div>
-			<nav class="flex gap-6">
+			<nav class="flex gap-6 md:order-1">
 				<button
 					v-for="t in [{ id: 'today', label: 'Today\'s service' }, { id: 'search', label: 'Guest search' }] as const"
 					:key="t.id"

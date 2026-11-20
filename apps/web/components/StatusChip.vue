@@ -8,8 +8,10 @@ const icons: Record<string, unknown> = { PhHourglass, PhCheckCircle, PhDoorOpen,
 </script>
 
 <template>
-  <span class="chip px-3 py-1.5 text-sm" :class="statusChipClass(status)">
-    <component :is="icons[statusIcon(status)]" :size="18" aria-hidden="true" />
-    {{ statusLabel(status) }}
-  </span>
+  <Transition name="fade" mode="out-in">
+    <span :key="status" class="chip px-3 py-1.5 text-sm" :class="statusChipClass(status)">
+      <component :is="icons[statusIcon(status)]" :size="18" aria-hidden="true" />
+      {{ statusLabel(status) }}
+    </span>
+  </Transition>
 </template>
