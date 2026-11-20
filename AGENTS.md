@@ -7,6 +7,10 @@ unfamiliar territory: `xerj def "<symbol>"` for go-to-definition, or
 `xerj search --prefix gioi "<plain words>"` for ranked, definition-first passages.
 Index a repo with `xerj autoindex <folder>`. Cite file:line for anything you rely on.
 
+## UI guardrail
+
+Before editing any UI in `apps/web/`, read `apps/web/DESIGN.md` (breakpoints, page shell, tokens, shape, touch rules). Do not change layout, breakpoints, container widths, z-index, or tokens as a side effect of a feature task.
+
 ## Prototype vs production
 
 `prototype/` is a frontend-only, single-venue demo (Vite + Vue Router + Pinia on localStorage). The production app is a new Nuxt web app plus a Fastify API, specified in `docs/ops/gioi_infrastructure_decision.md` and `docs/ops/gioi_hosting_recommendation.md`. When docs and prototype disagree, the docs win. Do not edit `prototype/` to match production: `scripts/record-demo.mjs` and `docs/RECORDING-SCENARIOS.md` depend on its current routes.
