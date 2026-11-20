@@ -15,9 +15,23 @@ export function gateEvent<T extends { properties?: Record<string, unknown> }>(
   slugs: readonly string[],
 ): T | null {
   if (!cp || isStaffPath(String(cp.properties?.$pathname ?? ''))) return null
-  const venue = venueOfPath(String(cp.properties?.$pathname ?? ''), slugs)
+  const pathname = String(cp.properties?.$pathname ?? '')
+  const venue = venueOfPath(pathname, slugs)
   if (venue && cp.properties?.venue === undefined) cp.properties!.venue = venue
+  if (cp.properties) maskBookingCodes(cp.properties)
   return cp
+}
+
+// PostHog repeats the URL in many keys ($session_entry_url, $initial_current_url, ...) and nests some under $set/$set_once: mask every string.
+function maskBookingCodes(o: Record<string, unknown>): void {
+  for (const k of Object.keys(o)) {
+    const v = o[k]
+    if (typeof v === 'string') {
+      o[k] = v
+        .replace(/\/confirmation\/[^/?#]+/g, '/confirmation/:code')
+        .replace(/\/feedback\/[^/?#]+/g, '/feedback/:code')
+    } else if (v && typeof v === 'object' && !Array.isArray(v)) maskBookingCodes(v as Record<string, unknown>)
+  }
 }
 
 const UTM_KEYS = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'utm_term']

@@ -45,6 +45,12 @@ function normalizeLogin(raw: string): string {
 	if (!login || /\s/.test(login)) throw unprocessable('login must not contain spaces')
 	return login
 }
+function maskPhone(p: string | null): string | null {
+	if (!p) return null
+	if (p.length <= 5) return '•••'
+
+	return p.slice(0, 3) + '•••' + p.slice(-2)
+}
 
 const reservationSelect = {
 	id: true,
@@ -571,7 +577,7 @@ export function registerStaffRoutes(app: FastifyInstance, prisma: PrismaClient):
 						action: 'guest.phone_updated',
 						entityType: 'guest',
 						entityId: guest.id,
-						changes: { phone: { from: guest.phone, to: phone } } as Prisma.InputJsonValue,
+						changes: { phone: { from: maskPhone(guest.phone), to: maskPhone(phone) } } as Prisma.InputJsonValue,
 					},
 				})
 			})

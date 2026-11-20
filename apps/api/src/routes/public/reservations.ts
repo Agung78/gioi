@@ -368,6 +368,6 @@ export function registerPublicReservationRoutes(app: FastifyInstance, prisma: Pr
 function distinctIdOf(request: FastifyRequest, fallback: string): string {
 	const raw = request.headers['x-posthog-distinct-id']
 	if (typeof raw !== 'string') return fallback
-	const trimmed = raw.trim().slice(0, 200)
-	return trimmed || fallback
+	if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(raw)) return fallback
+	return raw
 }
