@@ -100,7 +100,7 @@ useHead({
         Marks for pork, seafood, dairy, plant-based and spicy dishes are shown in the PDF menus.
       </p>
       <div class="rise mt-5 flex flex-wrap items-center gap-3" style="animation-delay: 180ms">
-        <a :href="bookHref" class="btn-primary min-h-12 px-8" @click="cta">Reserve a table</a>
+        <a :href="bookHref" class="btn min-h-12 bg-sun px-8 text-base text-navy hover:bg-sand focus-visible:ring-sand focus-visible:ring-offset-navy" @click="cta">Reserve a table</a>
         <a v-for="m in seo.menus" :key="m.path" :href="m.path" class="btn-secondary">{{ m.label }} (PDF)</a>
       </div>
     </header>
@@ -145,7 +145,7 @@ useHead({
     </template>
 
     <div class="mt-8 flex flex-wrap items-center gap-6 border-t border-line py-12">
-      <a :href="bookHref" class="btn-primary min-h-12 px-8" @click="cta">Reserve a table</a>
+      <a :href="bookHref" class="btn min-h-12 bg-sun px-8 text-base text-navy hover:bg-sand focus-visible:ring-sand focus-visible:ring-offset-navy" @click="cta">Reserve a table</a>
       <NuxtLink :to="`/${venue}`" class="inline-flex min-h-11 items-center text-accent underline hover:no-underline">Back to {{ name }}</NuxtLink>
     </div>
   </div>
