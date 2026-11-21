@@ -1,4 +1,5 @@
 import { VENUE_SEO } from './utils/venueSeo'
+import { VENUE_MENU } from './utils/venueMenu'
 
 export default defineNuxtConfig({
 	compatibilityDate: '2026-11-07',
@@ -16,7 +17,7 @@ export default defineNuxtConfig({
 	},
 	nitro: {
 		prerender: {
-			routes: Object.keys(VENUE_SEO).map((s) => `/${s}`),
+			routes: Object.keys(VENUE_SEO).flatMap((s) => (VENUE_MENU[s] ? [`/${s}`, `/${s}/menu`] : [`/${s}`])),
 		},
 	},
 	// Route changes run through document.startViewTransition; the ::view-transition rules live in style.css.

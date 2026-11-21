@@ -137,6 +137,7 @@ onBeforeUnmount(() => ctx?.revert())
       </Transition>
       <p v-if="p.signaturesNote" class="mt-8 max-w-3xl text-sm leading-relaxed text-muted">{{ p.signaturesNote }}</p>
 <div v-if="seo?.menus?.length" class="mt-8 flex flex-wrap gap-x-6 gap-y-1 text-sm">
+<NuxtLink :to="`/${venue}/menu`" class="inline-flex min-h-11 items-center font-medium text-accent underline hover:no-underline">Full menu and prices</NuxtLink>
 <a v-for="m in seo.menus" :key="m.path" :href="m.path" class="inline-flex min-h-11 items-center text-accent underline hover:no-underline">{{ m.label }} (PDF)</a>
       </div>
     </section>

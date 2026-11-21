@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { gateEvent, isStaffPath, venueOfPath, withUtm } from './analytics'
+import { gateEvent, isStaffPath, sessionAttribution, venueOfPath, withUtm } from './analytics'
 
 type Event = { properties?: Record<string, unknown> }
 
@@ -66,5 +66,15 @@ describe('withUtm', () => {
   })
   it('leaves the url untouched without utm', () => {
     expect(withUtm('/bali/book', '?foo=1')).toBe('/bali/book')
+  })
+})
+
+describe('sessionAttribution', () => {
+  it('maps PostHog session-entry props to booking fields and drops the rest', () => {
+    expect(sessionAttribution({ $session_entry_referring_domain: 'www.google.com', $session_entry_utm_campaign: 'gbp', $session_entry_url: 'https://x/y', $session_entry_utm_term: '' })).toEqual({ referringDomain: 'www.google.com', utmCampaign: 'gbp' })
+  })
+  it('is undefined when there is no source', () => {
+    expect(sessionAttribution(undefined)).toBeUndefined()
+    expect(sessionAttribution({ $session_entry_url: 'https://x' })).toBeUndefined()
   })
 })

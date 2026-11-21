@@ -69,6 +69,7 @@ export interface CreateReservationBody {
   website?: string
   noticeAccepted?: boolean
   marketingConsent?: boolean
+  attribution?: import('@/utils/analytics').Attribution
 }
 
 export interface CreateReservationResponse {

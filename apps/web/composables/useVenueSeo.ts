@@ -2,6 +2,7 @@ import { useRoute, useRuntimeConfig, useSeoMeta, useHead, useNuxtApp, createErro
 import { useVenue } from '@/composables/useVenue'
 import { bookingSource } from '@/utils/bookingSource'
 import { VENUE_SEO, imageSrcset, type VenueSeo } from '@/utils/venueSeo'
+import { VENUE_MENU } from '@/utils/venueMenu'
 
 const dayName: Record<string, string> = { mon: 'Monday', tue: 'Tuesday', wed: 'Wednesday', thu: 'Thursday', fri: 'Friday', sat: 'Saturday', sun: 'Sunday' }
 const dayAbbr = (day: string) => day[0]!.toUpperCase() + day[1] // schema.org openingHours: Mo, Tu, …
@@ -89,7 +90,7 @@ export async function useVenueSeo(venue = (useRoute().params.venue as string)) {
                 geo: { '@type': 'GeoCoordinates', latitude: seo.geo.lat, longitude: seo.geo.lng },
                 priceRange: seo.priceRange,
                 servesCuisine: seo.cuisine,
-                ...(seo.menus ? { hasMenu: seo.menus.map((m) => siteUrl + m.path) } : {}),
+                ...(seo.menus ? { hasMenu: [...(VENUE_MENU[venue] ? [`${pageUrl}/menu`] : []), ...seo.menus.map((m) => siteUrl + m.path)] } : {}),
               }
             : {}),
           ...(info?.restaurant.mapsUrl ? { hasMap: info.restaurant.mapsUrl } : {}),

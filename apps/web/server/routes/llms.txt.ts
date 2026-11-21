@@ -1,5 +1,6 @@
 import { defineEventHandler, setHeader } from 'h3'
 import { VENUE_SEO } from '../../utils/venueSeo'
+import { VENUE_MENU } from '../../utils/venueMenu'
 
 // Generated from VENUE_SEO so a new venue shows up here, in the sitemap and on its page with one edit.
 export default defineEventHandler((event) => {
@@ -18,7 +19,7 @@ ${line((slug, v, name) => [`- [${name}](${siteUrl}/${slug}): ${v.description.spl
 
 ## Menus
 
-${line((slug, v, name) => (v.menus ?? []).map((m) => `- [${name}: ${m.label}](${siteUrl}${m.path})`)) || '- None published'}
+${line((slug, v, name) => [...(VENUE_MENU[slug] ? [`- [${name}: full menu with prices](${siteUrl}/${slug}/menu)`] : []), ...(v.menus ?? []).map((m) => `- [${name}: ${m.label}](${siteUrl}${m.path})`)]) || '- None published'}
 
 ## Booking
 

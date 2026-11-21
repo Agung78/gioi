@@ -41,7 +41,6 @@ watch(() => props.reservation?.id, (id) => {
 			<p v-if="reservation.status === 'completed'" class="mt-1.5 text-xs text-muted">The feedback link will open in WhatsApp after saving.</p>
 			<div v-if="error" class="alert-danger mt-3">{{ error }}</div>
 			<div class="mt-4 flex justify-end gap-2">
-				<button type="button" class="btn-secondary" @click="emit('close')">Cancel</button>
 				<button type="submit" class="btn-primary inline-flex items-center gap-2" :disabled="saving">
 					<PhWhatsappLogo v-if="reservation.status === 'completed'" :size="20" aria-hidden="true" />
 					{{ saving ? 'Saving…' : reservation.status === 'completed' ? 'Save & send feedback' : 'Save' }}

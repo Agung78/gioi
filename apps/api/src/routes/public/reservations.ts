@@ -25,12 +25,24 @@ interface CreateReservationBody {
 	source?: 'website' | 'instagram' | 'google' | 'whatsapp'
 	noticeAccepted?: boolean
 	marketingConsent?: boolean
+	attribution?: Partial<Record<(typeof ATTRIBUTION_FIELDS)[number], string>>
 }
 
 interface FeedbackBody {
 	rating: number
 	comments?: string
 	serviceTags?: string[]
+}
+
+// First-touch source of the guest's PostHog session, sent by the booking page; emitted on 'reservation created' as $session_entry_*.
+const ATTRIBUTION_FIELDS = ['referringDomain', 'utmSource', 'utmMedium', 'utmCampaign', 'utmContent', 'utmTerm'] as const
+const ATTRIBUTION_PROPS: Record<(typeof ATTRIBUTION_FIELDS)[number], string> = {
+	referringDomain: '$session_entry_referring_domain',
+	utmSource: '$session_entry_utm_source',
+	utmMedium: '$session_entry_utm_medium',
+	utmCampaign: '$session_entry_utm_campaign',
+	utmContent: '$session_entry_utm_content',
+	utmTerm: '$session_entry_utm_term',
 }
 
 const ACTIVE_STATUSES = ['pending', 'confirmed', 'arrived', 'seated'] as const
@@ -63,6 +75,11 @@ export function registerPublicReservationRoutes(app: FastifyInstance, prisma: Pr
 						noticeAccepted: { type: 'boolean' },
 						marketingConsent: { type: 'boolean' },
 						website: { type: 'string', maxLength: 200 },
+						attribution: {
+							type: 'object',
+							additionalProperties: false,
+							properties: Object.fromEntries(ATTRIBUTION_FIELDS.map((f) => [f, { type: 'string', maxLength: 200 }])),
+						},
 						country: { type: 'string', minLength: 1, maxLength: 80 },
 					},
 				},
@@ -207,6 +224,7 @@ export function registerPublicReservationRoutes(app: FastifyInstance, prisma: Pr
 				lead_hours: Math.floor((startsAt.getTime() - Date.now()) / 3600000),
 				has_occasion: !!body.occasion,
 				has_dietary: (body.allergies?.length ?? 0) > 0,
+				...Object.fromEntries(ATTRIBUTION_FIELDS.flatMap((f) => (body.attribution?.[f] ? [[ATTRIBUTION_PROPS[f], body.attribution[f]]] : []))),
 			})
 			return reply.status(201).send({
 				bookingCode: reservation.bookingCode,
