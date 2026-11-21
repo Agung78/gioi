@@ -45,3 +45,25 @@ export function withUtm(url: string, search: string): string {
   const q = to.toString()
   return q ? `${base}?${q}` : base
 }
+
+// First-touch attribution of the current PostHog session, sent with the booking so the server event carries its source.
+// Keys are PostHog's session-entry props; values are the body fields the API accepts.
+const ATTRIBUTION_KEYS = {
+  $session_entry_referring_domain: 'referringDomain',
+  $session_entry_utm_source: 'utmSource',
+  $session_entry_utm_medium: 'utmMedium',
+  $session_entry_utm_campaign: 'utmCampaign',
+  $session_entry_utm_content: 'utmContent',
+  $session_entry_utm_term: 'utmTerm',
+} as const
+
+export type Attribution = Partial<Record<(typeof ATTRIBUTION_KEYS)[keyof typeof ATTRIBUTION_KEYS], string>>
+
+export function sessionAttribution(props: Record<string, unknown> | undefined): Attribution | undefined {
+  const out: Attribution = {}
+  for (const [from, to] of Object.entries(ATTRIBUTION_KEYS)) {
+    const v = props?.[from]
+    if (typeof v === 'string' && v) out[to as keyof Attribution] = v.slice(0, 200)
+  }
+  return Object.keys(out).length ? out : undefined
+}

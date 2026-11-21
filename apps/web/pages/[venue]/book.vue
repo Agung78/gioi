@@ -252,6 +252,7 @@ async function submit() {
       noticeAccepted: noticeActive.value ? true : undefined,
       marketingConsent: marketingConsent.value,
       country: country.value.trim() || undefined,
+      attribution: sessionAttribution(posthog?.sessionPropsManager?.getSessionProps()),
     }
     const res = await createReservation(venue, body, posthog?.get_distinct_id())
     router.push(`/${venue}/confirmation/${res.bookingCode}`)
